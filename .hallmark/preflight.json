@@ -1,0 +1,11 @@
+{
+  "version": "1.1.0",
+  "scannedAt": "2026-09-25",
+  "framework": "vanilla static HTML + Vite build",
+  "fontStack": "system-ui body + ui-monospace telemetry",
+  "palette": "dark midnight surfaces with cyan, amber, violet, green and red signals",
+  "motion": "CSS transitions and requestAnimationFrame gameplay; no motion library",
+  "spacing": "existing compact scale; V44 introduces named Hallmark tokens",
+  "preserve": ["offline local profile", "six route-level games", "station rail", "existing assets"],
+  "introduce": ["locked design system", "surface hierarchy", "responsive affordance rules", "quiet focus treatment"]
+}

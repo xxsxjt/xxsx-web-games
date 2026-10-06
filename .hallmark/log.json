@@ -1,0 +1,16 @@
+{
+  "scope": "app",
+  "verb": "redesign",
+  "version": "44",
+  "date": "2026-09-25",
+  "designSystem": "design.md",
+  "pages": [
+    {"family":"arcade index","macrostructure":"Catalogue / index-first"},
+    {"family":"station app","macrostructure":"Workbench"},
+    {"family":"game routes","macrostructure":"Tactical console"},
+    {"family":"content","macrostructure":"Long Document + catalogue filters"}
+  ],
+  "theme": "atmospheric technical",
+  "changes": ["tokenised surfaces", "reduced decorative glow", "touch-safe controls", "mobile overflow and heading guards"],
+  "deletions": []
+}

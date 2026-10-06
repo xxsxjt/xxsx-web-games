@@ -1,0 +1,14 @@
+{
+  "name": "xxsx-web-games",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "node scripts/build.mjs",
+    "test": "node tests/core.cjs && node tests/regression.cjs && node tests/border.cjs && node tests/static-validation.cjs"
+  },
+  "devDependencies": {
+    "vite": "8.0.13"
+  }
+}
