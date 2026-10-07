@@ -4,9 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node scripts/dev.mjs",
     "build": "node scripts/build.mjs",
-    "test": "node tests/core.cjs && node tests/regression.cjs && node tests/border.cjs && node tests/static-validation.cjs"
+    "test": "node tests/core.cjs && node tests/regression.cjs && node tests/border.cjs && node tests/static-validation.cjs",
+    "dev:vite": "vite"
   },
   "devDependencies": {
     "vite": "8.0.13"

@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#070b18" />
+<meta name="color-scheme" content="dark" />
+<meta name="description" content="Neon Drift 新伊甸游戏厅：以霓虹突围远征为核心，另有信号中继、回声实验室、深空打捞和黑盒解码组成的小游戏合集。" />
+<title>游戏 · XXSX 游戏站</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070b18'/%3E%3Cpath d='M8 22 16 7l2.3 6.2L24 11l-6 14-2.2-6.4L8 22Z' fill='%2379e7ee'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="static/styles.a6ac9b48622e.css" />
+</head>
+<body>
+<div id="playLoading" role="status" style="position:fixed;inset:0;z-index:1000;display:grid;place-content:center;background:var(--color-paper);color:var(--color-ink);padding:24px"><p>正在载入游戏…</p><a href="./">返回所有游戏</a></div>
+<main class="app hubMode" id="appShell">
+  <header class="topbar">
+    <div class="brand">NEON <b>DRIFT</b><small id="runClock" aria-label="战斗用时">00:00</small></div>
+    <div class="topbarRight"><button class="announcementBtn" id="announcementBtn" type="button" aria-label="打开站点公告"><span>◒</span><i></i></button><span class="profileBadge"><i></i>指挥官 <b id="commanderRank">RANK 01</b></span><div class="buildChip" id="buildChip">脉冲核心 · 漂移推进</div></div>
+  </header>
+
+  <section class="hud" aria-label="战斗状态">
+    <div class="hudCard"><div class="hudLabel">WAVE</div><div class="hudValue" id="wave">1</div><small class="hudMeta" id="waveMeta">准备部署</small></div>
+    <div class="hudCard"><div class="hudLabel">LEVEL</div><div class="hudValue" id="level">1</div><small class="hudMeta" id="xpMeta">XP 0 / 80</small></div>
+    <div class="hudCard"><div class="hudLabel">SCORE</div><div class="hudValue" id="score">0</div><small class="hudMeta" id="scrapMeta">废料 0</small></div>
+    <div class="hudCard"><div class="hudLabel">KILLS</div><div class="hudValue" id="kills">0</div><small class="hudMeta" id="bossMeta">Boss 0</small></div>
+  </section>
+
+  <section class="game" id="gameWrap">
+    <canvas id="gameCanvas" aria-label="霓虹突围战斗区域"></canvas>
+
+    <div class="screenHud">
+      <div class="bars"><div class="barWrap"><div class="bar hpBar" id="hpBar"></div></div><div class="barWrap"><div class="bar xpBar" id="xpBar"></div></div></div>
+      <div class="screenLine"><span id="hpText">HP 120 / 120</span><span id="weaponText">DMG 15 · DPS 44</span></div>
+      <div class="comboWrap" id="comboWrap"><div class="comboLine"><span>COMBO <b id="comboValue">x1.00</b></span><span id="comboTimer">待机</span></div><div class="comboBar"><i id="comboBar"></i></div></div>
+      <div class="bossWrap" id="bossWrap">
+        <div class="bossLine"><span id="bossName">BOSS</span><span id="bossPhase">PHASE 1</span></div>
+        <div class="barWrap"><div class="bar bossBar" id="bossBar"></div></div>
+      </div>
+    </div>
+
+    <div class="stageTag" id="stageTag">WAVE 1 · 初始航道</div>
+    <div class="combatContract" id="combatContract" aria-live="polite"><b>TACTICAL CONTRACT</b><span>战术契约准备中</span><small>完成后会改变战斗节奏</small></div>
+    <div class="mission" id="mission">任务：击败 15 架敌机（0/15）</div>
+    <button class="gameAction dashBtn" id="dashBtn" type="button" aria-label="相位瞬闪">闪<small id="dashText">READY</small></button>
+    <button class="gameAction overdriveBtn" id="overdriveBtn" type="button" aria-label="释放过载协议">OVR<small id="overdriveText">0%</small></button>
+    <button class="gameAction empBtn" id="empBtn" type="button" aria-label="释放 EMP">EMP<small id="empText">1/1</small></button>
+    <div class="toast" id="toast"></div>
+
+    <div class="hubOverlay" id="hubOverlay">
+      <div class="hubShell">
+        <aside class="hubRail" aria-label="舰桥导航">
+          <div class="railMark"><span>ND</span><small>COMMAND</small></div>
+          <button class="railBtn active" data-nav-primary data-hub-view="bridge" type="button"><span>⌂</span><b>舰桥</b></button>
+          <button class="railBtn" data-nav-primary data-hub-view="armory" type="button"><span>◇</span><b>机库</b></button>
+          <button class="railBtn" data-nav-primary data-hub-view="routes" type="button"><span>⌁</span><b>航线</b></button>
+          <button class="railBtn" data-nav-primary data-hub-view="chronicle" type="button"><span>▥</span><b>档案</b></button>
+          <button class="railBtn navSecondary" data-hub-view="codex" type="button"><span>◎</span><b>世界观</b></button>
+          <button class="railBtn navSecondary" data-hub-view="archive" type="button"><span>◈</span><b>图鉴</b></button>
+          <button class="railBtn navSecondary" data-hub-view="guides" type="button"><span>▤</span><b>攻略</b></button>
+          <button class="railBtn navSecondary" data-hub-view="workbench" type="button"><span>⌬</span><b>构筑台</b></button>
+          <button class="railBtn navSecondary" data-hub-view="protocols" type="button"><span>▣</span><b>协议</b></button>
+          <button class="railBtn navSecondary" data-hub-view="challenges" type="button"><span>✦</span><b>挑战</b></button>
+          <button class="railBtn navSecondary" data-hub-view="dispatch" type="button"><span>◒</span><b>公告</b></button>
+          <button class="railBtn hubMoreBtn" id="hubMoreBtn" type="button" aria-expanded="false"><span>＋</span><b>更多</b></button>
+          <div class="railFoot"><span class="connectionDot"></span><small>离线档案<br>已同步本机</small></div>
+        </aside>
+        <div class="hubContent">
+          <div class="hubTopline"><div><div class="kicker">NEON DRIFT // COMMAND DECK</div><h1 id="hubTitle">舰桥</h1><p class="hubIntro" id="hubIntro">选择机体，规划航线，把每一次出击变成下一次突破的筹码。</p></div><div class="hubToplineActions"><div class="resourceDock"><div><span>星尘</span><b id="metaShards">0</b></div><div><span>情报</span><b id="metaIntel">0</b></div><div><span>模块</span><b id="metaModules">0</b></div><div><span>研究</span><b id="metaResearch">0</b></div></div><button class="ghostBtn arcadeHomeBtn" id="arcadeHomeBtn" type="button">所有游戏</button></div></div>
+          <section class="hubView active" data-hub-panel="bridge">
+            <div class="bridgeGrid">
+              <article class="launchCard"><div class="cardEyebrow">READY ROOM <span class="livePill"><i></i>系统在线</span></div><h2>下一次出击</h2><p>穿过碎片带，寻找高品质核心。每次航线节点都会改变敌群、奖励和风险。</p><div class="launchReadout"><div><span>航段</span><b id="launchStageLabel">01 / 05</b></div><div><span>节点</span><b id="launchNodeLabel">交战区</b></div><div><span>种子</span><b class="cyanText" id="launchSeedLabel">ND-READY</b></div></div><div class="launchMeta"><span><b id="selectedShipLabel">脉冲猎手</b><small>当前机体</small></span><span><b id="selectedRouteLabel">初始航道</b><small>当前航线</small></span></div><div class="routePath" aria-label="航线进度"><i class="done"></i><span></span><i class="active"></i><span></span><i></i><span></span><i></i><b>可在航线图重规划</b></div><button class="primary launchBtn" id="hubStartBtn" type="button">打开霓虹突围 <span>→</span></button></article>
+              <article class="shipPreviewCard"><div class="cardEyebrow">ACTIVE FRAME · <span id="shipClassLabel">均衡型</span></div><div class="shipVisual"><div class="shipGlow"></div><img class="shipImage" data-expedition-src="assets/player-ship-v2.3767363a890b.webp" alt="" /><span class="orbit orbitA"></span><span class="orbit orbitB"></span><span class="shipCode">ND-07 / PULSE HUNTER</span></div><div class="shipPreviewFooter"><div><b id="shipPowerLabel">战力 100</b><small id="shipPerkLabel">稳定输出 · 适合新手</small></div><button class="ghostBtn" data-hub-view="armory" type="button">查看机库</button></div></article>
+            </div>
+            <div class="sectionHeading"><div><span class="kicker">RUN LOOP</span><h2>出击循环</h2></div><span class="sectionHint">把资源投入下一次更深的航程</span></div>
+            <div class="loopStrip"><div class="loopStep current"><span>01</span><b>构筑</b><small>选择机体与装备</small></div><div class="loopLine"></div><div class="loopStep"><span>02</span><b>航线</b><small>事件与奖励分岔</small></div><div class="loopLine"></div><div class="loopStep"><span>03</span><b>战斗</b><small>波次与 Boss</small></div><div class="loopLine"></div><div class="loopStep"><span>04</span><b>带回</b><small>星尘与解锁</small></div></div>
+            <div class="missionBoard" id="missionBoard" aria-live="polite"></div>
+            <div class="stationPortal" id="stationPortal" aria-live="polite"></div>
+            <div class="quickGrid"><button class="quickCard" data-hub-view="armory" type="button"><span class="quickIcon cyan">◇</span><span><b>整理构筑</b><small>装备槽与背包</small></span><strong>→</strong></button><button class="quickCard" data-hub-view="routes" type="button"><span class="quickIcon violet">⌁</span><span><b>规划航线</b><small>风险 / 奖励选择</small></span><strong>→</strong></button><button class="quickCard" data-hub-view="protocols" type="button"><span class="quickIcon green">▣</span><span><b>升级协议</b><small>永久强化与回局动力</small></span><strong>→</strong></button><button class="quickCard" data-hub-view="challenges" type="button"><span class="quickIcon gold">✦</span><span><b>查看挑战</b><small>局外目标与奖励</small></span><strong>→</strong></button><button class="quickCard" data-hub-view="chronicle" type="button"><span class="quickIcon amber">▤</span><span><b>查看作战日志</b><small>最近远征与短局</small></span><strong>→</strong></button></div>
+          </section>
+          <section class="hubView" data-hub-panel="armory"><div class="viewHeader"><div><span class="kicker">HANGAR / LOADOUT</span><h2>机库与构筑</h2><p>先决定你想怎么赢，再把装备放进正确的槽位。</p></div><button class="ghostBtn" data-hub-view="bridge" type="button">返回舰桥</button></div><div class="shipPicker" id="shipPicker"></div><div class="hubArmoryStats" id="hubArmoryStats"></div><div class="hubLoadout" id="hubLoadout"></div><section class="presetPanel"><div class="sectionHeading presetHeading"><div><span class="kicker">LOADOUT MEMORY</span><h2>构筑预设</h2></div><span class="sectionHint">保存三套可随时回滚的方案</span></div><div class="presetGrid" id="presetGrid"></div></section></section>
+          <section class="hubView" data-hub-panel="routes"><div class="viewHeader"><div><span class="kicker">NAVIGATION / STAR MAP</span><h2>星图与远征种子</h2><p>先选星区，再规划五段节点。相同种子会生成相同的分岔，方便复盘与研究。</p></div><button class="ghostBtn" data-hub-view="bridge" type="button">返回舰桥</button></div><div class="routeGrid" id="routeGrid"></div><div class="starMapHeader"><div><span class="kicker">CURRENT EXPEDITION MAP</span><h3>本局路线规划</h3><p id="routeMapStatus">正在生成节点组合</p></div><div class="starSeed"><span>RUN SEED</span><b id="routeSeedLabel">ND-READY</b><button class="utilityBtn" id="routeRerollBtn" type="button">重掷种子</button></div></div><div class="starMap" id="routeMap"></div><div class="routeBrief" id="routeBrief"></div></section>
+          <section class="hubView" data-hub-panel="codex"><div class="viewHeader"><div><span class="kicker">WORLD CODEX / SIGNAL ARCHIVE</span><h2>星区资料库</h2><p>把一局游戏放回更大的世界里：城市、势力与废墟都在这里留下了自己的回声。</p></div><button class="ghostBtn" data-hub-view="bridge" type="button">返回舰桥</button></div><div class="contentIntroBar"><div><span class="contentIntroIcon">◎</span><div><b>NEON DRIFT FIELD ARCHIVE</b><p>资料库会随站点版本扩充；当前内容为本机离线档案，不需要登录。</p></div></div><span class="contentCount" id="codexCount">0 条记录</span></div><div class="filterBar" id="codexFilters" role="tablist" aria-label="资料库筛选"></div><div class="codexGrid" id="codexGrid"></div></section>
+          <section class="hubView" data-hub-panel="archive"><div class="viewHeader"><div><span class="kicker">THREAT DATABASE</span><h2>威胁图鉴</h2><p>先读懂敌人的行为，再决定你的武器流派。</p></div><button class="ghostBtn" data-hub-view="bridge" type="button">返回舰桥</button></div><div class="hubArchiveGrid" id="hubArchiveGrid"></div></section>
+          <section class="hubView" data-hub-panel="guides"><div class="viewHeader"><div><span class="kicker">FIELD GUIDE / COMMAND NOTES</span><h2>指挥官攻略</h2><p>短而具体的打法笔记：从第一波站位，到 Boss 护盾窗口，再到三种不同的构筑方向。</p></div><button class="ghostBtn" data-hub-view="bridge" type="button">返回舰桥</button></div><div class="contentIntroBar guideIntro"><div><span class="contentIntroIcon">▤</span><div><b>PLAYBOOK / 10 NOTES</b><p>每篇攻略都对应站点内真实可操作的系统，不把数值藏在看不见的说明里。</p></div></div><span class="contentCount" id="guideCount">0 篇笔记</span></div><div class="filterBar" id="guideFilters" role="tablist" aria-label="攻略筛选"></div><div class="guideGrid" id="guideGrid"></div></section>
+          <section class="hubView" data-hub-panel="workbench"><div class="viewHeader"><div><span class="kicker">BLUEPRINT WORKBENCH / BUILD THEORY</span><h2>构筑实验台</h2><p>在不影响当前出击的前提下，预览五个基础装备槽与可解锁的第六模组槽，再试主武器分支和副武器组合。</p></div><button class="ghostBtn" data-hub-view="bridge" type="button">返回舰桥</button></div><div class="workbenchLayout"><article class="workbenchPreview"><div class="workbenchHeader"><div><span class="kicker">LIVE SIMULATION</span><h3>理论面板</h3></div><span class="workbenchStatus" id="workbenchStatus">预览模式 · 不影响当前构筑</span></div><div class="workbenchStats" id="workbenchStats"></div><div class="workbenchSynergy" id="workbenchSynergy"></div><div class="workbenchBlueprints" id="workbenchBlueprints"></div><div class="workbenchPresetActions" id="workbenchPresetActions"></div></article><article class="workbenchControls"><div class="workbenchBlock"><div class="workbenchBlockHead"><span>ACTIVE FRAME</span><small>选择要测试的机体</small></div><div class="workbenchShipPicker" id="workbenchShipPicker"></div></div><div class="workbenchBlock"><div class="workbenchBlockHead"><span>BUILD SLOTS</span><small>主武器、副武器、核心、战术、推进；舰站可解锁第六模组</small></div><div class="workbenchSlotTabs" id="workbenchSlotTabs"></div><div class="workbenchItemGrid" id="workbenchItemGrid"></div></div><div class="workbenchActions"><button class="utilityBtn" id="workbenchResetBtn" type="button">重置为当前构筑</button><span>预览不会自动替换实战装备</span></div></article></div></section>
+          <section class="hubView" data-hub-panel="protocols"><div class="viewHeader"><div><span class="kicker">META PROTOCOLS / PERMANENT SYSTEMS</span><h2>局外协议</h2><p>把带回的星尘投入舰队系统，每次出击都能从更高的起点开始。</p></div><button class="ghostBtn" data-hub-view="bridge" type="button">返回舰桥</button></div><div class="protocolSummary" id="protocolSummary"></div><div class="protocolGrid" id="protocolGrid"></div></section>
+          <section class="hubView" data-hub-panel="challenges"><div class="viewHeader"><div><span class="kicker">COMMANDER PROTOCOLS</span><h2>挑战与解锁</h2><p>局内表现会转化成局外资源，逐步打开新的出击方式。</p></div><button class="ghostBtn" data-hub-view="bridge" type="button">返回舰桥</button></div><div class="challengeGrid" id="challengeGrid"></div></section>
+          <section class="hubView" data-hub-panel="dispatch"><div class="viewHeader"><div><span class="kicker">STATION DISPATCH / RELEASE FEED</span><h2>站点动态</h2><p>版本更新、已验证边界与世界内的频道广播，集中放在一条可追踪的时间线上。</p></div><button class="ghostBtn" data-hub-view="bridge" type="button">返回舰桥</button></div><div class="dispatchHero" id="dispatchHero"></div><div class="dispatchGrid" id="dispatchGrid"></div></section>
+          <section class="hubView" data-hub-panel="chronicle"><div class="viewHeader"><div><span class="kicker">CHRONICLE / LOCAL TELEMETRY</span><h2>作战日志</h2><p>每次远征、信号中继、深空打捞和回声实验都会留下痕迹，方便你看见真正的成长。</p></div><button class="ghostBtn" data-hub-view="bridge" type="button">返回舰桥</button></div><div class="chronicleSummary" id="chronicleSummary"></div><div class="chronicleGrid"><article class="chronicleTrack"><div class="chroniclePanelHead"><div><span class="kicker">ACTIVE PROFILE</span><h3>当前档案</h3></div><span class="livePill"><i></i>本机保存</span></div><div class="chronicleLoadout" id="chronicleLoadout"></div><div class="chronicleTrackMeta" id="chronicleTrackMeta"></div></article><article class="chronicleTimeline"><div class="chroniclePanelHead"><div><span class="kicker">RECENT SIGNALS</span><h3>最近记录</h3></div><span class="sectionHint">最多保留 18 条</span></div><div id="chronicleList"></div></article></div></section>
+        </div>
+      </div>
+    </div>
+
+
+
+    <div class="overlay" id="startOverlay">
+      <div class="panel">
+        <div class="kicker">MOBILE ROGUELITE · ARSENAL RUN</div>
+        <h1>霓虹突围</h1>
+        <p>拖动战机，方向同时决定走位和主炮瞄准。每波会给出一个战术契约：持续漂移、锁定标记目标或主动破盾；完成后会立刻改变接下来的战斗节奏。</p>
+        <div class="panelHint">瞬闪冷却 4.5 秒；尚未拖动时默认向上。构筑、暂停和升级选择期间，战斗与冷却都会冻结。</div>
+        <div class="combatPrimer" aria-label="战斗快速说明"><div><b>看颜色</b><span>敌机轮廓代表威胁类型，护盾是蓝色环。</span></div><div><b>看预警</b><span>出现 FIRE / LOCK 射线就横移；DASH 标记代表冲刺目标。</span></div><div><b>看反馈</b><span>数字代表伤害，蓝字是护盾，破盾后会出现输出窗口。</span></div></div>
+        <div class="tips"><span class="tip">拖动闪避</span><span class="tip">WASD / 方向键</span><span class="tip">Space 瞬闪</span><span class="tip">E 释放 EMP</span><span class="tip">航线事件</span><span class="tip">四种 Boss</span><span class="tip">深空打捞</span><span class="tip">黑盒解码</span></div>
+        <div class="starterLoadout" id="starterLoadout"></div>
+        <button class="primary" id="startBtn" type="button">开始作战</button>
+        <div class="meta" id="bestText">最高纪录：0 分 · 0 波</div>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="lootOverlay">
+      <div class="panel wide">
+        <div class="panelHeader"><div><div class="kicker">ARSENAL DROP</div><h2>选择一件装备</h2><div class="panelHint" id="lootQueueText"></div></div></div>
+        <div class="lootGrid" id="lootGrid"></div>
+        <div class="lootFooter"><button class="utilityBtn" id="rerollBtn" type="button">重构选项 · 2 废料</button><button class="utilityBtn" id="salvageLootBtn" type="button">全部拆解 · +2 废料</button></div>
+        <div class="panelHint">相同装备会融合升级；不同装备会替换同槽位，旧装备进入背包。</div>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="eventOverlay">
+      <div class="panel wide eventPanel">
+        <div class="panelHeader"><div><div class="kicker" id="eventTag">SIGNAL INTERCEPT</div><h2 id="eventTitle">未知信号</h2><div class="panelHint" id="eventText"></div></div></div>
+        <div class="eventGrid" id="eventChoices"></div>
+        <div class="panelHint eventFooter">每次事件只选择一项。选择后立即生效，下一波航线会继续推进；桌面端可按 1 / 2 / 3 快速选择。</div>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="armoryOverlay">
+      <div class="panel wide">
+        <div class="panelHeader sticky"><div><div class="kicker">LOADOUT CONTROL</div><h2>构筑设置</h2></div><button class="closeBtn" id="closeArmoryBtn" type="button" aria-label="关闭构筑">×</button></div>
+        <p class="panelHint">点击装备槽查看详情；卸下需要单独操作。换装前可比较收益，旧装备进入背包。</p>
+        <div class="armoryStats" id="armoryStats"></div>
+        <div class="synergyStrip" id="synergyStrip"></div>
+        <h3>装备槽</h3>
+        <div class="slotGrid" id="slotGrid"></div>
+        <section class="equipmentDetail" id="equipmentDetail" aria-label="已装备详情"></section>
+        <details class="synergyGuide"><summary>联动手册 · 查看组合与效果</summary><div id="synergyGuide"></div></details>
+        <div class="bagHeader"><h3>背包</h3><span id="bagCount">0 / 12</span></div>
+        <div class="inventoryGrid" id="inventoryGrid"></div>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="archiveOverlay">
+      <div class="panel wide">
+        <div class="panelHeader sticky"><div><div class="kicker">THREAT DATABASE</div><h2>威胁图鉴</h2></div><button class="closeBtn" id="closeArchiveBtn" type="button" aria-label="关闭图鉴">×</button></div>
+        <p class="panelHint">普通敌机随波次成长；第 4 波起会轮换狂暴、复仇、裂变和压制协议。看到 FIRE / LOCK 射线先躲，再利用伤害数字和破盾提示确认输出窗口；Boss 每五波出现。</p>
+        <div class="archiveGrid" id="archiveGrid"></div>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="pauseOverlay">
+      <div class="panel">
+        <div class="kicker">SYSTEM PAUSED</div><h2>战斗暂停</h2><p id="pauseReason">切到后台时游戏会自动暂停；返回后确认继续。</p>
+        <button class="primary" id="resumeBtn" type="button">继续作战</button>
+        <button class="utilityBtn" id="abandonExpeditionBtn" type="button">结束本局并结算</button>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="gameOverOverlay">
+      <div class="panel">
+        <div class="kicker">RUN COMPLETE</div><h2 id="resultTitle">战机损毁</h2>
+        <p id="resultText"></p>
+        <p class="resultOutcome" id="resultOutcome"></p><p class="resultOutcome" id="resultRecord"></p><div class="finalBuild" id="finalBuild"></div><button class="utilityBtn hidden" id="endlessAfterWinBtn" type="button">开始一局无尽挑战</button>
+        <button class="primary" id="restartBtn" type="button">重新出击</button>
+        <button class="utilityBtn" id="returnGamePageBtn" type="button">返回远征菜单</button>
+        <button class="utilityBtn returnArcadeBtn" id="returnArcadeBtn" type="button">返回所有游戏</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="arcadeGamePages hidden" id="arcadeGamePages" aria-label="独立游戏页面">
+    <div class="arcadeGamePage expeditionGamePage" id="expeditionGamePage" data-arcade-page="expedition">
+      <header class="standaloneGameHeader"><button class="standaloneBack" data-arcade-home type="button">所有游戏</button><span>GAME 01 / ACTION ROGUELITE</span><b>NEON DRIFT</b></header>
+      <div class="expeditionHero"><div class="expeditionCopy"><span class="kicker">FIVE SECTORS · BUILD · SURVIVE</span><h1>霓虹突围</h1><p>穿过五段航线，完成一次弹幕生存远征。拖动方向会同时改变走位和主炮瞄准；每波的战术契约会把移动、锁定或破盾变成短时战斗优势。拆装武器构筑、应对路线事件，并在每五波迎战阶段 Boss。</p><fieldset class="runModePicker"><legend>选择模式</legend><label><input type="radio" name="runMode" value="campaign" checked><span><b>战役</b><small>五段航线 · 第十波终局 Boss</small></span></label><label><input type="radio" name="runMode" value="endless"><span><b>无尽</b><small>持续挑战 · 独立最高纪录</small></span></label></fieldset><p class="runSaveHint" id="expeditionRecord"></p><p class="runSaveHint">成长保存在本机；本局战斗不支持刷新续玩。</p><div class="expeditionActions"><button class="primary" id="expeditionStartBtn" type="button">开始战役</button><button class="ghostBtn" id="expeditionSetupBtn" data-station-view="routes" type="button">查看机体与星图设置</button></div></div><aside class="expeditionBrief"><span class="kicker">HOW TO PLAY</span><h2>操作与目标</h2><ul><li><b>移动 / 瞄准</b><span>触屏拖动方向决定走位与主炮方向；电脑使用 WASD 或方向键。</span></li><li><b>闪避</b><span>Space 或屏幕按钮触发相位瞬闪。</span></li><li><b>反击</b><span>E 释放 EMP 清弹；战机沿当前瞄准方向自动开火。</span></li><li><b>战术契约</b><span>每波完成漂移、锁定或破盾目标，会获得几秒真实的射速、无敌或伤害窗口。</span></li><li><b>防线</b><span>敌机越过屏幕底部会触发 BREACH，造成冲击并打断连杀；看到红色预警就优先处理。</span></li><li><b>构筑</b><span>升级时选择武器；重复装备融合，副武器与装备槽形成联动。</span></li><li><b>通关</b><span>战役在第十波终局 Boss 后胜利结算；无尽模式继续推进。</span></li></ul></aside></div>
+      <div class="expeditionFooter"><span>独立远征记录</span><span>可从游戏目录随时返回其他作品</span><span>离线进度保存在当前浏览器</span></div>
+    </div>
+    <section class="arcadeGamePage borderTacticsPage hidden" id="borderTacticsPage" data-arcade-page="border" aria-labelledby="borderTitle">
+      <header class="standaloneGameHeader"><button class="standaloneBack" data-arcade-home type="button">所有游戏</button><span>GAME 02 / SQUAD TACTICS</span><b>LOST STATION</b></header>
+      <section class="borderLobby" id="borderLobby">
+        <div class="borderHero"><div><span class="kicker">THREE OPERATORS · TELEGRAPH · EXTRACT</span><h1 id="borderTitle">边境战术：失落站</h1><p>三人小队逐格推进失联空间站。读取敌人预警、利用掩体、分配行动点，夺取终端后带队撤离。每次行动都会自动保存，可随时离开再续玩。</p></div><div class="borderCampaignMark"><span>OPERATION</span><b>LS—07</b><small>TURN BASED / OFFLINE</small></div></div>
+        <div class="borderLobbyGrid">
+          <article class="borderBriefCard"><span class="kicker">MISSION BRIEF</span><h2>找回失落站的航行档案</h2><p>站内仍有巡逻机、火力哨戒与一名守卫核心的指挥机。每个舱段先压制敌人并启动数据终端，再选择补给进入下一段。</p><div class="borderMissionFacts"><span>3 个连续舱段</span><span>每名干员 2 点行动</span><span>敌方攻击先显示预警</span></div></article>
+          <article class="borderContractCard"><span class="kicker">INSERTION CONTRACT</span><h2>选择行动方案</h2><div class="borderContractPicker" id="borderContractPicker"><button class="borderContractChoice active" data-border-contract="recon" type="button"><b>静默勘察</b><small>敌人伤害降低，适合熟悉战场</small></button><button class="borderContractChoice" data-border-contract="salvage" type="button"><b>高价值回收</b><small>敌人增加，撤离奖励提高</small></button><button class="borderContractChoice" data-border-contract="hunter" type="button"><b>猎杀指挥官</b><small>最终守卫强化，精英战利品更多</small></button></div><div class="borderSaveStatus" id="borderSaveStatus" aria-live="polite">检查本地行动档案…</div><div class="borderLobbyActions"><button class="primary" id="borderStartBtn" type="button">开始新行动</button><button class="utilityBtn" id="borderContinueBtn" type="button" hidden>继续上次行动</button></div></article>
+        </div>
+        <div class="borderOperatorPreview"><span class="kicker">RECON TEAM / 03</span><div class="borderOperatorCards"><article><i>01</i><b>突击手</b><small>步枪压制 · 震荡弹打断预警</small></article><article><i>02</i><b>医护兵</b><small>中距离射击 · 为邻近队员急救</small></article><article><i>03</i><b>工程师</b><small>远程脉冲 · 干扰敌方下一轮行动</small></article></div></div>
+      </section>
+      <section class="borderMission hidden" id="borderMission">
+        <div class="borderMissionHead"><div><span class="kicker" id="borderSectorTag">SECTOR 01 / DOCK</span><h2 id="borderSectorTitle">外环泊位</h2><p id="borderObjectiveText">压制敌人并启动航行终端</p></div><div class="borderMissionHeadActions"><button class="ghostBtn" id="borderSaveNowBtn" type="button">保存并返回</button><button class="ghostBtn" data-arcade-home type="button">游戏目录</button></div></div>
+        <div class="borderBattleLayout">
+          <article class="borderBattleCard"><div class="borderBattleTop"><span id="borderTurnLabel">我方行动 · 第 1 回合</span><b id="borderAlertLabel">警戒 0</b></div><div class="borderBoardLegend"><span><i class="legendUnit"></i>我方</span><span><i class="legendEnemy"></i>敌方</span><span><i class="legendCover"></i>掩体</span><span><i class="legendIntent"></i>敌方预警格</span></div><div class="borderGridFrame"><div class="borderGrid" id="borderGrid" role="grid" aria-label="失落站战术棋盘"></div></div><div class="borderTargetHint" id="borderTargetHint" aria-live="polite">选择干员，再点亮格移动；点敌人即可射击。</div><div class="borderActions"><button class="utilityBtn" id="borderAbilityBtn" type="button">使用战术技能</button><button class="utilityBtn" id="borderInteractBtn" type="button">启动终端</button><button class="primary" id="borderEndTurnBtn" type="button">结束我方回合</button><button class="utilityBtn hidden" id="borderNextSectorBtn" type="button">进入下一舱段</button></div><div class="borderUpgradeDraft hidden" id="borderUpgradeDraft" aria-live="polite"></div></article>
+          <aside class="borderTacticalSide"><section class="borderSquadPanel"><div class="borderSideHead"><span class="kicker">SQUAD STATUS</span><b id="borderSquadSummary">3 / 3</b></div><div class="borderSquadList" id="borderSquadList"></div></section><section class="borderEnemyPanel"><div class="borderSideHead"><span class="kicker">HOSTILES / INTENT</span><b id="borderEnemySummary">0</b></div><div class="borderEnemyList" id="borderEnemyList"></div></section><section class="borderLogPanel"><div class="borderSideHead"><span class="kicker">FIELD LOG</span><b id="borderCampaignScore">0</b></div><div class="borderCombatLog" id="borderCombatLog" aria-live="polite"></div></section><button class="borderAbandonBtn" id="borderAbandonBtn" type="button">放弃并清除本次行动</button></aside>
+        </div>
+      </section>
+      <section class="borderResult hidden" id="borderResult" aria-live="polite"><span class="kicker" id="borderResultTag">OPERATION COMPLETE</span><h2 id="borderResultTitle">航行档案已回收</h2><p id="borderResultText"></p><div class="borderResultStats" id="borderResultStats"></div><button class="primary" id="borderNewAfterResultBtn" type="button">准备下一次行动</button><button class="utilityBtn" data-arcade-home type="button">返回游戏目录</button></section>
+    </section>
+          <section class="hubView" data-hub-panel="signals"><div class="viewHeader"><div><span class="kicker">SIGNAL RELAY / INTERCEPTION RUN</span><h2>信号中继</h2><p>三段式拦截。每 15 秒切换频道并选择一项接收协议；目标、连击和诱饵会改变当局得分。</p></div><button class="ghostBtn" data-arcade-home type="button">所有游戏</button></div><div class="signalGrid"><article class="signalConsole"><div class="signalConsoleHead"><span>NEON RELAY // INTERCEPTOR</span><b id="relayStatus">待命</b></div><div class="relayBoard" id="relayBoard"><div class="relayGridLines"></div><div class="relayScan"></div><div class="relayHint" id="relayHint">启动后捕获漂移中的信号节点</div></div><div class="relayStats"><div><span>剩余时间</span><b id="relayTimer">45s</b></div><div><span>频道阶段</span><b id="relaySector">01 / 03</b></div><div><span>本轮分数</span><b id="relayScore">0</b></div><div><span>连续命中</span><b id="relayStreak">0</b></div><div><span>误触 / 漏接</span><b id="relayMisses">0</b></div><div><span>历史最高</span><b id="relayBest">0</b></div></div><div class="masteryHost" id="relayMastery"></div><div class="arcadeDraft hidden" id="relayDraft" aria-live="polite"></div><button class="primary" id="relayStartBtn" type="button">启动随机拦截赛</button><p class="panelHint">青色是信号，金色是缓存，红色是诱饵。每 15 秒暂停选协议：延长窗口、提高缓存率、放大得分、增加信号分或防断连击。45 秒结束结算；每局协议组合不同。</p></article><aside class="signalFeed"><div class="signalFeedHeader"><div><span class="kicker">OPEN CHANNELS</span><h3>开放频道</h3></div><span class="sectionHint">离线可用</span></div><div id="signalFeed"></div></aside></div><div class="sectionHeading signalHeading"><div><span class="kicker">SITE CONTRACTS</span><h2>站点委托</h2></div><span class="sectionHint">六种游戏模式共用档案、资源与委托进度</span></div><div class="contractGrid" id="contractGrid"></div></section>
+          <section class="hubView" data-hub-panel="salvage"><div class="viewHeader"><div><span class="kicker">SALVAGE EXPEDITION / DERELICT BELT</span><h2>深空打捞</h2><p>每层格网和货物位置按本局种子生成，深度会从 5×5 扩至 7×7。选一项打捞委托，找信标后决定撤离、继续深入或完成委托再走。</p></div><button class="ghostBtn" data-arcade-home type="button">所有游戏</button></div><div class="salvageContractHeading"><b>选择本次委托</b><span>完成委托可获得额外星尘</span></div><div class="salvageContractPicker" id="salvageContractPicker"></div><div class="salvageGridLayout"><article class="salvageConsole"><div class="salvageConsoleHead"><span>DERELICT BELT // EXPEDITION</span><b id="salvageStatus" aria-live="polite">待命</b></div><div class="salvageBoard" id="salvageBoard"><div class="salvageGridLines"></div><div class="salvageScan"></div><div class="salvageHint" id="salvageHint">启动后选择相邻舱格</div><div class="salvageGrid" id="salvageGrid"></div></div><div class="salvageStats"><div><span>本层倒计时</span><b id="salvageTimer">60s</b></div><div><span>当前层数</span><b id="salvageSector">01 / 03</b></div><div><span>探险得分</span><b id="salvageScore">0</b></div><div><span>回收件</span><b id="salvageCollected">0</b></div><div><span>警戒热度</span><b id="salvageHeat">0</b></div><div><span>历史最高</span><b id="salvageBest">0</b></div><div><span>数据 / 遗物</span><b id="salvageData">0 数据 · 0 遗物</b></div></div><div class="masteryHost" id="salvageMastery"></div><div class="salvageActions"><button class="primary" id="salvageStartBtn" type="button">开始打捞远征</button><button class="utilityBtn" id="salvageExtractBtn" type="button" hidden>带货撤离</button><button class="utilityBtn" id="salvageDescendBtn" type="button" hidden>继续深入</button></div><p class="panelHint">只能翻开当前位置相邻的舱格。废料、缓存、数据、遗物和补给有不同收益；危险会损失氧压并增加热度。抵达信标且带够 3 件物资后可撤离或深入，完成所选委托还能多得星尘。</p></article><aside class="salvageBrief"><div class="signalFeedHeader"><div><span class="kicker">FIELD MANUAL</span><h3>远征协议</h3></div><span class="sectionHint">最多 3 层</span></div><div class="salvageBriefRow"><span>01</span><div><b>建立路线</b><p>每一步只开放当前位置四周的未知舱格；危险和信标都藏在未探区域。</p></div></div><div class="salvageBriefRow"><span>02</span><div><b>控制热度</b><p>危险会扣分、损失时间并增加热度；热度越高，继续深入的风险越大。</p></div></div><div class="salvageBriefRow"><span>03</span><div><b>做撤离决策</b><p>信标处能保住已有战利品。继续深入会把奖励倍率推高，但下一层危险更多。</p></div></div><div class="salvageBriefFoot"><span>远征目标</span><b>探路 · 取舍 · 撤离</b></div></aside></div></section>
+          <section class="hubView" data-hub-panel="lab"><div class="viewHeader"><div><span class="kicker">ECHO LAB / MEMORY CAMPAIGN</span><h2>回声实验室</h2><p>撑过 120 秒，尽可能多地复现随机序列。每三轮切换规则并挑选一项认知协议；后期扩展到 4×4 节点，紫色干扰会混入序列。</p></div><button class="ghostBtn" data-arcade-home type="button">所有游戏</button></div><div class="labGrid"><article class="labConsole"><div class="labConsoleHead"><span>ECHO LAB // ADAPTIVE SIMULATION</span><b id="labStatus">待命</b></div><div class="labBoard" id="labBoard"><div class="labScan"></div><div class="labGridLines"></div><div class="labHint" id="labHint">启动后记住亮起的节点</div><div class="labNodes" id="labNodes"></div></div><div class="labStats"><div><span>剩余时间</span><b id="labTimer">120s</b></div><div><span>规则组</span><b id="labStage">规则 01</b></div><div><span>成功轮数</span><b id="labRound">0 · 无尽</b></div><div><span>容错生命</span><b id="labLives">3</b></div><div><span>本轮分数</span><b id="labScore">0</b></div><div><span>历史最高</span><b id="labBest">0</b></div></div><div class="masteryHost" id="labMastery"></div><div class="arcadeDraft hidden" id="labDraft" aria-live="polite"></div><button class="primary" id="labStartBtn" type="button">开始 120 秒无尽试炼</button><p class="panelHint">每局先抽出四种规则的顺序：正序、逆序、先奇后偶、首位移到末尾。观察闪光后按当前规则输入；第 7 轮起忽略紫色干扰。每正确三轮选择协议强化，输错会消耗生命并重播。</p></article><aside class="labBrief"><div class="signalFeedHeader"><div><span class="kicker">HOW IT WORKS</span><h3>试炼规则</h3></div><span class="sectionHint">记忆与节奏</span></div><div class="labBriefRow"><span>01</span><div><b>读取序列</b><p>节点从左到右逐次闪烁，紫色干扰只作误导，不属于答案。</p></div></div><div class="labBriefRow"><span>02</span><div><b>执行规则</b><p>当前规则每三轮变化：正序、逆序、先奇后偶、首位移到末尾；第 7 轮起忽略紫色诱饵。</p></div></div><div class="labBriefRow"><span>03</span><div><b>管理生命</b><p>错误不会直接结束，三颗生命耗尽才算失败。尽量少错以拿满分。</p></div></div><div class="labBriefFoot"><span>通关目标</span><b>120 秒 · 无轮数上限</b></div></aside></div></section>
+          <section class="hubView" data-hub-panel="blackbox"><div class="viewHeader"><div><span class="kicker">BLACKBOX / CIRCUIT RECONSTRUCTION</span><h2>黑盒解码</h2><p>每局挑战七层程序线路：棋盘会从 5×5 扩至 7×7，路线每次重生成。每层连通后挑一个系统模组，再决定怎样分配步数与提示。IN/OUT 方位与线路每局变化，棋盘由 5×5 扩至 7×7。</p></div><button class="ghostBtn" data-arcade-home type="button">所有游戏</button></div><div class="blackboxLayout"><article class="blackboxConsole"><div class="blackboxConsoleHead"><span>OBSCURA NETWORK // LIVE</span><b id="blackboxStatus">待命</b></div><div class="blackboxLegend"><span><i class="blackboxLegendIn"></i>输入</span><span><i class="blackboxLegendOut"></i>输出</span><span><i class="blackboxLegendPowered"></i>通电线路</span><span>点击瓦片顺时针旋转</span></div><div class="blackboxBoard" id="blackboxBoard"><div class="blackboxGrid" id="blackboxGrid" role="group" aria-label="程序生成线路解码棋盘"></div></div><div class="blackboxStats"><div><span>系统层级</span><b id="blackboxStage">— / 07</b></div><div><span>剩余步数</span><b id="blackboxMoves">—</b></div><div><span>完整性</span><b id="blackboxIntegrity">3</b></div><div><span>本轮得分</span><b id="blackboxScore">0</b></div><div><span>历史最高</span><b id="blackboxBest">0</b></div></div><div class="masteryHost" id="blackboxMastery"></div><div class="blackboxActions"><button class="primary" id="blackboxStartBtn" type="button">启动随机黑盒</button><button class="utilityBtn" id="blackboxHintBtn" type="button" disabled>读取线路提示</button></div><div class="arcadeDraft hidden" id="blackboxDraft" aria-live="polite"></div><p class="blackboxHint" id="blackboxHintText" aria-live="polite">每局随机生成 5×5 至 7×7 电路。规划输入端到输出端的通路，旋转瓦片并管理步数。</p></article><aside class="blackboxBrief"><div class="signalFeedHeader"><div><span class="kicker">DECODER MANUAL</span><h3>解码手册</h3></div><span class="sectionHint">逻辑解谜</span></div><div class="blackboxBriefStep"><b>01 · 找线路</b><p>IN 与 OUT 每局都会转到不同边缘；沿着接口互相吻合的相邻瓦片找通路，只有连续连通才会通电。</p></div><div class="blackboxBriefStep"><b>02 · 转接瓦片</b><p>点击任意有接口的瓦片顺时针转 90°。被输入端点亮的瓦片会显示青色供电状态。</p></div><div class="blackboxBriefStep"><b>03 · 控制完整性</b><p>步数耗尽会断线并损失一格完整性；修好当前层后进入下一张更复杂的线路图。</p></div><div class="blackboxBriefReward"><span>通关奖励</span><b>七层全解 · 研究与星尘</b></div></aside></div></section>
+  </section>
+
+  <nav class="controls" aria-label="游戏控制">
+    <button class="ctrl" id="pauseBtn" type="button">Ⅱ 暂停</button>
+    <button class="ctrl" id="armoryBtn" type="button">⌘ 构筑</button>
+    <button class="ctrl" id="archiveBtn" type="button">◈ 图鉴</button>
+    <button class="ctrl" id="soundBtn" type="button">♪ 音效</button>
+  </nav>
+    <section class="arcadeLanding" id="arcadeLanding" aria-labelledby="arcadeTitle">
+      <div class="arcadeShell">
+        <div class="arcadeHero">
+          <div class="arcadeHeroCopy"><span class="kicker">NEON DRIFT // ARCADE INDEX</span><h1 id="arcadeTitle">新伊甸游戏厅</h1><p>动作远征与小队战术是两款完整主线；四种节奏不同的短局收在同一个「小游戏」分类中。六种模式保留独立玩法与记录，奖励回流同一份档案。</p></div>
+          <div class="arcadeStatusCard"><span>PLAYABLE MODES</span><b>06</b><small>2 款主线 · 4 种短局</small><i></i></div>
+        </div>
+        <div class="arcadeNotice"><span class="arcadeNoticeIcon">◒</span><div><b>两款完整主线，四种短局活动</b><p>《霓虹突围》是动作射击；《失落站》是回合制小队战术。小游戏各自保留独立规则与纪录。</p></div><button class="ghostBtn" data-arcade-announcement type="button">查看公告</button></div>
+        <div class="arcadeSectionHead"><div><span class="kicker">SELECT A GAME</span><h2>选择你的下一步</h2></div><span class="sectionHint">2 款完整游戏 · 1 个小游戏分类</span></div>
+        <div class="arcadeGameGrid">
+          <article class="arcadeGameCard arcadeGameCardMain"><div class="arcadeCardTop"><span class="arcadeNumber">01</span><span class="arcadeTag">ROGUELITE / SHOOTER</span></div><div class="arcadeCardArt arcadeArtExpedition"><span>✦</span><i></i><b>FLY / BUILD / SURVIVE</b></div><div class="arcadeCardCopy"><h2>霓虹突围</h2><p>五段分支星图上的生存射击。移动闪避、主副武器构筑、事件取舍与多阶段 Boss 组成完整远征。</p><div class="arcadeCardMeta"><span>动作射击</span><span>分支航线</span><span>局内构筑</span></div></div><button class="arcadeCardAction" data-arcade-game="expedition" type="button">进入远征 <b>→</b></button></article>
+          <article class="arcadeGameCard arcadeGameCardBorder"><div class="arcadeCardTop"><span class="arcadeNumber">02</span><span class="arcadeTag">SQUAD / TACTICS ROGUELITE</span></div><div class="arcadeCardArt arcadeArtBorder"><span>▦</span><i></i><b>READ / POSITION / EXTRACT</b></div><div class="arcadeCardCopy"><h2>边境战术：失落站</h2><p>三人小队逐格推进失联空间站。读取敌人预警、利用掩体、分配行动点，夺取数据并带队撤离。</p><div class="arcadeCardMeta"><span>回合战术</span><span>小队协作</span><span>断点续玩</span></div></div><button class="arcadeCardAction" data-arcade-game="border" type="button">进入失落站 <b>→</b></button></article>
+          <article class="arcadeGameCard arcadeGameCardMiniCollection"><div class="arcadeCardTop"><span class="arcadeNumber">03</span><span class="arcadeTag">MINI GAMES / FOUR MODES</span></div><div class="arcadeCardArt arcadeArtMini"><span>⌘</span><i></i><b>FOUR DIFFERENT RULESETS</b></div><div class="arcadeCardCopy"><h2>小游戏合集</h2><p>反应拦截、记忆复现、风险探索、线路解码。每个模式独立开局和结算，使用各自规则，不是主战斗换皮。</p><div class="arcadeCardMeta"><span>独立玩法</span><span>独立记录</span><span>共享档案奖励</span></div></div><div class="miniGameGrid" aria-label="选择小游戏"><button class="miniGameLink relayLink" data-arcade-game="relay" type="button"><span class="miniGameSymbol">◌</span><span><b>信号中继</b><small>动态拦截 · 协议构筑</small></span><i>→</i></button><button class="miniGameLink labLink" data-arcade-game="lab" type="button"><span class="miniGameSymbol">⌘</span><span><b>回声实验室</b><small>记忆序列 · 规则切换</small></span><i>→</i></button><button class="miniGameLink salvageLink" data-arcade-game="salvage" type="button"><span class="miniGameSymbol">⌖</span><span><b>深空打捞</b><small>格网探索 · 风险撤离</small></span><i>→</i></button><button class="miniGameLink blackboxLink" data-arcade-game="blackbox" type="button"><span class="miniGameSymbol">⌗</span><span><b>黑盒解码</b><small>线路旋转 · 资源管理</small></span><i>→</i></button></div></article>
+        </div>
+        <div class="arcadeLowerGrid"><article class="arcadeArchiveCard"><div><span class="kicker">SHARED PROFILE</span><h3>六种模式分别留档，奖励汇入一份档案</h3></div><div class="arcadeArchiveStats"><div><b id="arcadeRunCount">0</b><span>远征次数</span></div><div><b id="arcadeBorderClears">0</b><span>失落站通关</span></div><div><b id="arcadeRelayBest">0</b><span>中继最高</span></div><div><b id="arcadeLabBest">0</b><span>回声最高</span></div><div><b id="arcadeSalvageBest">0</b><span>打捞最高</span></div><div><b id="arcadeBlackboxBest">0</b><span>解码最高</span></div><div><b id="arcadeShardCount">0</b><span>共享星尘</span></div></div><p id="arcadeProfileHint">主线与四款小游戏保留各自记录；星尘、舰站资源、委托和作战日志跨模式互通。</p></article><article class="arcadeFutureCard"><span class="arcadeFutureMark">↗</span><div><span class="kicker">COMMAND DECK</span><h3>从游戏大厅继续成长</h3><p>机库、星图、图鉴、攻略、构筑实验台、委托与公告仍属于同一站点。游戏之外的内容会解释规则、承接奖励并给你下一步目标。</p></div></article></div>
+        <div class="arcadeFooter"><span>NEON DRIFT / NEW EDEN STATION</span><button class="utilityBtn" data-arcade-game="bridge" type="button">进入指挥舰桥</button><small>站点内容、公告与日志仍可从舰桥访问</small></div>
+      </div>
+    </section>
+
+    <div class="announcementOverlay hidden" id="announcementOverlay" role="dialog" aria-modal="true" aria-labelledby="announcementTitle">
+      <div class="announcementPanel">
+        <div class="announcementPanelHead"><div><span class="kicker">STATION BULLETIN / 公告</span><h2 id="announcementTitle">站点公告</h2><p>版本动态、验证记录与下一步计划集中在这里。</p></div><button class="ghostBtn" id="announcementCloseBtn" type="button">关闭</button></div>
+        <article class="announcementHero" id="announcementHero"></article>
+        <div class="announcementList" id="announcementList"></div>
+      </div>
+    </div>
+
+</main>
+
+<script type="application/json" id="gameFiles">{"catalog":"static/catalog.9697c4895f19.js","core":"static/core.87b88b3cec36.js","runtime":"static/runtime.a1e41e3ad758.js","blackbox":"static/blackbox.114bfe7e30fb.js","arcade":"static/arcade.88e6b44653a8.js","border":"static/border.ad7348c5f907.js","game":"static/game.f6ee98aea484.js"}</script>
+<script defer src="static/play-loader.c7e3856ac52c.js"></script>
+</body>
+</html>

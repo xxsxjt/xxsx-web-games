@@ -36,7 +36,7 @@ function boot(savedProfile, storageOverrides) {
   return {run:s=>sandbox.probe.run(s),frames,events,windowEvents,document,nodes,panels:panelNodes,location,storage,runTimer:id=>{const fn=timers.get(id);if(fn)fn();}};
 }
 let failed=0;
-function test(name, fn, savedProfile, storageOverrides){try{fn(boot(savedProfile,storageOverrides));console.log('PASS',name);}catch(e){failed++;console.log('FAIL',name, e.message);}}
+function test(name, fn, savedProfile, storageOverrides){try{fn(boot(savedProfile,storageOverrides));console.log('PASS',name);}catch(e){failed++;process.exitCode=1;console.log('FAIL',name, e.message);}}
 test('v5 archive upgrades without losing commander progress',t=>{assert.equal(t.run('profile.schemaVersion'),11);assert.equal(t.run('profile.runs'),7);assert.equal(t.run('profile.shards'),42);assert.equal(t.run('profile.relayBest'),180);assert.equal(t.run('profile.blackboxRuns'),0);assert.equal(t.run('profile.blackboxClears'),0);assert.equal(t.run('profile.borderTactics.runs'),0);assert.equal(t.run("profile.arcadeMastery.relay"),null);},{schemaVersion:5,runs:7,shards:42,relayBest:180,station:{intel:3,modules:2,research:1,claimed:{}}});
 test('new run fires bullets',t=>{t.run('update(.016)');assert.ok(t.run('bullets.length')>0);});
 test('overdrive charges from combat and stays inert before ready',t=>{t.run("resetRun();g.running=true;enemies=[];spawnEnemy();var enemy=enemies[0];enemy.hp=1;damageEnemy(enemy,999,{slow:false});");const charged=t.run('g.overdrive');assert.ok(charged>0&&charged<100);const bulletsBefore=t.run('enemyBullets.length');assert.equal(t.run('useOverdrive()'),false);assert.equal(t.run('g.overdrive'),charged);assert.equal(t.run('enemyBullets.length'),bulletsBefore);});
@@ -234,3 +234,28 @@ test('loot disables blocked navigation and restores it on claim',t=>{
   for(const id of ['pauseBtn','armoryBtn','archiveBtn'])assert.equal(t.nodes.get(id).disabled,false,id);
 });
 process.exitCode=failed?1:0;
+
+// V51: verify outcome transitions and persistence, not the result-copy strings.
+test('campaign ends on wave ten boss and settles exactly once',t=>{
+ t.run("resetRun();g.running=true;g.wave=10;updateWaveMod();spawnBoss();killEnemy(g.boss)");
+ assert.equal(t.run('g.running'),false);assert.equal(t.run('g.wave'),10);assert.equal(t.run('g.outcome'),'victory');assert.equal(t.run('profile.campaignClears'),1);assert.equal(t.run('g.choosing'),false);
+ const runs=t.run('profile.runs'),shards=t.run('profile.shards');t.run("endGame('victory')");assert.equal(t.run('profile.runs'),runs);assert.equal(t.run('profile.shards'),shards);assert.equal(t.run('profile.history[0].cleared'),true);
+});
+test('first campaign boss advances while endless final boss keeps running',t=>{
+ t.run('resetRun();g.running=true;g.wave=5;updateWaveMod();spawnBoss();killEnemy(g.boss)');assert.equal(t.run('g.wave'),6);assert.equal(t.run('g.running'),true);
+ t.run("selectRunMode('endless');resetRun();g.running=true;g.wave=10;updateWaveMod();spawnBoss();killEnemy(g.boss)");assert.equal(t.run('g.wave'),11);assert.equal(t.run('g.running'),true);assert.equal(t.run('g.outcome'),null);
+});
+test('abandon and defeat remain distinct and endless records do not overwrite campaign best',t=>{
+ t.run("selectRunMode('endless');resetRun();g.running=true;g.score=900;g.wave=12;endGame('abandoned')");assert.equal(t.run('g.outcome'),'abandoned');assert.equal(t.run('profile.endlessBestScore'),900);assert.equal(t.run('profile.endlessBestWave'),12);assert.equal(t.run('profile.campaignBestScore||0'),0);assert.equal(t.run('profile.history[0].runMode'),'endless');
+ t.run("selectRunMode('campaign');resetRun();g.running=true;endGame()");assert.equal(t.run('g.outcome'),'defeat');assert.equal(t.run('profile.history[0].cleared'),false);
+});
+test('successive breaches respect immunity and describe avoided damage honestly',t=>{
+ t.run('resetRun();g.running=true;ship.shield=0;breachEnemy({contact:18,dead:false})');const hp=t.run('ship.hp');t.run('breachEnemy({contact:18,dead:false})');assert.equal(t.run('ship.hp'),hp);assert.equal(t.run('g.breaches'),2);assert.equal(t.run("ui.toast.textContent.includes('无敌保护')"),true);
+});
+
+test('immediate abandon does not farm stars or station supplies',t=>{
+ const stars=t.run('profile.shards'),intel=t.run('profile.station.intel');t.run("endGame('abandoned')");assert.equal(t.run('profile.shards'),stars);assert.equal(t.run('profile.station.intel'),intel);
+});
+test('old aggregate record survives new independent campaign records',t=>{
+ t.run("g.score=300;endGame('abandoned')");assert.equal(t.run('bestScore'),5000);assert.equal(t.run('bestWave'),19);assert.equal(t.run('profile.campaignBestScore'),300);
+},null,{neonDriftRogueBestScoreV2:'5000',neonDriftRogueBestWaveV2:'19'});

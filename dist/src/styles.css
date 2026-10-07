@@ -615,9 +615,9 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.16;ba
 @media(prefers-reduced-motion:reduce){.masteryProgress i,.masteryChoice{transition:none}.relayBoard[class*="fx"],.labBoard[class*="fx"],.salvageBoard[class*="fx"],.blackboxBoard[class*="fx"]{animation:none!important}}
 
 /* Hallmark V44 · genre: atmospheric technical · macrostructure: app system
- * design-system: design.md · designed-as-app · contrast: pass (40–41)
- * nav: N3 side rail · footer: Ft5 statement · honest: pass (46)
- * chrome: pass (47) · tokens: pass (48) · responsive: pass (49–52)
+ * design-system: design.md · designed-as-app · contrast: legacy review (40–41)
+ * nav: N3 side rail · footer: Ft5 statement · honest: legacy review (46)
+ * chrome: legacy review (47) · tokens: partial migration (48) · responsive: verify per release (49–52)
  * The layer is intentionally additive: it refreshes the visual system while
  * leaving the game rules, route ownership, and local profile untouched.
  */
@@ -834,3 +834,7 @@ button:disabled,.utilityBtn:disabled,.miniBtn:disabled{cursor:not-allowed;}
 @media (prefers-reduced-motion:reduce){
   *,*:before,*:after{animation-duration:.001ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.001ms!important}
 }
+
+/* V51: campaign choice and shared return controls */
+.runModePicker{border:0;padding:0;margin:20px 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.runModePicker legend{font-size:16px;margin-bottom:10px}.runModePicker label{display:flex;align-items:center;gap:10px;padding:14px;border:1px solid var(--color-rule);border-radius:8px;cursor:pointer;background:var(--color-paper-2);min-height:64px}.runModePicker label:has(input:checked){border-color:var(--color-accent)}.runModePicker input{accent-color:var(--color-accent);width:18px;height:18px;flex-shrink:0}.runModePicker b{display:block;font-size:16px}.runModePicker small{display:block;font-size:14px;line-height:1.5;color:var(--color-ink-2)}.runSaveHint,.resultOutcome{font-size:14px;line-height:1.65;color:var(--color-ink-2)}.standaloneBack,.arcadeHomeBtn,.returnArcadeBtn{min-height:44px;font-size:14px;white-space:nowrap}.standaloneGameHeader{gap:10px;flex-wrap:wrap}.standaloneGameHeader>span{font-size:12px}.expeditionActions .primary{min-height:48px;font-size:16px}#gameOverOverlay .panel{max-height:85dvh;overflow:auto}#gameOverOverlay button{min-height:44px}#playLoading a{min-height:44px;display:flex;align-items:center;color:var(--color-accent)}
+@media(max-width:480px){.runModePicker{grid-template-columns:minmax(0,1fr)}.expeditionCopy h1{font-size:32px}.standaloneGameHeader>span{display:none}}

@@ -1,0 +1,8 @@
+[
+  {"id":"expedition","name":"霓虹突围","type":"动作","description":"漂移避弹，搭配武器，穿过五段航线挑战终局 Boss。","controls":"触屏拖动 / 键盘","save":"本机成长记录 · 局内不续玩","status":"测试版","cover":"assets/covers/expedition.webp"},
+  {"id":"border","name":"边境战术：失落站","type":"战术","description":"指挥三人小队，利用掩体与敌方预警，完成任务后撤离。","controls":"点击 / 触屏","save":"支持保存并继续","status":"测试版","cover":"assets/covers/border.webp"},
+  {"id":"blackbox","name":"黑盒解码","type":"解谜","description":"旋转电路，把信号送到终点，逐层修复七层加密网络。","controls":"点击 / 触屏","save":"本机成绩 · 局内不续玩","status":"测试版","cover":"assets/covers/blackbox.webp"},
+  {"id":"salvage","name":"深空打捞","type":"探索","description":"探索废舰，收集物资，在危险升温前决定继续还是撤离。","controls":"点击 / 触屏","save":"本机成绩 · 局内不续玩","status":"测试版","cover":"assets/covers/salvage.webp"},
+  {"id":"lab","name":"回声实验室","type":"记忆","description":"观察信号序列，按变化的规则复现，分辨记忆与诱饵。","controls":"点击 / 触屏","save":"本机成绩 · 局内不续玩","status":"测试版","cover":"assets/covers/lab.webp"},
+  {"id":"relay","name":"信号中继","type":"反应","description":"捕获真实信号，避开诱饵，把握窗口延续连击。","controls":"点击 / 触屏","save":"本机成绩 · 局内不续玩","status":"测试版","cover":"assets/covers/relay.webp"}
+]

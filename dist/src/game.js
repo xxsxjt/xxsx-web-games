@@ -32,13 +32,17 @@ var ui={
 Object.assign(ui,{borderTacticsPage:byId('borderTacticsPage'),arcadeBorderClears:byId('arcadeBorderClears'),arcadeSalvageBest:byId('arcadeSalvageBest'),arcadeBlackboxBest:byId('arcadeBlackboxBest'),relaySector:byId('relaySector'),relayMisses:byId('relayMisses'),relayDraft:byId('relayDraft'),salvageSector:byId('salvageSector'),salvageDescendBtn:byId('salvageDescendBtn'),salvageContractPicker:byId('salvageContractPicker'),salvageData:byId('salvageData'),labStage:byId('labStage'),labLives:byId('labLives'),labDraft:byId('labDraft'),blackboxBoard:byId('blackboxBoard'),blackboxGrid:byId('blackboxGrid'),blackboxStatus:byId('blackboxStatus'),blackboxStage:byId('blackboxStage'),blackboxMoves:byId('blackboxMoves'),blackboxIntegrity:byId('blackboxIntegrity'),blackboxScore:byId('blackboxScore'),blackboxBest:byId('blackboxBest'),blackboxStartBtn:byId('blackboxStartBtn'),blackboxHintBtn:byId('blackboxHintBtn'),blackboxHintText:byId('blackboxHintText'),blackboxDraft:byId('blackboxDraft'),blackboxMastery:byId('blackboxMastery')});
 
 var assets={enemy:new Image(),boss:new Image(),gear:new Image(),player:new Image(),hangar:new Image(),rainline:new Image(),abyss:new Image()};
-assets.enemy.src='assets/enemy-atlas-v3.png';
-assets.boss.src='assets/boss-atlas-v2.webp';
-assets.gear.src='assets/gear-atlas-v3.webp';
-assets.player.src='assets/player-ship-v2.webp';
-assets.hangar.src='assets/hangar-backdrop-v1.webp';
-assets.rainline.src='assets/sector-rainline-v1.webp';
-assets.abyss.src='assets/sector-abyss-v1.webp';
+var expeditionAssetSources={enemy:'assets/enemy-atlas-v3.png',boss:'assets/boss-atlas-v2.webp',gear:'assets/gear-atlas-v3.webp',player:'assets/player-ship-v2.webp',hangar:'assets/hangar-backdrop-v1.webp',rainline:'assets/sector-rainline-v1.webp',abyss:'assets/sector-abyss-v1.webp'};
+var expeditionAssetsLoaded=false,assetsReady=null,startingRun=false,pendingStartToken=0,selectedRunMode='campaign';
+function loadExpeditionAssets(){
+  if(assetsReady)return assetsReady;
+  var tasks=Object.keys(expeditionAssetSources).map(function(key){var img=assets[key];return new Promise(function(resolve,reject){if(typeof img.addEventListener!=='function'){img.src=expeditionAssetSources[key];resolve();return;}if(img.complete&&img.naturalWidth){resolve();return;}img.addEventListener('load',resolve,{once:true});img.addEventListener('error',reject,{once:true});img.src=expeditionAssetSources[key];});});
+  document.querySelectorAll('[data-expedition-src]').forEach(function(img){img.src=img.dataset.expeditionSrc;});
+  assetsReady=Promise.all(tasks).then(function(){expeditionAssetsLoaded=true;}).catch(function(error){assetsReady=null;throw error;});return assetsReady;
+}
+function prepareExpedition(){loadExpeditionAssets().catch(function(){toast('部分素材未能载入，开始时将重试。');});}
+function selectRunMode(mode){selectedRunMode=mode==='endless'?'endless':'campaign';document.querySelectorAll('input[name="runMode"]').forEach(function(input){input.checked=input.value===selectedRunMode;});if(ui.expeditionStartBtn)ui.expeditionStartBtn.textContent=selectedRunMode==='campaign'?'开始战役':'开始无尽挑战';if(byId('expeditionRecord')&&profile)byId('expeditionRecord').textContent=selectedRunMode==='endless'?'无尽最高：'+(Number(profile.endlessBestScore)||0)+' 分 · '+(Number(profile.endlessBestWave)||0)+' 波':'战役最高：'+(Number(profile.campaignBestScore)||0)+' 分 · 通关 '+(Number(profile.campaignClears)||0)+' 次';}
+
 
 var {slotMeta,rarityMeta,buildTagMeta,itemDefs,weaponBranchDefs,blueprintDefs,waveMods,enemyMutations,enemyDefs,enemyOrder,bossDefs,baseStats}=window.NeonCatalog;
 var core=window.NeonCore;
@@ -623,9 +627,10 @@ function renderArcadeLanding(){
   if(ui.arcadeProfileHint)ui.arcadeProfileHint.textContent=(profile.runs||0)+(profile.borderTactics.runs||0)+(profile.relayRuns||0)+(profile.labRuns||0)+(profile.salvageRuns||0)+(profile.blackboxRuns||0)>0?'两款主线和四种小游戏分别留档；星尘、舰站资源、委托进度与作战日志接入同一份档案。':'完成任意主线或短局，独立纪录与共享奖励都会写入同一份指挥官档案。';
 }
 function stopArcadeSession(){
+  pendingStartToken++;startingRun=false;if(ui.expeditionStartBtn){ui.expeditionStartBtn.disabled=false;selectRunMode(selectedRunMode);}
   if(window.NeonBorderTactics&&typeof window.NeonBorderTactics.leave==='function')window.NeonBorderTactics.leave();
   stopRelay(true);stopLab(true);stopSalvage(true);stopBlackbox(true);
-  if(g.running){g.running=false;cancelAnimationFrame(g.raf);}
+  if(g.running)endGame('abandoned');
   g.paused=false;g.modalPaused=false;g.suspended=false;g.choosing=false;g.eventActive=false;g.pendingEvent=false;g.modal=null;
   pointer=false;if(input&&input.clear)input.clear();setCombatControls(false);
   [ui.startOverlay,ui.lootOverlay,ui.eventOverlay,ui.pauseOverlay,ui.gameOverOverlay,ui.armoryOverlay,ui.archiveOverlay].forEach(function(layer){if(layer)layer.classList.add('hidden');});
@@ -638,12 +643,14 @@ function showArcadeShell(mode){
   if(mode)app.classList.add(mode);
 }
 function openArcadeLanding(silent){
+  if(window.NeonPlayLoader){if(g.running)endGame('abandoned');stopArcadeSession();window.NeonPlayLoader.home();return;}
   stopArcadeSession();closeAnnouncement();showArcadeShell('arcadeLandingMode');
   if(ui.arcadeLanding)ui.arcadeLanding.classList.remove('hidden');
   renderArcadeLanding();
   if(!silent)setArcadeHash('');
 }
 function enterStation(view,silent){
+  prepareExpedition();
   if(stationViews.indexOf(view)<0)view='bridge';
   stopArcadeSession();closeAnnouncement();showArcadeShell('hubMode');
   if(ui.hubOverlay)ui.hubOverlay.classList.remove('hidden');
@@ -652,10 +659,11 @@ function enterStation(view,silent){
 }
 function openHubDestination(view,silent){var game=arcadeGameByHubView[view];if(game)enterArcadeGame(game,silent);else enterStation(view,silent);}
 function enterArcadeGame(kind,silent){
+  if(window.NeonPlayLoader&&!window.NeonPlayLoader.supports(kind)){stopArcadeSession();window.NeonPlayLoader.navigate(kind);return;}
   if(kind==='bridge'){enterStation('bridge',silent);return;}
   if(ui.arcadeGamePages)ui.arcadeGamePages.scrollTop=0;
   if(kind==='expedition'){
-    stopArcadeSession();closeAnnouncement();showArcadeShell('arcadeGameMode');
+    prepareExpedition();stopArcadeSession();closeAnnouncement();showArcadeShell('arcadeGameMode');
     if(ui.arcadeGamePages)ui.arcadeGamePages.classList.remove('hidden');
     if(ui.expeditionGamePage)ui.expeditionGamePage.classList.remove('hidden');
     if(ui.borderTacticsPage)ui.borderTacticsPage.classList.add('hidden');
@@ -1223,7 +1231,7 @@ function pushChronicle(entry){
     hints:Math.max(0,Math.floor(Number(entry.hints)||0)),mistakes:Math.max(0,Math.floor(Number(entry.mistakes)||0)),
     contract:entry.contract?String(entry.contract).slice(0,24):'',contractClear:!!entry.contractClear,
     ruleOrder:safeList(entry.ruleOrder,4),upgrades:safeList(entry.upgrades,8),perks:safeList(entry.perks,8),
-    cleared:!!entry.cleared,seed:entry.seed?String(entry.seed).slice(0,48):'',routeId:entry.routeId?String(entry.routeId).slice(0,24):'',
+    outcome:entry.outcome==='victory'?'victory':entry.outcome==='abandoned'?'abandoned':'defeat',runMode:entry.runMode==='endless'?'endless':'campaign',cleared:!!entry.cleared,seed:entry.seed?String(entry.seed).slice(0,48):'',routeId:entry.routeId?String(entry.routeId).slice(0,24):'',
     routePlan:Array.isArray(entry.routePlan)?entry.routePlan.slice(0,5).map(String):[],at:new Date().toISOString()
   };
   if(!Array.isArray(profile.history))profile.history=[];profile.history.unshift(record);profile.history=profile.history.slice(0,18);saveProfile();
@@ -1393,7 +1401,7 @@ function resetRun(){
   stopBlackbox(true);
   g.running=false;g.paused=false;g.choosing=false;g.eventActive=false;g.pendingEvent=false;g.modalPaused=false;g.score=0;g.kills=0;g.wave=1;g.level=1;g.xp=0;g.xpNeed=80;g.levelQueue=0;
   g.waveKills=0;g.waveTarget=10;g.waveBreaches=0;g.breaches=0;g.spawnTimer=.55;g.elapsed=0;g.nextUid=1;g.combo=0;g.comboTimer=0;g.comboBest=0;g.overdrive=0;g.boss=null;g.bossDefeated=0;g.scrap=0;g.upgradeKits=0;g.empCooldown=0;g.dashCooldown=0;g.mineTimer=4;g.orbTimer=0;g.lootRerolls=0;g.eventHazard=1;g.eventSlow=1;g.routeNodeStage=-1;g.nodeMod={speed:1,fire:1,hp:1,reward:1};g.nodeRewardMultiplier=1;g.nodeLootFloor=null;g.contractHasteTimer=0;g.breakWindow=0;
-  g.missionTarget=15;g.missionKills=0;g.missionDone=false;g.missionReward=850;g.nextMissionWave=0;g.eliteKills=0;g.waveMod=waveMods[0];g.mutation=null;g.contract=null;g.pendingLoot=[];g.pendingLootFloor=null;g.nextLootFloor=null;g.pendingFusion=null;g.rewarded=false;
+  g.missionTarget=15;g.missionKills=0;g.missionDone=false;g.missionReward=850;g.nextMissionWave=0;g.eliteKills=0;g.waveMod=waveMods[0];g.mutation=null;g.contract=null;g.pendingLoot=[];g.pendingLootFloor=null;g.nextLootFloor=null;g.pendingFusion=null;g.rewarded=false;g.runMode=selectedRunMode;g.outcome=null;g.finalWave=10;
   g.route=selectedRoute();g.routeMod=g.route.mods;g.routeMap=ensureRoutePlan();g.runSeed=g.routeMap.seed;g.routePlan=g.routeMap.stages.map(function(stage){return profile.routePlan.ids[stage.index];});
   enemies=[];bullets=[];enemyBullets=[];drops=[];particles=[];mines=[];lasers=[];chainFx=[];impactFx=[];damageTexts=[];screenFx.shake=0;screenFx.flash=0;
   pointer=false;input.clear();g.modal=null;g.suspended=false;ship.swarmTimer=0;
@@ -1406,6 +1414,10 @@ function resetRun(){
 }
 function setCombatControls(active){ui.pauseBtn.disabled=!active;ui.armoryBtn.disabled=!active;ui.dashBtn.disabled=!active;ui.overdriveBtn.disabled=!active;}
 function startGame(){
+  if(assets.player.addEventListener&&!expeditionAssetsLoaded){
+    if(startingRun)return;startingRun=true;var startToken=++pendingStartToken;ui.expeditionStartBtn.disabled=true;ui.expeditionStartBtn.textContent='正在载入素材…';
+    loadExpeditionAssets().then(function(){if(startToken!==pendingStartToken)return;startingRun=false;ui.expeditionStartBtn.disabled=false;selectRunMode(selectedRunMode);startGame();}).catch(function(){if(startToken!==pendingStartToken)return;startingRun=false;ui.expeditionStartBtn.disabled=false;selectRunMode(selectedRunMode);toast('素材载入失败，请重试。');});return;
+  }
   cancelAnimationFrame(g.raf);
   resetRun();g.running=true;ui.startOverlay.classList.add('hidden');ui.gameOverOverlay.classList.add('hidden');ui.lootOverlay.classList.add('hidden');
   ui.armoryOverlay.classList.add('hidden');ui.archiveOverlay.classList.add('hidden');ui.pauseOverlay.classList.add('hidden');
@@ -1416,25 +1428,32 @@ function returnToExpeditionMenu(){
   if(g.running)return;
   enterArcadeGame('expedition',false);
 }
-function endGame(){
-  if(!g.running||g.rewarded)return;g.rewarded=true;g.running=false;cancelAnimationFrame(g.raf);
+function endGame(outcome){
+  if(!g.running||g.rewarded)return;outcome=outcome==='victory'?'victory':outcome==='abandoned'?'abandoned':'defeat';g.outcome=outcome;g.rewarded=true;g.running=false;g.paused=false;g.choosing=false;g.eventActive=false;g.pendingEvent=false;g.modal=null;g.modalPaused=false;g.levelQueue=0;g.pendingLoot=[];cancelAnimationFrame(g.raf);
   setCombatControls(false);
   ui.lootOverlay.classList.add('hidden');ui.eventOverlay.classList.add('hidden');ui.armoryOverlay.classList.add('hidden');ui.archiveOverlay.classList.add('hidden');ui.pauseOverlay.classList.add('hidden');
-  var newRecord=g.score>bestScore;
-  if(newRecord){bestScore=Math.floor(g.score);try{localStorage.setItem('neonDriftRogueBestScoreV2',String(bestScore));}catch(e){}}
+  var recordScore=g.runMode==='endless'?Math.max(0,Number(profile.endlessBestScore)||0):Math.max(0,Number(profile.campaignBestScore)||0);
+  var newRecord=g.score>recordScore;
+  if(g.runMode==='endless'){profile.endlessBestScore=Math.max(recordScore,Math.floor(g.score));profile.endlessBestWave=Math.max(Number(profile.endlessBestWave)||0,g.wave);}
+  if(g.score>bestScore){bestScore=Math.floor(g.score);try{localStorage.setItem('neonDriftRogueBestScoreV2',String(bestScore));}catch(e){}}
   if(g.wave>bestWave){bestWave=g.wave;try{localStorage.setItem('neonDriftRogueBestWaveV2',String(bestWave));}catch(e){}}
+  if(g.runMode!=='endless'){profile.campaignBestScore=Math.max(recordScore,Math.floor(g.score));profile.campaignBestWave=Math.max(Number(profile.campaignBestWave)||0,g.wave);}
+  if(outcome==='victory')profile.campaignClears=Math.max(0,Number(profile.campaignClears)||0)+1;
   profile.bestCombo=Math.max(profile.bestCombo||0,g.comboBest||0);
   profile.activeLoadout=serializeLoadout(g.equipment);
-  var shardGain=Math.max(1,Math.floor((g.wave*2+g.kills/8)*(g.routeMod&&g.routeMod.reward||1)*(g.nodeRewardMultiplier||1)*(g.metaRewardBonus||1)));
+  var shardGain=Math.max(outcome==='abandoned'?0:1,Math.floor(((outcome==='abandoned'?Math.max(0,g.wave-1):g.wave)*2+g.kills/8)*(g.routeMod&&g.routeMod.reward||1)*(g.nodeRewardMultiplier||1)*(g.metaRewardBonus||1)));
   var planLabels=(g.routePlan||[]).map(function(id){var node=routeNodeById(g.routeMap,id),def=node&&starNodeDefs[node.type];return def?def.label:id;});
-  profile.shards+=shardGain;advanceDailyDirective('expedition',g.wave);syncBlueprintUnlocks(true);var stationGain=grantActivityReward('expedition',{wave:g.wave,bosses:g.bossDefeated});
-  pushChronicle({type:'run',title:newRecord?'远征新纪录':'远征结束',subtitle:selectedBlueprint().name+' · '+(g.route&&g.route.name||selectedRoute().name)+(stationGain?' · '+stationGain:''),score:g.score,wave:g.wave,kills:g.kills,shards:shardGain,seed:g.runSeed,routeId:g.route&&g.route.id,routePlan:planLabels});
+  profile.shards+=shardGain;advanceDailyDirective('expedition',g.wave);syncBlueprintUnlocks(true);var stationGain=outcome==='abandoned'&&g.kills===0&&g.wave===1?'':grantActivityReward('expedition',{wave:g.wave,bosses:g.bossDefeated});
+  pushChronicle({type:'run',title:outcome==='victory'?'战役胜利':outcome==='abandoned'?'主动结束':newRecord?'远征新纪录':'远征结束',cleared:outcome==='victory',outcome:outcome,runMode:g.runMode,subtitle:selectedBlueprint().name+' · '+(g.route&&g.route.name||selectedRoute().name)+(stationGain?' · '+stationGain:''),score:g.score,wave:g.wave,kills:g.kills,shards:shardGain,seed:g.runSeed,routeId:g.route&&g.route.id,routePlan:planLabels});
   profile.lastRunSeed=g.runSeed;profile.pendingSeed=makeRunSeed();profile.routePlan=null;profile.runs++;profile.totalKills+=g.kills;syncUnlocks();saveProfile();renderHub();
-  ui.resultTitle.textContent=newRecord?'新的战斗纪录':'战机损毁';
-  ui.resultText.textContent='得分 '+Math.floor(g.score)+' · 波次 '+g.wave+' · 击杀 '+g.kills+' · 等级 '+g.level+' · 最佳连杀 '+(g.comboBest||0)+' · 击败 Boss '+g.bossDefeated+' · 星尘 +'+shardGain;
+  ui.resultTitle.textContent=outcome==='victory'?'战役胜利':outcome==='abandoned'?'本局已结束':'战机损毁';
+  if(byId('resultOutcome'))byId('resultOutcome').textContent=outcome==='victory'?'五段航线已完成，终局 Boss 已击破。可以重玩战役，或另开一局无尽挑战。':outcome==='abandoned'?'已按当前进度结算，成长记录保存在本机。':'本局到此结束，已带回成长奖励。调整构筑后可以再次出击。';
+  if(byId('endlessAfterWinBtn'))byId('endlessAfterWinBtn').classList.toggle('hidden',outcome!=='victory');
+  if(byId('resultRecord'))byId('resultRecord').textContent=g.runMode==='endless'?'无尽最高：'+profile.endlessBestScore+' 分 · '+profile.endlessBestWave+' 波':'战役通关 '+(Number(profile.campaignClears)||0)+' 次 · 最高 '+(Number(profile.campaignBestScore)||0)+' 分';
+  ui.resultText.textContent=(g.runMode==='endless'?'无尽':'战役')+' · 得分 '+Math.floor(g.score)+' · 波次 '+g.wave+' · 击杀 '+g.kills+' · 等级 '+g.level+' · 最佳连杀 '+(g.comboBest||0)+' · 击败 Boss '+g.bossDefeated+' · 星尘 +'+shardGain;
   ui.finalBuild.innerHTML='';
   buildItems().forEach(function(item){var chip=document.createElement('span');chip.className='finalChip';chip.textContent=getDef(item).name;ui.finalBuild.appendChild(chip);});
-  ui.gameOverOverlay.classList.remove('hidden');ui.bestText.textContent='最高纪录：'+bestScore+' 分 · '+bestWave+' 波';pointer=false;input.clear();updateUI();vibrate([35,35,75]);beep(120,.16,.05);
+  ui.gameOverOverlay.classList.remove('hidden');ui.bestText.textContent='最高纪录：'+bestScore+' 分 · '+bestWave+' 波';pointer=false;input.clear();updateUI();vibrate(outcome==='victory'?[25,35,25]:[35,35,75]);beep(outcome==='victory'?780:120,.16,.05);
 }
 function updateWaveMod(){
   g.route=selectedRoute();g.routeMod=g.route.mods;
@@ -1737,7 +1756,7 @@ function chainFrom(origin,amount,source){
   if(target){if(source&&source.hitIds)source.hitIds[target.uid]=true;if(source)source.chainRemaining--;chainFx.push({x1:origin.x,y1:origin.y,x2:target.x,y2:target.y,life:.22,color:'#72f4ff'});damageEnemy(target,amount,{noChain:true});if(source&&source.chainRemaining>0)chainFrom(target,amount*(traits.chainPower||.45),source);}
 }
 function killEnemy(e){
-  if(e.dead)return;e.dead=true;
+  if(e.dead||g.rewarded)return;e.dead=true;
   if(e.mutation&&e.mutation.id==='revenge')for(var ri=0;ri<8;ri++)spawnProjectile(e.x,e.y,ri*Math.PI/4,155+g.wave*2,e.bulletDamage*.72,4,e.mutation.color,'revenge');
   if(e.mutation&&e.mutation.id==='split'&&!e.summoned){spawnShard(e,-1);spawnShard(e,1);}
   g.combo=Math.min(30,(g.combo||0)+1);g.comboTimer=4.6;g.comboBest=Math.max(g.comboBest||0,g.combo);
@@ -1752,7 +1771,7 @@ function killEnemy(e){
   if(traits.shieldOnKill>0)ship.shield=Math.min(ship.maxShield,ship.shield+traits.shieldOnKill*(e.type==='elite'?1.8:1));
   if(traits.killHaste)ship.hasteTimer=Math.max(ship.hasteTimer,traits.killHaste);
   if(e.boss){
-    g.boss=null;g.bossDefeated++;g.scrap+=3;g.levelQueue++;g.nextLootFloor=g.wave>=15?'legendary':'epic';ui.bossWrap.classList.remove('show');waveAdvanceAfterBoss();
+    g.boss=null;g.bossDefeated++;if(g.runMode==='campaign'&&g.wave>=g.finalWave){endGame('victory');return;}g.scrap+=3;g.levelQueue++;g.nextLootFloor=g.wave>=15?'legendary':'epic';ui.bossWrap.classList.remove('show');waveAdvanceAfterBoss();
     if(!g.choosing)openLoot();toast('Boss 击破 · 核心缓存 / 废料 +3');return;
   }
   if(!g.missionDone&&g.missionKills>=g.missionTarget){g.missionDone=true;g.nextMissionWave=g.wave+2;g.score+=g.missionReward;g.scrap+=2;ship.hp=Math.min(ship.maxHp,ship.hp+32);toast('任务完成 · +'+g.missionReward+' 分 / 废料 +2');}
@@ -1766,7 +1785,7 @@ function advanceWave(){
   if(g.wave%5===0)spawnBoss();else {toast('WAVE '+g.wave+' · '+g.waveMod.name);if(g.wave>=3&&g.wave%3===0){g.pendingEvent=true;maybeOpenEvent();}}
 }
 function damageShip(amount){
-  if(!g.running||g.paused||g.choosing||ship.invuln>0)return;
+  if(!g.running||g.paused||g.choosing||ship.invuln>0)return false;
   var blocked=Math.min(ship.shield,amount);ship.shield-=blocked;amount-=blocked;
   if(blocked>0)addDamageText(ship.x,ship.y-30,blocked,'#72f4ff','−'+Math.max(1,Math.round(blocked))+' 盾');
   if(blocked>0&&traits.reflect>0){
@@ -1775,6 +1794,7 @@ function damageShip(amount){
   }
   if(amount>0){ship.hp-=amount;addDamageText(ship.x,ship.y-18,amount,'#ff718e');}pulseScreen(Math.min(8,2+amount*.12),.12);ship.invuln=.2;burst(ship.x,ship.y,'#ff718e',10);vibrate(16);
   if(ship.hp<=0)endGame();
+  return true;
 }
 function breachEnemy(e){
   if(!e||e.dead||e.boss)return false;
@@ -1785,9 +1805,9 @@ function breachEnemy(e){
   g.breaches=(g.breaches||0)+1;
   g.combo=0;g.comboTimer=0;
   g.score=Math.max(0,g.score-Math.max(12,damage*4));
-  addDamageText(W*.5,H*.42,damage,'#ff718e','BREACH');
-  toast('敌机突破防线 · 受到 '+damage+' 点冲击');
-  damageShip(damage);
+  var applied=damageShip(damage);
+  addDamageText(W*.5,H*.42,applied?damage:0,'#ff718e',applied?'BREACH':'已避开');
+  toast(applied?'敌机突破防线 · 受到 '+damage+' 点冲击':'敌机突破防线 · 无敌保护避开冲击，连杀已中断');
   pulseScreen(Math.min(7,2+damage*.08),.12);
   return true;
 }
@@ -2325,8 +2345,10 @@ window.addEventListener('keydown',function(e){
 });
 window.addEventListener('keyup',function(e){keys[e.code]=false;keys[e.key]=false;});
 window.addEventListener('blur',function(){keys={};});
+document.querySelectorAll('input[name="runMode"]').forEach(function(input){input.addEventListener('change',function(){selectRunMode(input.value);});});
+byId('endlessAfterWinBtn')&&byId('endlessAfterWinBtn').addEventListener('click',function(){selectRunMode('endless');startGame();});
 byId('startBtn').addEventListener('click',startGame);byId('restartBtn').addEventListener('click',startGame);ui.hubStartBtn.addEventListener('click',function(){enterArcadeGame('expedition',false);});ui.returnGamePageBtn&&ui.returnGamePageBtn.addEventListener('click',returnToExpeditionMenu);ui.returnArcadeBtn&&ui.returnArcadeBtn.addEventListener('click',function(){openArcadeLanding(false);});
-ui.expeditionStartBtn&&ui.expeditionStartBtn.addEventListener('click',startGame);ui.expeditionSetupBtn&&ui.expeditionSetupBtn.addEventListener('click',function(){enterStation('routes',false);});ui.abandonExpeditionBtn&&ui.abandonExpeditionBtn.addEventListener('click',function(){openArcadeLanding(false);});
+ui.expeditionStartBtn&&ui.expeditionStartBtn.addEventListener('click',startGame);ui.expeditionSetupBtn&&ui.expeditionSetupBtn.addEventListener('click',function(){enterStation('routes',false);});ui.abandonExpeditionBtn&&ui.abandonExpeditionBtn.addEventListener('click',function(){endGame('abandoned');});
 ui.empBtn.addEventListener('click',useEmp);ui.dashBtn.addEventListener('click',useDash);ui.overdriveBtn.addEventListener('click',useOverdrive);ui.pauseBtn.addEventListener('click',togglePause);byId('resumeBtn').addEventListener('click',togglePause);
 ui.armoryBtn=byId('armoryBtn');ui.archiveBtn=byId('archiveBtn');ui.closeArmoryBtn=byId('closeArmoryBtn');ui.closeArchiveBtn=byId('closeArchiveBtn');
 ui.armoryBtn.addEventListener('click',openArmory);ui.closeArmoryBtn.addEventListener('click',closeArmory);ui.relayStartBtn.addEventListener('click',startRelay);ui.salvageStartBtn.addEventListener('click',startSalvage);ui.salvageExtractBtn.addEventListener('click',extractSalvage);ui.salvageDescendBtn&&ui.salvageDescendBtn.addEventListener('click',descendSalvage);ui.labStartBtn.addEventListener('click',startLab);ui.blackboxStartBtn&&ui.blackboxStartBtn.addEventListener('click',startBlackbox);ui.blackboxHintBtn&&ui.blackboxHintBtn.addEventListener('click',hintBlackbox);ui.workbenchResetBtn.addEventListener('click',resetWorkbench);
@@ -2338,12 +2360,12 @@ ui.arcadeHomeBtn&&ui.arcadeHomeBtn.addEventListener('click',function(){openArcad
 ui.rerollBtn.addEventListener('click',rerollLoot);ui.salvageLootBtn.addEventListener('click',salvageLoot);
 ui.soundBtn.addEventListener('click',function(){soundOn=!soundOn;try{localStorage.setItem('neonDriftRogueSoundV2',soundOn?'on':'off');}catch(e){}ui.soundBtn.textContent=soundOn?'♪ 音效':'× 静音';if(soundOn)beep();});
 document.addEventListener('click',function(event){var button=event.target&&event.target.closest?event.target.closest('[data-hub-view],[data-arcade-game],[data-arcade-home],[data-station-view],[data-station-contract],[data-daily-claim],[data-arcade-announcement]'):null;if(!button||!button.dataset)return;if(button.dataset.arcadeGame)enterArcadeGame(button.dataset.arcadeGame,false);else if(button.hasAttribute&&button.hasAttribute('data-arcade-home'))openArcadeLanding(false);else if(button.dataset.stationView)enterStation(button.dataset.stationView,false);else if(button.dataset.dailyClaim)claimDailyDirective();else if(button.dataset.hubView)openHubDestination(button.dataset.hubView,false);else if(button.dataset.stationContract)claimStationContract(button.dataset.stationContract);else if(button.hasAttribute&&button.hasAttribute('data-arcade-announcement'))openAnnouncement();});
-window.addEventListener('hashchange',syncArcadeRoute);
+window.addEventListener('hashchange',syncArcadeRoute);window.addEventListener('popstate',syncArcadeRoute);
 document.addEventListener('visibilitychange',function(){
   if(document.hidden&&g.running){pointer=false;input.clear();g.accumulator=0;cancelAnimationFrame(g.raf);g.suspended=true;if(g.modal)g.modalPaused=true;else if(!g.choosing&&!g.eventActive){g.paused=true;ui.pauseBtn.textContent='▶ 继续';ui.pauseOverlay.classList.remove('hidden');}updateUI();}
   else if(!document.hidden&&g.running&&g.suspended){g.suspended=false;if(!g.paused){g.last=performance.now();g.raf=requestAnimationFrame(loop);}}
 });
 window.addEventListener('resize',resize,{passive:true});
 ui.bestText.textContent='最高纪录：'+bestScore+' 分 · '+bestWave+' 波';ui.soundBtn.textContent=soundOn?'♪ 音效':'× 静音';
-resetRun();resize();syncArcadeRoute();
+resetRun();resize();syncArcadeRoute();selectRunMode('campaign');window.NeonGameBooted=true;
 })();
