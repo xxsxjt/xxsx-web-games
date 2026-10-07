@@ -50,7 +50,7 @@ npm test
 - `tests/`：机制回归与静态发布校验。
 - `docs/`：游戏说明、历次计划、验证记录与总站迁移计划。
 
-完整玩法和存档边界见 [现有游戏集合说明](docs/neon-drift-v50.md)。总体方向见 [总站迁移计划](docs/game-hub-roadmap.md)。
+完整玩法和存档边界见 [现有游戏集合说明](docs/neon-drift-v50.md)。下一轮完整路线见 [总站与游戏质量升级规划](docs/quality-upgrade-plan-2026-10-07.md)，包含现状证据、方案取舍、重点游戏升级、架构迁移和验收门槛；[早期总站迁移计划](docs/game-hub-roadmap.md)保留作背景。
 
 ## 来源与同步
 
