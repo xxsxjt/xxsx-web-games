@@ -19,5 +19,5 @@
   restore();
   document.addEventListener('click',function(e){var b=e.target.closest('[data-filter],[data-favorite],[data-open]');if(!b)return;if(b.dataset.filter){filter=b.dataset.filter;render();}else if(b.dataset.favorite){var id=b.dataset.favorite,index=state.favorites.indexOf(id);if(index>=0)state.favorites.splice(index,1);else state.favorites.push(id);save();render();var next=list.querySelector('[data-favorite="'+id+'"]');if(next)next.focus();}else if(b.dataset.open){var opened=b.dataset.open;state.recent=[opened].concat(state.recent.filter(function(id){return id!==opened;})).slice(0,6);save();}});
   window.addEventListener('storage',function(e){if(e.key===key){restore();render();}});
-  fetch('content/games.json').then(function(r){if(!r.ok)throw new Error('catalog');return r.json();}).then(function(data){games=data;render();if(storageAvailable)notice.textContent='收藏与游玩记录保存在当前浏览器。';}).catch(function(){list.innerHTML='<p class="emptyState">目录暂时未能加载，请刷新重试。<a href="play.html#game/expedition">打开霓虹突围</a></p>';});
+  fetch('content/games.9b1958a5eca3.json').then(function(r){if(!r.ok)throw new Error('catalog');return r.json();}).then(function(data){games=data;render();if(storageAvailable)notice.textContent='收藏与游玩记录保存在当前浏览器。';}).catch(function(){list.innerHTML='<p class="emptyState">目录暂时未能加载，请刷新重试。<a href="play.html#game/expedition">打开霓虹突围</a></p>';});
 })();

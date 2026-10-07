@@ -127,4 +127,39 @@ test('a settling action settles and rewards exactly once across reloads',()=>{
   assert.equal(again.api.debug.getState().status,'complete');assert.equal(recorded,1);
 });
 
+function arena(d){
+ const s=d.createCampaign('recon');s.map.walls=[];s.map.cover=[];s.units[0].cell=0;s.units[1].cell=6;s.units[2].cell=42;
+ s.enemies=[s.enemies.find(e=>e.kind==='raider')];return s;
+}
+test('overwatch fires once on movement, spends AP and prepared states survive reload',()=>{
+ const storage=makeStorage(),d=load(storage).api.debug,s=arena(d),u=s.units[0],e=s.enemies[0];
+ e.cell=10;e.intent={kind:'advance',targetId:u.id,targetCell:u.cell,cells:[]};const hp=e.hp;
+ assert.equal(d.setOverwatch(s,u.id),true);assert.equal(u.ap,1);assert.equal(d.setOverwatch(s,u.id),false);
+ assert.equal(d.endTurn(s),true);assert.equal(e.hp,hp-15);assert.equal(u.overwatch,false);assert.equal(u.ap,2);
+ const saved=d.createCampaign('recon');d.setOverwatch(saved,'assault');d.brace(saved,'medic');d.setState(saved);assert.equal(d.saveCheckpoint(),true);
+ const resumed=load(storage).api.debug;resumed.continueOperation();assert.equal(resumed.getState().units[0].overwatch,true);assert.equal(resumed.getState().units[1].braced,true);
+});
+test('active cover halves a telegraphed hit for exactly one enemy phase',()=>{
+ const d=load(makeStorage()).api.debug,s=arena(d),u=s.units[0],e=s.enemies[0];e.kind='guard';e.range=4;e.cell=3;e.damage=20;e.intent={kind:'shot',targetId:u.id,targetCell:0,cells:[0]};const hp=u.hp;
+ d.brace(s,u.id);d.endTurn(s);assert.equal(u.hp,hp-10);assert.equal(u.braced,false);d.endTurn(s);assert.equal(u.hp,hp-30);
+});
+test('push displaces or crashes the target and cancels its next action',()=>{
+ const d=load(makeStorage()).api.debug,s=arena(d),u=s.units[0],e=s.enemies[0];e.cell=1;
+ assert.equal(d.shove(s,u.id,e.id),true);assert.equal(e.cell,2);assert.equal(e.staggered,1);d.endTurn(s);assert.equal(e.cell,2);assert.equal(e.staggered,0);
+ u.cell=1;u.ap=2;e.cell=2;s.map.walls=[3];const hp=e.hp;assert.equal(d.shove(s,u.id,e.id),true);assert.equal(e.cell,2);assert.equal(e.hp,hp-12);
+});
+test('reactor pulses every third turn and shuts down when both valves are secured',()=>{
+ const d=load(makeStorage()).api.debug,s=d.createCampaign('recon');d.beginSector(s,2);s.enemies.forEach(e=>e.hp=0);s.map.cover=[];s.units[0].cell=29;s.turn=3;const hp=s.units[0].hp;
+ d.endTurn(s);assert.equal(s.units[0].hp,hp-18);assert.equal(d.reactorHazard(s).length,3);
+ s.map.objectives.forEach(o=>o.secured=true);assert.equal(d.reactorHazard(s).length,0);
+});
+test('mobility changes reachable space, movement does not farm score and legacy saves keep their rules',()=>{
+ const d=load(makeStorage()).api.debug,s=arena(d);s.enemies[0].cell=34;
+ assert.equal(d.moveUnit(s,'assault',4),false);s.upgrades.mobility=true;assert.equal(d.moveUnit(s,'assault',4),true);assert.equal(s.score,0);
+ const old=d.createCampaign('recon');delete old.ruleset;old.units.forEach(u=>{delete u.overwatch;delete u.braced;});assert.equal(d.isStateValid(old),true);assert.equal(d.moveUnit(old,'assault',35),true);assert.equal(old.score,2);d.beginSector(old,2);assert.equal(d.reactorHazard(old).length,0);
+});
+test('selecting an unreachable ability target never silently attacks another enemy',()=>{
+ const d=load(makeStorage()).api.debug,s=arena(d),e=s.enemies[0];e.cell=3;const distant=JSON.parse(JSON.stringify(e));distant.id='distant';distant.cell=48;s.enemies.push(distant);s.focusEnemy=distant.id;
+ assert.equal(d.useAbility(s,'assault'),false);assert.equal(s.units[0].ap,2);s.focusEnemy=e.id;assert.equal(d.useAbility(s,'assault'),true);assert.equal(e.staggered,1);
+});
 console.log('Border Tactics archive and combat tests passed');

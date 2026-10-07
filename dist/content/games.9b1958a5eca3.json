@@ -7,7 +7,7 @@
     "controls": "触屏拖动 / 键盘",
     "save": "本机成长记录 · 局内不续玩",
     "status": "测试版",
-    "cover": "assets/icons/expedition-v1.webp",
+    "cover": "assets/icons/expedition-v1.7b2e72347f0e.webp",
     "format": "战役"
   },
   {
@@ -18,7 +18,7 @@
     "controls": "点击 / 触屏",
     "save": "支持保存并继续",
     "status": "测试版",
-    "cover": "assets/icons/border-v1.webp",
+    "cover": "assets/icons/border-v1.d0f42622589b.webp",
     "format": "战役"
   },
   {
@@ -29,7 +29,7 @@
     "controls": "点击 / 触屏",
     "save": "关卡与接线每步保存 · 可撤销",
     "status": "测试版",
-    "cover": "assets/icons/blackbox-v1.webp",
+    "cover": "assets/icons/blackbox-v1.c85ff1ffc2b5.webp",
     "format": "战役"
   },
   {
@@ -40,7 +40,7 @@
     "controls": "点击 / 触屏",
     "save": "本机成绩 · 局内不续玩",
     "status": "测试版",
-    "cover": "assets/icons/salvage-v1.webp",
+    "cover": "assets/icons/salvage-v1.34e84f9a0bb5.webp",
     "format": "短局挑战"
   },
   {
@@ -51,7 +51,7 @@
     "controls": "点击 / 触屏",
     "save": "本机成绩 · 局内不续玩",
     "status": "测试版",
-    "cover": "assets/icons/lab-v1.webp",
+    "cover": "assets/icons/lab-v1.9548724780f1.webp",
     "format": "短局挑战"
   },
   {
@@ -62,7 +62,7 @@
     "controls": "点击 / 触屏",
     "save": "本机成绩 · 局内不续玩",
     "status": "测试版",
-    "cover": "assets/icons/relay-v1.webp",
+    "cover": "assets/icons/relay-v1.517db58ec8d0.webp",
     "format": "短局挑战"
   }
 ]

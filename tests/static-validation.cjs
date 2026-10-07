@@ -24,7 +24,9 @@ for(const [source,file] of Object.entries(manifest.files)){
  check(file.sha256===hash(fs.readFileSync(path.join(root,'dist',file.path))),'corrupt release file: '+file.path);
  if(!source.endsWith('.html'))check(/\.[0-9a-f]{12}\./.test(file.path),'resource must have a content hash: '+source);
 }
-for(const g of games)check(manifest.files[g.cover],'missing real gameplay cover: '+g.id);
+for(const g of games)check(manifest.files[g.cover],'missing generated game icon: '+g.id);
+for(const file of Object.values(manifest.previousFiles||manifest.retained||{}))check(file.sha256===hash(fs.readFileSync(path.join(root,'dist',file.path))),'corrupt retained resource: '+file.path);
+check(/href="https:\/\/github.com\/xxsxjt\/xxsx-web-games"[^>]*aria-label="关于/.test(hubHtml),'About must open the repository');
 check(manifest.hubGzipBytes<=250*1024,'homepage script and stylesheet budget exceeded');
 check(css.includes('/* Hallmark V44'), 'Hallmark V44 design layer missing');
 check(fs.existsSync(path.join(root,'design.md'))&&fs.existsSync(path.join(root,'.codex','skills','hallmark','SKILL.md')),'project Hallmark installation missing');

@@ -32,7 +32,7 @@ var ui={
 Object.assign(ui,{borderTacticsPage:byId('borderTacticsPage'),arcadeBorderClears:byId('arcadeBorderClears'),arcadeSalvageBest:byId('arcadeSalvageBest'),arcadeBlackboxBest:byId('arcadeBlackboxBest'),relaySector:byId('relaySector'),relayMisses:byId('relayMisses'),relayDraft:byId('relayDraft'),salvageSector:byId('salvageSector'),salvageDescendBtn:byId('salvageDescendBtn'),salvageContractPicker:byId('salvageContractPicker'),salvageData:byId('salvageData'),labStage:byId('labStage'),labLives:byId('labLives'),labDraft:byId('labDraft'),blackboxBoard:byId('blackboxBoard'),blackboxGrid:byId('blackboxGrid'),blackboxStatus:byId('blackboxStatus'),blackboxStage:byId('blackboxStage'),blackboxMoves:byId('blackboxMoves'),blackboxIntegrity:byId('blackboxIntegrity'),blackboxScore:byId('blackboxScore'),blackboxBest:byId('blackboxBest'),blackboxStartBtn:byId('blackboxStartBtn'),blackboxHintBtn:byId('blackboxHintBtn'),blackboxHintText:byId('blackboxHintText'),blackboxDraft:byId('blackboxDraft'),blackboxMastery:byId('blackboxMastery')});
 
 var assets={enemy:new Image(),boss:new Image(),gear:new Image(),player:new Image(),hangar:new Image(),rainline:new Image(),abyss:new Image()};
-var expeditionAssetSources={enemy:'assets/enemy-atlas-v3.png',boss:'assets/boss-atlas-v2.webp',gear:'assets/gear-atlas-v3.webp',player:'assets/player-ship-v2.webp',hangar:'assets/hangar-backdrop-v1.webp',rainline:'assets/sector-rainline-v1.webp',abyss:'assets/sector-abyss-v1.webp'};
+var expeditionAssetSources={enemy:'assets/enemy-atlas-v3.6b1b37b39a1e.png',boss:'assets/boss-atlas-v2.c9c4c113fed8.webp',gear:'assets/gear-atlas-v3.4a02728d8439.webp',player:'assets/player-ship-v2.3767363a890b.webp',hangar:'assets/hangar-backdrop-v1.e836e951df4c.webp',rainline:'assets/sector-rainline-v1.24303aac7f2d.webp',abyss:'assets/sector-abyss-v1.eac38fe842ff.webp'};
 var expeditionAssetsLoaded=false,assetsReady=null,startingRun=false,pendingStartToken=0,selectedRunMode='campaign';
 function loadExpeditionAssets(){
   if(assetsReady)return assetsReady;
@@ -56,10 +56,10 @@ var shipBlueprints=[
   {id:'warden',name:'棱镜守卫',className:'防御型',desc:'护盾厚重，适合高压航线。',perk:'护盾 +70 · 移速较慢',unlock:'累计星尘 15',mods:{damage:-2,fireRate:1.12,maxHp:1.18,shield:2.5,moveLerp:.9}}
 ];
 var routeDefs=[
-  {id:'standard',name:'初始航道',tag:'稳定成长',risk:'风险 低',desc:'敌群按标准节奏出现，适合测试新构筑。',brief:'奖励基准 ×1.0 · 普通节点较多 · 第 5 波出现 Boss',color:'#72f4ff',background:'rainline',tint:'#72f4ff',art:'assets/sector-rainline-v1.webp',mods:{speed:1,fire:1,reward:1}},
-  {id:'storm',name:'霓虹风暴',tag:'高压弹幕',risk:'风险 中',desc:'敌方射击更频繁，但战利品品质会提高。',brief:'敌方射速 ×1.16 · 战利品品质提高 · 星尘奖励 ×1.25',color:'#ff718e',background:'abyss',tint:'#ff718e',art:'assets/sector-abyss-v1.webp',mods:{speed:1.04,fire:.86,reward:1.25}},
-  {id:'salvage',name:'废墟回收线',tag:'资源航线',risk:'风险 中',desc:'敌人更耐打，击杀与拆解会带回更多星尘。',brief:'敌方生命 ×1.18 · 击杀废料提高 · 星尘奖励 ×1.45',color:'#ffd76a',background:'rainline',tint:'#ffd76a',art:'assets/sector-rainline-v1.webp',mods:{speed:1.02,fire:1.05,reward:1.45,hp:1.18}},
-  {id:'abyss',name:'深渊捷径',tag:'极限挑战',risk:'风险 高',desc:'直接把危险推到面前，换取更高的局外解锁速度。',brief:'敌方速度 ×1.2 · 弹幕 ×1.12 · 星尘奖励 ×2.0',color:'#c29aff',background:'abyss',tint:'#c29aff',art:'assets/sector-abyss-v1.webp',mods:{speed:1.2,fire:.89,reward:2,hp:1.12}}
+  {id:'standard',name:'初始航道',tag:'稳定成长',risk:'风险 低',desc:'敌群按标准节奏出现，适合测试新构筑。',brief:'奖励基准 ×1.0 · 普通节点较多 · 第 5 波出现 Boss',color:'#72f4ff',background:'rainline',tint:'#72f4ff',art:'assets/sector-rainline-v1.24303aac7f2d.webp',mods:{speed:1,fire:1,reward:1}},
+  {id:'storm',name:'霓虹风暴',tag:'高压弹幕',risk:'风险 中',desc:'敌方射击更频繁，但战利品品质会提高。',brief:'敌方射速 ×1.16 · 战利品品质提高 · 星尘奖励 ×1.25',color:'#ff718e',background:'abyss',tint:'#ff718e',art:'assets/sector-abyss-v1.eac38fe842ff.webp',mods:{speed:1.04,fire:.86,reward:1.25}},
+  {id:'salvage',name:'废墟回收线',tag:'资源航线',risk:'风险 中',desc:'敌人更耐打，击杀与拆解会带回更多星尘。',brief:'敌方生命 ×1.18 · 击杀废料提高 · 星尘奖励 ×1.45',color:'#ffd76a',background:'rainline',tint:'#ffd76a',art:'assets/sector-rainline-v1.24303aac7f2d.webp',mods:{speed:1.02,fire:1.05,reward:1.45,hp:1.18}},
+  {id:'abyss',name:'深渊捷径',tag:'极限挑战',risk:'风险 高',desc:'直接把危险推到面前，换取更高的局外解锁速度。',brief:'敌方速度 ×1.2 · 弹幕 ×1.12 · 星尘奖励 ×2.0',color:'#c29aff',background:'abyss',tint:'#c29aff',art:'assets/sector-abyss-v1.eac38fe842ff.webp',mods:{speed:1.2,fire:.89,reward:2,hp:1.12}}
 ];
 var starNodeDefs={
   combat:{label:'交战区',tag:'COMBAT',icon:'✦',accent:'#72f4ff',desc:'标准敌群，稳定积累经验。',mods:{speed:1,fire:1,hp:1,reward:1}},
@@ -575,7 +575,7 @@ function iconStyle(item,large){
   var def=getDef(item);
   if(!def.frame)return 'background-image:none;background-color:'+(def.glyphColor||'#c29aff')+'18;color:'+(def.glyphColor||'#c29aff')+';border:1px solid '+(def.glyphColor||'#c29aff')+'66;';
   var x=def.frame[0]*100/3,y=def.frame[1]*100/3;
-  return 'background-image:url(assets/gear-atlas-v3.webp);background-size:400% 400%;background-position:'+x+'% '+y+'%;';
+  return 'background-image:url(assets/gear-atlas-v3.4a02728d8439.webp);background-size:400% 400%;background-position:'+x+'% '+y+'%;';
 }
 function iconMarkup(item,size){
   var def=getDef(item),glyph=def.glyph?' data-glyph="'+safeText(def.glyph)+'"':'';
@@ -583,11 +583,11 @@ function iconMarkup(item,size){
 }
 function bossStyle(def){
   var x=def.frame[0]*100,y=def.frame[1]*100;
-  return 'background-image:url(assets/boss-atlas-v2.webp);background-size:200% 200%;background-position:'+x+'% '+y+'%;';
+  return 'background-image:url(assets/boss-atlas-v2.c9c4c113fed8.webp);background-size:200% 200%;background-position:'+x+'% '+y+'%;';
 }
 function enemyStyle(def){
   var x=def.frame[0]*100/3,y=def.frame[1]*100;
-  return 'background-image:url(assets/enemy-atlas-v3.png);background-size:400% 200%;background-position:'+x+'% '+y+'%;';
+  return 'background-image:url(assets/enemy-atlas-v3.6b1b37b39a1e.png);background-size:400% 200%;background-position:'+x+'% '+y+'%;';
 }
 function threatMetaMarkup(def){
   return '<span class="threatRole" style="--threat-color:'+def.color+'">'+safeText(def.roleTag||'威胁')+'</span><span class="threatAttack">'+safeText(def.attackLabel||'攻击')+'</span><small class="threatCue">'+safeText(def.readableCue||def.desc)+'</small>';

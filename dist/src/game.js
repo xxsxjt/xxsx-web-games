@@ -624,7 +624,7 @@ function renderArcadeLanding(){
   if(ui.arcadeBlackboxBest)ui.arcadeBlackboxBest.textContent=String(Math.max(0,profile.blackboxBest||0));
   if(ui.arcadeBorderClears)ui.arcadeBorderClears.textContent=String(Math.max(0,profile.borderTactics.clears||0));
   if(ui.arcadeShardCount)ui.arcadeShardCount.textContent=String(Math.max(0,profile.shards||0));
-  if(ui.arcadeProfileHint)ui.arcadeProfileHint.textContent=(profile.runs||0)+(profile.borderTactics.runs||0)+(profile.relayRuns||0)+(profile.labRuns||0)+(profile.salvageRuns||0)+(profile.blackboxRuns||0)>0?'两款主线和四种小游戏分别留档；星尘、舰站资源、委托进度与作战日志接入同一份档案。':'完成任意主线或短局，独立纪录与共享奖励都会写入同一份指挥官档案。';
+  if(ui.arcadeProfileHint)ui.arcadeProfileHint.textContent=(profile.runs||0)+(profile.borderTactics.runs||0)+(profile.relayRuns||0)+(profile.labRuns||0)+(profile.salvageRuns||0)+(profile.blackboxRuns||0)>0?'原舰站模式的成绩与资源继续保留；新解码战役的关卡、接线和星级使用独立存档。':'本区展示原舰站集合的记录；新解码战役在自己的关卡地图保存进度。';
 }
 function stopArcadeSession(){
   pendingStartToken++;startingRun=false;if(ui.expeditionStartBtn){ui.expeditionStartBtn.disabled=false;selectRunMode(selectedRunMode);}

@@ -9,16 +9,16 @@ xxsx 的静态网页游戏总站与源码总仓库。这里收录不同题材、
 
 ## 当前收录
 
-第一批游戏来自原 Neon Drift 站点。**Neon Drift / 霓虹突围是其中一款游戏，不是总站名称。** V51 已建立独立总站：首页展示六款作品、类型筛选、收藏和最近打开，游戏在 `play.html` 按入口加载。原公开地址、舰站入口和本机存档继续可用。六款作品仍标注为测试版。
+第一批游戏来自原 Neon Drift 站点。**Neon Drift / 霓虹突围是其中一款游戏，不是总站名称。** V51 已建立独立总站：首页展示六款作品、类型筛选、收藏和最近打开，游戏在 `play.html` 按入口加载。原公开地址、舰站入口和本机存档继续可用。V52 接入六张独立图标，新增十八关电路解谜战役，并为战术加入警戒、掩护、推击和反应堆环境规则。六款作品仍标注为测试版，另外三款短局尚未重做。
 
 | 游戏 | 类型 | 当前入口 |
 | --- | --- | --- |
 | 霓虹突围 · Neon Drift | 弹幕 Roguelite：十波战役 / 无尽 | `play.html#game/expedition` |
-| 边境战术：失落站 | 小队回合战术 | `play.html#game/border` |
+| 边境战术：失落站 | 三舱段小队战术：警戒 / 推击 / 反应堆 | `play.html#game/border` |
 | 信号中继 | 限时操作小游戏 | `play.html#game/relay` |
 | 回声实验室 | 记忆小游戏 | `play.html#game/lab` |
 | 深空打捞 | 打捞小游戏 | `play.html#game/salvage` |
-| 黑盒解码 | 电路解谜 | `play.html#game/blackbox` |
+| 黑盒解码 | 十八关电路战役 / 保留随机七层挑战 | `play.html#game/blackbox` |
 
 这批游戏属于原舰站集合，部分资源、委托和档案相互关联。未来新增的独立游戏可以使用自己的界面、规则和存档，直接加入总站。
 
@@ -52,7 +52,7 @@ npm test
 - `tests/`：机制回归与静态发布校验。
 - `docs/`：游戏说明、历次计划、验证记录与总站迁移计划。
 
-本轮实现与实际验证见 [V51 发布记录](docs/release-v51.md)。后续完整路线见 [总站与游戏质量升级规划](docs/quality-upgrade-plan-2026-10-07.md)，包含现状证据、方案取舍、重点游戏升级、架构迁移和验收门槛。[V50 游戏集合说明](docs/neon-drift-v50.md)与[早期总站迁移计划](docs/game-hub-roadmap.md)保留作背景。
+本轮实现与实际验证见 [V52 发布记录](docs/release-v52.md)；图标文件与完整提示词见 [V52 图标记录](docs/game-icons-v52.md)。上一轮基础工作见 [V51 发布记录](docs/release-v51.md)。后续完整路线见 [总站与游戏质量升级规划](docs/quality-upgrade-plan-2026-10-07.md)，包含现状证据、方案取舍、重点游戏升级、架构迁移和验收门槛。[V50 游戏集合说明](docs/neon-drift-v50.md)与[早期总站迁移计划](docs/game-hub-roadmap.md)保留作背景。
 
 ## 来源与同步
 
