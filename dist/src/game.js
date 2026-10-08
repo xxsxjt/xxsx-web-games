@@ -44,6 +44,9 @@ function prepareExpedition(){loadExpeditionAssets().catch(function(){toast('部�
 function selectRunMode(mode){selectedRunMode=mode==='endless'?'endless':'campaign';document.querySelectorAll('input[name="runMode"]').forEach(function(input){input.checked=input.value===selectedRunMode;});if(ui.expeditionStartBtn)ui.expeditionStartBtn.textContent=selectedRunMode==='campaign'?'开始战役':'开始无尽挑战';if(byId('expeditionRecord')&&profile)byId('expeditionRecord').textContent=selectedRunMode==='endless'?'无尽最高：'+(Number(profile.endlessBestScore)||0)+' 分 · '+(Number(profile.endlessBestWave)||0)+' 波':'战役最高：'+(Number(profile.campaignBestScore)||0)+' 分 · 通关 '+(Number(profile.campaignClears)||0)+' 次';}
 
 
+var selectedRunDoctrine='free';
+function selectRunDoctrine(id){selectedRunDoctrine=['free','striker','bastion','fleet'].indexOf(id)>=0?id:'free';document.querySelectorAll('input[name="runDoctrine"]').forEach(function(input){input.checked=input.value===selectedRunDoctrine;});}
+function applyRunDoctrine(){if(g.doctrine==='striker'){ship.damage*=1.2;ship.shield*=.65;}else if(g.doctrine==='bastion'){ship.damage*=.85;ship.shield+=60;}else if(g.doctrine==='fleet')ship.damage*=.78;}
 var {slotMeta,rarityMeta,buildTagMeta,itemDefs,weaponBranchDefs,blueprintDefs,waveMods,enemyMutations,enemyDefs,enemyOrder,bossDefs,baseStats}=window.NeonCatalog;
 var core=window.NeonCore;
 var input=core.createPointer();
@@ -548,7 +551,7 @@ function recalcBuild(fresh){
   var oldCharges=Number.isFinite(traits.empCharges)?traits.empCharges:0;
   var ratio=ship.maxHp?clamp(ship.hp/ship.maxHp,0,1):1;
   var build=core.calculateBuild(g.equipment);
-  Object.assign(ship,build.stats);Object.assign(traits,build.traits);applyBlueprint(false);applyMetaProtocols();
+  Object.assign(ship,build.stats);Object.assign(traits,build.traits);applyBlueprint(false);applyMetaProtocols();applyRunDoctrine();
   ship.hp=clamp(ship.maxHp*ratio,1,ship.maxHp);
   ship.maxShield=ship.shield;
   if(fresh){g.shieldCapacityGranted=ship.maxShield;g.empCapacityGranted=traits.empMax;}
@@ -624,7 +627,7 @@ function renderArcadeLanding(){
   if(ui.arcadeBlackboxBest)ui.arcadeBlackboxBest.textContent=String(Math.max(0,profile.blackboxBest||0));
   if(ui.arcadeBorderClears)ui.arcadeBorderClears.textContent=String(Math.max(0,profile.borderTactics.clears||0));
   if(ui.arcadeShardCount)ui.arcadeShardCount.textContent=String(Math.max(0,profile.shards||0));
-  if(ui.arcadeProfileHint)ui.arcadeProfileHint.textContent=(profile.runs||0)+(profile.borderTactics.runs||0)+(profile.relayRuns||0)+(profile.labRuns||0)+(profile.salvageRuns||0)+(profile.blackboxRuns||0)>0?'原舰站模式的成绩与资源继续保留；新解码战役的关卡、接线和星级使用独立存档。':'本区展示原舰站集合的记录；新解码战役在自己的关卡地图保存进度。';
+  if(ui.arcadeProfileHint)ui.arcadeProfileHint.textContent=(profile.runs||0)+(profile.borderTactics.runs||0)+(profile.relayRuns||0)+(profile.labRuns||0)+(profile.salvageRuns||0)+(profile.blackboxRuns||0)>0?'原舰站模式的成绩与资源继续保留；新版解谜、打捞、卡牌与塔防分别保存独立进度。':'本区展示原舰站集合的记录；新版战役在各自的页面保存进度。';
 }
 function stopArcadeSession(){
   pendingStartToken++;startingRun=false;if(ui.expeditionStartBtn){ui.expeditionStartBtn.disabled=false;selectRunMode(selectedRunMode);}
@@ -1401,7 +1404,7 @@ function resetRun(){
   stopBlackbox(true);
   g.running=false;g.paused=false;g.choosing=false;g.eventActive=false;g.pendingEvent=false;g.modalPaused=false;g.score=0;g.kills=0;g.wave=1;g.level=1;g.xp=0;g.xpNeed=80;g.levelQueue=0;
   g.waveKills=0;g.waveTarget=10;g.waveBreaches=0;g.breaches=0;g.spawnTimer=.55;g.elapsed=0;g.nextUid=1;g.combo=0;g.comboTimer=0;g.comboBest=0;g.overdrive=0;g.boss=null;g.bossDefeated=0;g.scrap=0;g.upgradeKits=0;g.empCooldown=0;g.dashCooldown=0;g.mineTimer=4;g.orbTimer=0;g.lootRerolls=0;g.eventHazard=1;g.eventSlow=1;g.routeNodeStage=-1;g.nodeMod={speed:1,fire:1,hp:1,reward:1};g.nodeRewardMultiplier=1;g.nodeLootFloor=null;g.contractHasteTimer=0;g.breakWindow=0;
-  g.missionTarget=15;g.missionKills=0;g.missionDone=false;g.missionReward=850;g.nextMissionWave=0;g.eliteKills=0;g.waveMod=waveMods[0];g.mutation=null;g.contract=null;g.pendingLoot=[];g.pendingLootFloor=null;g.nextLootFloor=null;g.pendingFusion=null;g.rewarded=false;g.runMode=selectedRunMode;g.outcome=null;g.finalWave=10;
+  g.missionTarget=15;g.missionKills=0;g.missionDone=false;g.missionReward=850;g.nextMissionWave=0;g.eliteKills=0;g.waveMod=waveMods[0];g.mutation=null;g.contract=null;g.pendingLoot=[];g.pendingLootFloor=null;g.nextLootFloor=null;g.pendingFusion=null;g.rewarded=false;g.runMode=selectedRunMode;g.doctrine=selectedRunDoctrine;g.doctrineWindow=0;g.doctrineGuardCooldown=0;g.fleetTimer=.3;g.fleetCharge=0;g.outcome=null;g.finalWave=10;
   g.route=selectedRoute();g.routeMod=g.route.mods;g.routeMap=ensureRoutePlan();g.runSeed=g.routeMap.seed;g.routePlan=g.routeMap.stages.map(function(stage){return profile.routePlan.ids[stage.index];});
   enemies=[];bullets=[];enemyBullets=[];drops=[];particles=[];mines=[];lasers=[];chainFx=[];impactFx=[];damageTexts=[];screenFx.shake=0;screenFx.flash=0;
   pointer=false;input.clear();g.modal=null;g.suspended=false;ship.swarmTimer=0;
@@ -1444,7 +1447,7 @@ function endGame(outcome){
   var shardGain=Math.max(outcome==='abandoned'?0:1,Math.floor(((outcome==='abandoned'?Math.max(0,g.wave-1):g.wave)*2+g.kills/8)*(g.routeMod&&g.routeMod.reward||1)*(g.nodeRewardMultiplier||1)*(g.metaRewardBonus||1)));
   var planLabels=(g.routePlan||[]).map(function(id){var node=routeNodeById(g.routeMap,id),def=node&&starNodeDefs[node.type];return def?def.label:id;});
   profile.shards+=shardGain;advanceDailyDirective('expedition',g.wave);syncBlueprintUnlocks(true);var stationGain=outcome==='abandoned'&&g.kills===0&&g.wave===1?'':grantActivityReward('expedition',{wave:g.wave,bosses:g.bossDefeated});
-  pushChronicle({type:'run',title:outcome==='victory'?'战役胜利':outcome==='abandoned'?'主动结束':newRecord?'远征新纪录':'远征结束',cleared:outcome==='victory',outcome:outcome,runMode:g.runMode,subtitle:selectedBlueprint().name+' · '+(g.route&&g.route.name||selectedRoute().name)+(stationGain?' · '+stationGain:''),score:g.score,wave:g.wave,kills:g.kills,shards:shardGain,seed:g.runSeed,routeId:g.route&&g.route.id,routePlan:planLabels});
+  pushChronicle({type:'run',title:outcome==='victory'?'战役胜利':outcome==='abandoned'?'主动结束':newRecord?'远征新纪录':'远征结束',cleared:outcome==='victory',outcome:outcome,runMode:g.runMode,subtitle:selectedBlueprint().name+' · '+(g.route&&g.route.name||selectedRoute().name)+' · '+({free:'自由构筑',striker:'相位突击',bastion:'屏障反击',fleet:'僚机编队'})[g.doctrine||'free']+(stationGain?' · '+stationGain:''),score:g.score,wave:g.wave,kills:g.kills,shards:shardGain,seed:g.runSeed,routeId:g.route&&g.route.id,routePlan:planLabels});
   profile.lastRunSeed=g.runSeed;profile.pendingSeed=makeRunSeed();profile.routePlan=null;profile.runs++;profile.totalKills+=g.kills;syncUnlocks();saveProfile();renderHub();
   ui.resultTitle.textContent=outcome==='victory'?'战役胜利':outcome==='abandoned'?'本局已结束':'战机损毁';
   if(byId('resultOutcome'))byId('resultOutcome').textContent=outcome==='victory'?'五段航线已完成，终局 Boss 已击破。可以重玩战役，或另开一局无尽挑战。':outcome==='abandoned'?'已按当前进度结算，成长记录保存在本机。':'本局到此结束，已带回成长奖励。调整构筑后可以再次出击。';
@@ -1520,6 +1523,7 @@ function rollLootChoices(floor){
     if(seen[fallback.id])break;
     seen[fallback.id]=true;out.push(makeItem(fallback.id,pickRarity(floor)));
   }
+  if(g.doctrine&&g.doctrine!=='free'){var tags=g.doctrine==='striker'?['pierce','mobility']:g.doctrine==='bastion'?['shield','repair']:['drone','targeting'];var favored=itemDefs.filter(function(def){return isItemUnlocked(def)&&def.slot!=='weapon'&&!seen[def.id]&&(def.tags||[]).some(function(tag){return tags.indexOf(tag)>=0;});});if(favored.length)out[out.length-1]=makeItem(favored[Math.floor(Math.random()*favored.length)].id,pickRarity(floor));}
   return out;
 }
 function storeInventory(item,excludeSlot){
@@ -1756,7 +1760,7 @@ function chainFrom(origin,amount,source){
   if(target){if(source&&source.hitIds)source.hitIds[target.uid]=true;if(source)source.chainRemaining--;chainFx.push({x1:origin.x,y1:origin.y,x2:target.x,y2:target.y,life:.22,color:'#72f4ff'});damageEnemy(target,amount,{noChain:true});if(source&&source.chainRemaining>0)chainFrom(target,amount*(traits.chainPower||.45),source);}
 }
 function killEnemy(e){
-  if(e.dead||g.rewarded)return;e.dead=true;
+  if(e.dead||g.rewarded)return;e.dead=true;if(g.doctrine==='fleet'&&!e.boss)g.fleetCharge=Math.min(10,(g.fleetCharge||0)+1);
   if(e.mutation&&e.mutation.id==='revenge')for(var ri=0;ri<8;ri++)spawnProjectile(e.x,e.y,ri*Math.PI/4,155+g.wave*2,e.bulletDamage*.72,4,e.mutation.color,'revenge');
   if(e.mutation&&e.mutation.id==='split'&&!e.summoned){spawnShard(e,-1);spawnShard(e,1);}
   g.combo=Math.min(30,(g.combo||0)+1);g.comboTimer=4.6;g.comboBest=Math.max(g.comboBest||0,g.combo);
@@ -1787,6 +1791,7 @@ function advanceWave(){
 function damageShip(amount){
   if(!g.running||g.paused||g.choosing||ship.invuln>0)return false;
   var blocked=Math.min(ship.shield,amount);ship.shield-=blocked;amount-=blocked;
+  if(blocked>0&&ship.shield<=0&&g.doctrine==='bastion'&&(g.doctrineGuardCooldown||0)<=0){g.doctrineGuardCooldown=8;enemyBullets=enemyBullets.filter(function(b){return d2(b,ship)>165*165;});enemies.slice().forEach(function(e){if(!e.dead&&d2(e,ship)<220*220)damageEnemy(e,ship.damage*3,{slow:false});});toast('屏障破裂 · 近身反击');}
   if(blocked>0)addDamageText(ship.x,ship.y-30,blocked,'#72f4ff','−'+Math.max(1,Math.round(blocked))+' 盾');
   if(blocked>0&&traits.reflect>0){
     var enemy=enemies.filter(function(e){return !e.dead;}).sort(function(a,b){return d2(a,ship)-d2(b,ship);})[0];
@@ -1831,19 +1836,19 @@ function useDash(){
   if(!g.running||g.paused||g.choosing||g.dashCooldown>0)return false;
   var oldX=ship.x,oldY=ship.y,destination=core.dashDestination(ship,W,H);
   ship.x=destination.x;ship.y=destination.y;
-  ship.targetX=ship.x;ship.targetY=ship.y;ship.invuln=Math.max(ship.invuln,.62);g.dashCooldown=4.5;
+  ship.targetX=ship.x;ship.targetY=ship.y;ship.invuln=Math.max(ship.invuln,.62);g.dashCooldown=g.doctrine==='striker'?3.2:4.5;if(g.doctrine==='striker')g.doctrineWindow=2;
   enemyBullets=enemyBullets.filter(function(b){return d2(b,ship)>92*92;});
   chainFx.push({x1:oldX,y1:oldY,x2:ship.x,y2:ship.y,life:.22,color:'#c29aff'});
   pulseScreen(3,.08);burst(oldX,oldY,'#9a7cff',16);burst(ship.x,ship.y,'#72f4ff',18);
   toast('相位瞬闪 · 近身弹幕清除');vibrate(18);beep(1040,.06,.03);updateUI();return true;
 }
-function fireInterval(){return ship.fireRate*(ship.hasteTimer>0?(traits.hasteRate||1):1)*(ship.driftTimer>0?.78:1)*(g.contractHasteTimer>0?.78:1)*(ship.jammed?1.38:1);}
+function fireInterval(){return ship.fireRate*(ship.hasteTimer>0?(traits.hasteRate||1):1)*(ship.driftTimer>0?.78:1)*(g.contractHasteTimer>0?.78:1)*(ship.jammed?1.38:1)*(g.doctrine==='striker'&&g.doctrineWindow>0?.65:1);}
 function shoot(){
   ship.fireTimer=Math.max(0,ship.fireTimer)+fireInterval();
   var count=ship.shots;
   for(var i=0;i<count;i++){
     var offset=i-(count-1)/2,angle=(Number.isFinite(ship.aimAngle)?ship.aimAngle:-Math.PI/2)+offset*ship.spread;
-    bullets.push({uid:uid('bullet'),x:ship.x+Math.cos(angle)*8,y:ship.y+Math.sin(angle)*8,vx:Math.cos(angle)*ship.bulletSpeed,vy:Math.sin(angle)*ship.bulletSpeed,r:traits.phase?4:3.3,damage:ship.damage,remainingPierce:ship.pierce+(traits.splitPierce&&traits.weaponMode==='splitter'?1:0),hitIds:{},chain:traits.chain>0,color:traits.bulletColor,kind:traits.weaponMode||'pulse'});
+    bullets.push({uid:uid('bullet'),x:ship.x+Math.cos(angle)*8,y:ship.y+Math.sin(angle)*8,vx:Math.cos(angle)*ship.bulletSpeed,vy:Math.sin(angle)*ship.bulletSpeed,r:traits.phase?4:3.3,damage:ship.damage,remainingPierce:ship.pierce+(g.doctrine==='striker'&&g.doctrineWindow>0?1:0)+(traits.splitPierce&&traits.weaponMode==='splitter'?1:0),hitIds:{},chain:traits.chain>0,color:traits.bulletColor,kind:traits.weaponMode||'pulse'});
   }
   beep(traits.phase?900:760,.016,.009);
 }
@@ -1871,6 +1876,9 @@ function shootAux(){
   }
   burst(ship.x,ship.y,traits.auxMode==='missile'?'#ff66c4':traits.auxMode==='beam'?'#c29aff':traits.auxMode==='drone'?'#ffb75c':'#ffd76a',traits.auxMode==='mine'?8:5);
 }
+function shootDoctrineFleet(){
+  var targets=enemies.filter(function(e){return !e.dead;}).sort(function(a,b){return (b.boss?4:b.type==='elite'?3:b.type==='carrier'?2:0)-(a.boss?4:a.type==='elite'?3:a.type==='carrier'?2:0)||d2(a,ship)-d2(b,ship);});if(!targets.length)return;var boosted=g.fleetCharge>=10;if(boosted)g.fleetCharge=0;for(var i=0;i<2;i++){var target=targets[i%targets.length],angle=Math.atan2(target.y-ship.y,target.x-ship.x);bullets.push({uid:uid('fleet'),x:ship.x+(i?14:-14),y:ship.y-8,vx:Math.cos(angle)*360,vy:Math.sin(angle)*360,speed:360,targetUid:target.uid,r:4.6,damage:ship.damage*.9*(boosted?1.8:1),remainingPierce:0,hitIds:{},chain:false,color:'#ffb75c',kind:'drone',aux:true});}if(boosted)toast('编队锁定 · 僚机火力强化');
+}
 function orbitalPos(index){
   var count=Math.max(1,orbitalCount()),angle=g.elapsed*1.7+index*Math.PI*2/count;
   return{x:ship.x+Math.cos(angle)*32,y:ship.y+Math.sin(angle)*32};
@@ -1896,6 +1904,7 @@ function updateCombat(dt){
   damageTexts.forEach(function(t){t.y+=t.vy*dt;t.vy+=18*dt;t.life-=dt;});
   ship.driftTimer=Math.max(0,ship.driftTimer-dt);
   ship.swarmTimer=Math.max(0,ship.swarmTimer-dt);
+  g.doctrineWindow=Math.max(0,(g.doctrineWindow||0)-dt);g.doctrineGuardCooldown=Math.max(0,(g.doctrineGuardCooldown||0)-dt);g.fleetTimer=Math.max(0,(g.fleetTimer||0)-dt);
   g.elapsed+=dt;ship.fireTimer-=dt;ship.invuln=Math.max(0,ship.invuln-dt);ship.hasteTimer=Math.max(0,ship.hasteTimer-dt);g.contractHasteTimer=Math.max(0,g.contractHasteTimer-dt);g.breakWindow=Math.max(0,g.breakWindow-dt);g.empCooldown=Math.max(0,g.empCooldown-dt);g.dashCooldown=Math.max(0,g.dashCooldown-dt);g.comboTimer=Math.max(0,(g.comboTimer||0)-dt);if(g.comboTimer<=0)g.combo=0;
   if(ship.regen>0)ship.hp=Math.min(ship.maxHp,ship.hp+ship.regen*dt);
   var oldX=ship.x,oldY=ship.y;
@@ -1913,6 +1922,7 @@ function updateCombat(dt){
   if(ship.fireTimer<=0)shoot();
   ship.auxFireTimer=Math.max(0,(ship.auxFireTimer||0)-dt);
   if(traits.auxMode&&ship.auxFireTimer<=0){ship.auxFireTimer=traits.auxInterval;shootAux();}
+  if(g.doctrine==='fleet'&&g.fleetTimer<=0&&enemies.some(function(e){return !e.dead;})){g.fleetTimer=1.6;shootDoctrineFleet();}
   if(orbitalCount()>0){g.orbTimer=(g.orbTimer||0)-dt;if(g.orbTimer<=0){g.orbTimer=.72;shootOrbitals();}}
   if(traits.mineEvery>0){g.mineTimer-=dt;if(g.mineTimer<=0){g.mineTimer=traits.mineEvery;mines.push({x:ship.x,y:ship.y,r:8,armed:.45,life:12,damage:traits.mineDamage});}}
   if(!g.boss&&g.waveKills>=g.waveTarget)advanceWave();
@@ -2346,6 +2356,7 @@ window.addEventListener('keydown',function(e){
 window.addEventListener('keyup',function(e){keys[e.code]=false;keys[e.key]=false;});
 window.addEventListener('blur',function(){keys={};});
 document.querySelectorAll('input[name="runMode"]').forEach(function(input){input.addEventListener('change',function(){selectRunMode(input.value);});});
+document.querySelectorAll('input[name="runDoctrine"]').forEach(function(input){input.addEventListener('change',function(){if(input.checked)selectRunDoctrine(input.value);});});
 byId('endlessAfterWinBtn')&&byId('endlessAfterWinBtn').addEventListener('click',function(){selectRunMode('endless');startGame();});
 byId('startBtn').addEventListener('click',startGame);byId('restartBtn').addEventListener('click',startGame);ui.hubStartBtn.addEventListener('click',function(){enterArcadeGame('expedition',false);});ui.returnGamePageBtn&&ui.returnGamePageBtn.addEventListener('click',returnToExpeditionMenu);ui.returnArcadeBtn&&ui.returnArcadeBtn.addEventListener('click',function(){openArcadeLanding(false);});
 ui.expeditionStartBtn&&ui.expeditionStartBtn.addEventListener('click',startGame);ui.expeditionSetupBtn&&ui.expeditionSetupBtn.addEventListener('click',function(){enterStation('routes',false);});ui.abandonExpeditionBtn&&ui.abandonExpeditionBtn.addEventListener('click',function(){endGame('abandoned');});

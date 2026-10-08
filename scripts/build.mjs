@@ -6,12 +6,12 @@ import {gzipSync} from 'node:zlib';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const manifest=JSON.parse(readFileSync(resolve(root,'.openai/hosting.json'),'utf8'));
 if(manifest.static.directory!=='dist')throw new Error('Unexpected static directory');
-const version='V52',retained={};
-// Keep the previous published generation of hashed resources for cached HTML.
-// Rebuilds of this version keep that same generation instead of accumulating every edit.
+const version='V53',retained={};
+// Preserve published hash URLs, including the inherited compatibility set.
+// Rebuilds of this version retain that set without accumulating unpublished edits.
 try{
   const previous=JSON.parse(readFileSync(resolve(root,'dist/release-manifest.json'),'utf8'));
-  const items=previous.version===version?Object.values(previous.previousFiles||previous.retained||{}):Object.values(previous.files||{}).filter(item=>/\.[0-9a-f]{12}\./.test(item.path));
+  const items=previous.version===version?Object.values(previous.previousFiles||previous.retained||{}):Object.values(previous.files||{}).filter(item=>/\.[0-9a-f]{12}\./.test(item.path)).concat(Object.values(previous.previousFiles||previous.retained||{}));
   for(const item of items)retained[item.path]={bytes:readFileSync(resolve(root,'dist',item.path)),sha256:item.sha256};
 }catch(error){if(error.code!=='ENOENT')throw error;}
 rmSync(resolve(root,'dist'),{recursive:true,force:true});
