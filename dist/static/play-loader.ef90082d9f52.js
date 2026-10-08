@@ -5,7 +5,7 @@
   var short=['relay','lab','salvage'],known=['expedition','border','blackbox'].concat(short);
   if(known.indexOf(kind)<0)kind='station';
   var gameNames=[];function updateTitle(path){if(!gameNames.length)return;var route=path===undefined?window.location.hash:path,m=/^#?(?:game|station)\/([a-z]+)/.exec(route||''),id=m?aliases[m[1]]||m[1]:'arcade',game=gameNames.find(function(g){return g.id===id;});document.title=(game?game.name:id==='arcade'?'新伊甸游戏厅':'科幻舰站')+' · XXSX 游戏站';}
-  fetch('content/games.json').then(function(r){return r.json();}).then(function(games){gameNames=games;updateTitle();}).catch(function(){});
+  fetch('content/games.fe8b86828415.json').then(function(r){return r.json();}).then(function(games){gameNames=games;updateTitle();}).catch(function(){});
   window.addEventListener('hashchange',function(){updateTitle();});window.addEventListener('popstate',function(){updateTitle();});
   var loadedKind=kind,common=['catalog','core','runtime'],extra=kind==='border'?['border']:kind==='blackbox'?['blackbox','circuit']:short.indexOf(kind)>=0?['arcade','campaignCore','salvageExpedition','echoDeck','relayDefense']:[];
   window.NeonPlayLoader={

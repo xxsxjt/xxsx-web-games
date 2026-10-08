@@ -6,7 +6,7 @@ import {gzipSync} from 'node:zlib';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const manifest=JSON.parse(readFileSync(resolve(root,'.openai/hosting.json'),'utf8'));
 if(manifest.static.directory!=='dist')throw new Error('Unexpected static directory');
-const version='V53',retained={};
+const version='V54',retained={};
 // Preserve published hash URLs, including the inherited compatibility set.
 // Rebuilds of this version retain that set without accumulating unpublished edits.
 try{

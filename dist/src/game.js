@@ -617,7 +617,7 @@ var arcadeGameViews={relay:'signals',lab:'lab',salvage:'salvage',blackbox:'black
 var arcadeGameByHubView={signals:'relay',lab:'lab',salvage:'salvage',blackbox:'blackbox',border:'border'};
 var stationViews=['bridge','armory','routes','chronicle','codex','archive','guides','workbench','protocols','challenges','dispatch'];
 var legacyGameStationRoutes={expedition:'expedition',border:'border',signals:'relay',salvage:'salvage',lab:'lab',blackbox:'blackbox'};
-function setArcadeHash(path){try{var next=path?'#'+path:'#arcade';if(window.location&&window.location.hash===next)return;if(window.history&&window.history.pushState)window.history.pushState(null,'',next);else if(window.location)window.location.hash=next;}catch(e){}}
+function setArcadeHash(path){try{if(window.NeonPlayLoader&&window.NeonPlayLoader.updateTitle)window.NeonPlayLoader.updateTitle(path);var next=path?'#'+path:'#arcade';if(window.location&&window.location.hash===next)return;if(window.history&&window.history.pushState)window.history.pushState(null,'',next);else if(window.location)window.location.hash=next;}catch(e){}}
 function renderArcadeLanding(){
   if(!ui.arcadeLanding)return;
   if(ui.arcadeRunCount)ui.arcadeRunCount.textContent=String(Math.max(0,profile.runs||0));

@@ -53,7 +53,9 @@ npm test
 - `tests/`：机制回归与静态发布校验。
 - `docs/`：游戏说明、历次计划、验证记录与总站迁移计划。
 
-本轮实现与实际验证见 [V53 发布记录](docs/release-v53.md)。前轮见 [V52 发布记录](docs/release-v52.md)；图标文件与完整提示词见 [V52 图标记录](docs/game-icons-v52.md)。总站基础见 [V51 发布记录](docs/release-v51.md)。后续完整路线见 [总站与游戏质量升级规划](docs/quality-upgrade-plan-2026-10-07.md)，包含现状证据、方案取舍、重点游戏升级、架构迁移和验收门槛。[V50 游戏集合说明](docs/neon-drift-v50.md)与[早期总站迁移计划](docs/game-hub-roadmap.md)保留作背景。
+V54 继续打磨决策与操作反馈：卡牌可蓄能并预估出牌结算，打捞可规划路线并预估氧气与护甲，塔防显示待入场队列和实际命中，并支持点地图选择炮位。三款战役新增旧页面写档冲突提示，仍沿用 V53 存档键。
+
+本轮实现与实际验证见 [V54 发布记录](docs/release-v54.md)。战役基础见 [V53 发布记录](docs/release-v53.md)。前轮见 [V52 发布记录](docs/release-v52.md)；图标文件与完整提示词见 [V52 图标记录](docs/game-icons-v52.md)。总站基础见 [V51 发布记录](docs/release-v51.md)。后续完整路线见 [总站与游戏质量升级规划](docs/quality-upgrade-plan-2026-10-07.md)，包含现状证据、方案取舍、重点游戏升级、架构迁移和验收门槛。[V50 游戏集合说明](docs/neon-drift-v50.md)与[早期总站迁移计划](docs/game-hub-roadmap.md)保留作背景。
 
 ## 来源与同步
 
