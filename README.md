@@ -66,3 +66,5 @@ V54 继续打磨决策与操作反馈：卡牌可蓄能并预估出牌结算，�
 ## 许可证
 
 保留仓库创建时选择的 [GNU AGPL v3.0](LICENSE)。第三方来源记录见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+
+V55：霓虹突围改为自动锁敌的自由战场，含四周围攻、经验吸取和补给站争夺。其他五款改进操作反馈。下一款《借来的十秒》仅为[设计方案](docs/new-game-concepts-v55.md)，尚未上线。

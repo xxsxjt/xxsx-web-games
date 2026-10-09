@@ -27,7 +27,7 @@ function boot(savedProfile, storageOverrides) {
     Image:class{},performance:{now:()=>0},setTimeout:()=>1,clearTimeout(){},
     requestAnimationFrame:fn=>{frames.set(++frameId,fn);return frameId;},cancelAnimationFrame:id=>frames.delete(id),console,Math:seededMath};
   vm.createContext(sandbox);
-  for(const file of ['catalog','core'])vm.runInContext(fs.readFileSync(require('node:path').join(root,'src',file+'.js'),'utf8'),sandbox);
+  for(const file of ['catalog','core','freefield'])vm.runInContext(fs.readFileSync(require('node:path').join(root,'src',file+'.js'),'utf8'),sandbox);
   vm.runInContext(runtime,sandbox);
   vm.runInContext(blackboxSource,sandbox);
   vm.runInContext(arcadeSource,sandbox);
@@ -37,14 +37,19 @@ function boot(savedProfile, storageOverrides) {
 }
 let failed=0;
 function test(name, fn, savedProfile, storageOverrides){try{fn(boot(savedProfile,storageOverrides));console.log('PASS',name);}catch(e){failed++;process.exitCode=1;console.log('FAIL',name, e.message);}}
+test('free field keyboard movement crosses old screen bounds and camera follows',t=>{t.run('keys.KeyD=true;for(var i=0;i<180;i++){ship.invuln=1;update(1/60);}keys.KeyD=false');assert.ok(t.run('ship.x>2000'));assert.ok(t.run('g.field.camera.x>1800'));const x=t.run('ship.x');t.run('update(.016)');assert.equal(t.run('ship.x'),x);});
+test('resize preserves world coordinates and projectiles',t=>{t.run('ship.x=2100;ship.y=900;bullets=[{x:2000,y:1000}];resize()');assert.equal(t.run('ship.x'),2100);assert.equal(t.run('bullets[0].x'),2000);});
+test('enemies below old screen chase without breach penalties',t=>{t.run('enemies=[];spawnEnemy();var e=enemies[0];e.x=ship.x;e.y=ship.y+250;g.testOld=e.y;update(.016)');assert.ok(t.run('enemies[0].y<g.testOld'));assert.equal(t.run('g.breaches'),0);});
+test('experience remains on battlefield until picked up',t=>{t.run('enemies=[];spawnEnemy();var e=enemies[0];e.x=ship.x+220;e.y=ship.y;killEnemy(e)');assert.equal(t.run('g.xp'),0);assert.ok(t.run('drops.some(function(d){return d.type==="xp";})'));t.run('var orb=drops.find(function(d){return d.type==="xp";});ship.x=orb.x;ship.y=orb.y;update(.016)');assert.ok(t.run('g.xp>0'));});
+test('capture rewards happen once and stop under enemy contest',t=>{t.run('var b=g.field.beacons[0];ship.x=b.x;ship.y=b.y;enemies=[{x:b.x+50,y:b.y,dead:false}];field.beacons(g.field,ship,enemies,5)');assert.equal(t.run('g.field.beacons[0].claimed'),false);t.run('enemies=[];g.spawnTimer=100;update(5)');assert.equal(t.run('g.field.beacons[0].claimed'),true);assert.equal(t.run('g.upgradeKits'),1);t.run('update(.016)');assert.equal(t.run('g.upgradeKits'),1);});
 test('v5 archive upgrades without losing commander progress',t=>{assert.equal(t.run('profile.schemaVersion'),11);assert.equal(t.run('profile.runs'),7);assert.equal(t.run('profile.shards'),42);assert.equal(t.run('profile.relayBest'),180);assert.equal(t.run('profile.blackboxRuns'),0);assert.equal(t.run('profile.blackboxClears'),0);assert.equal(t.run('profile.borderTactics.runs'),0);assert.equal(t.run("profile.arcadeMastery.relay"),null);},{schemaVersion:5,runs:7,shards:42,relayBest:180,station:{intel:3,modules:2,research:1,claimed:{}}});
 test('new run fires bullets',t=>{t.run('update(.016)');assert.ok(t.run('bullets.length')>0);});
 test('overdrive charges from combat and stays inert before ready',t=>{t.run("resetRun();g.running=true;enemies=[];spawnEnemy();var enemy=enemies[0];enemy.hp=1;damageEnemy(enemy,999,{slow:false});");const charged=t.run('g.overdrive');assert.ok(charged>0&&charged<100);const bulletsBefore=t.run('enemyBullets.length');assert.equal(t.run('useOverdrive()'),false);assert.equal(t.run('g.overdrive'),charged);assert.equal(t.run('enemyBullets.length'),bulletsBefore);});
 test('overdrive clears threats and grants a short fire window',t=>{t.run("resetRun();g.running=true;g.overdrive=100;enemyBullets=[{x:20,y:20,vx:0,vy:0,r:4,damage:4,life:8}];lasers=[{x:180,y:120,angle:0,length:400,width:12,life:1,delay:0,hitTimer:0,damage:4}];enemies=[];spawnEnemy();useOverdrive();");assert.equal(t.run('g.overdrive'),0);assert.equal(t.run('enemyBullets.length'),0);assert.equal(t.run('lasers.length'),0);assert.ok(t.run('ship.hasteTimer>=4.8'));});
 test('starting a run removes the command deck overlay',t=>{t.run('resetRun()');assert.equal(t.run("ui.hubOverlay.classList.contains('hidden')"),false);t.run('startGame()');assert.equal(t.run("ui.hubOverlay.classList.contains('hidden')"),true);});
 test('player has finite collision radius',t=>assert.ok(t.run('Number.isFinite(ship.r)&&ship.r>0')));
-test('touch control keeps ship above the finger',t=>{t.run('targetPos(180,300,true)');assert.equal(t.run('ship.targetY'),248);});
-test('drag direction changes the real main-fire angle',t=>{t.run("resetRun();ship.x=180;ship.y=420;targetPos(300,260,true);bullets=[];ship.fireTimer=0;shoot()");assert.ok(t.run('bullets[0].vx>0'));assert.ok(t.run('bullets[0].vy<0'));});
+test('touch control uses a relative movement stick',t=>{t.run('targetPos(180,300,true);targetPos(180,360,true)');assert.equal(t.run('g.field.stick.dy'),(60-8)/56);assert.equal(t.run('ship.y'),1200);});
+test('automatic fire targets enemies independently of drag direction',t=>{t.run("resetRun();g.running=true;ship.x=1600;ship.y=1200;enemies=[];spawnEnemy();enemies[0].x=1700;enemies[0].y=1100;targetPos(300,400,true);targetPos(240,460,true);bullets=[];ship.fireTimer=0;update(.016)");assert.ok(t.run('bullets[0].vx>0'));assert.ok(t.run('bullets[0].vy<0'));});
 test('each combat wave exposes a tactical contract and marked target',t=>{t.run("resetRun();g.wave=2;g.running=true;updateWaveMod();enemies=[];spawnEnemy();killEnemy(enemies[0])");assert.equal(t.run('g.contract.id'),'hunt');assert.equal(t.run('g.contract.complete'),true);assert.ok(t.run('g.score>=460'));});
 test('hunt contracts retarget after a marked enemy disappears',t=>{t.run("resetRun();g.wave=2;g.running=true;updateWaveMod();enemies=[];spawnEnemy();spawnEnemy();var old=g.contract.targetUid;enemies=enemies.filter(function(e){return e.uid!==old;});ensureHuntTarget()");assert.ok(t.run('g.contract.targetUid'));assert.equal(t.run('enemies.some(function(e){return e.uid===g.contract.targetUid&&e.marked;})'),true);});
 test('boss wave contracts require one shield break and grant a behavior window',t=>{t.run("resetRun();g.wave=5;g.running=true;updateWaveMod();completeWaveContract('break')");assert.equal(t.run('g.contract.target'),1);assert.equal(t.run('g.breakWindow'),3.2);assert.equal(t.run('g.contract.complete'),true);});
@@ -168,7 +173,7 @@ test('weapon signatures are carried into player projectiles',t=>{const result=JS
 test('boss phase transition creates readable feedback',t=>{t.run('g.wave=5;spawnBoss();var boss=g.boss;boss.y=boss.targetY;boss.hp=boss.maxHp*.6;updateBoss(boss,.016)');assert.equal(t.run('g.boss.phase'),2);assert.ok(t.run("damageTexts.some(function(item){return item.text==='PHASE 2';})"));});
 test('opening loot releases an active drag',t=>{t.run('pointer=true;g.levelQueue=1;openLoot()');assert.equal(t.run('pointer'),false);});
 test('phase dash moves, grants invulnerability and clears nearby bullets',t=>{
-  const result=JSON.parse(t.run("(function(){ship.x=180;ship.y=430;ship.targetX=280;ship.targetY=430;enemyBullets=[{x:260,y:430,vx:0,vy:0,r:4,damage:9,life:8},{x:20,y:20,vx:0,vy:0,r:4,damage:9,life:8}];var used=useDash();return JSON.stringify({used:used,x:ship.x,invuln:ship.invuln,cooldown:g.dashCooldown,bullets:enemyBullets.length});})()"));
+  const result=JSON.parse(t.run("(function(){ship.x=180;ship.y=430;ship.targetX=280;ship.targetY=430;ship.dashX=1;ship.dashY=0;enemyBullets=[{x:260,y:430,vx:0,vy:0,r:4,damage:9,life:8},{x:20,y:20,vx:0,vy:0,r:4,damage:9,life:8}];var used=useDash();return JSON.stringify({used:used,x:ship.x,invuln:ship.invuln,cooldown:g.dashCooldown,bullets:enemyBullets.length});})()"));
   assert.equal(result.used,true);assert.ok(result.x>180);assert.ok(result.invuln>=.6);assert.equal(result.cooldown,4.5);assert.equal(result.bullets,1);
 });
 test('phase dash cannot be reused during cooldown',t=>assert.equal(t.run("(function(){ship.targetX=300;ship.targetY=ship.y;useDash();var x=ship.x;useDash();return ship.x===x;})()"),true));
@@ -206,7 +211,7 @@ test('loot freezes cooldowns and collision damage',t=>{
  assert.equal(t.run('ship.hp'),80);assert.equal(t.run('g.dashCooldown'),3);
 });
 test('upgrade triggered during catch-up stops the next substep',t=>{
- t.run("ship.x=180;ship.y=430;ship.targetX=180;ship.targetY=430;ship.fireTimer=100;g.spawnTimer=100;g.xp=79;spawnEnemy();var e=enemies[0];Object.assign(e,{x:100,y:100,hp:1,shield:0,armor:0,xp:2,vy:0});bullets=[{x:100,y:110,vx:0,vy:-900,r:3,damage:99,hitIds:{},remainingPierce:0}];g.last=0;loop(100)");
+ t.run("ship.x=180;ship.y=430;ship.targetX=180;ship.targetY=430;ship.fireTimer=100;g.spawnTimer=100;g.xp=79;spawnEnemy();var e=enemies[0];Object.assign(e,{x:100,y:100,hp:1,shield:0,armor:0,xp:2,vy:0});drops=[{type:'xp',xp:2,x:ship.x,y:ship.y,r:6,vy:0,life:60}];bullets=[{x:100,y:110,vx:0,vy:-900,r:3,damage:99,hitIds:{},remainingPierce:0}];g.last=0;loop(100)");
  assert.equal(t.run('g.choosing'),true);assert.ok(t.run('g.elapsed')<.02);assert.equal(t.run('g.accumulator'),0);
 });
 test('long browser stalls pause without advancing combat',t=>{
@@ -219,7 +224,7 @@ test('stale inventory index cannot grant scrap',t=>{t.run('scrapInventory(500)')
 test('second touch cannot hijack movement or cancel the first touch',t=>{
  const n=t.nodes.get('gameCanvas');n.listeners.pointerdown({pointerId:1,clientX:100,clientY:400,pointerType:'touch'});
  n.listeners.pointerdown({pointerId:2,clientX:300,clientY:400,pointerType:'touch'});n.listeners.pointerup({pointerId:2});
- n.listeners.pointermove({pointerId:1,clientX:120,clientY:400,pointerType:'touch'});assert.equal(t.run('ship.targetX'),120);assert.equal(t.run('pointer'),true);
+ n.listeners.pointermove({pointerId:1,clientX:120,clientY:400,pointerType:'touch'});assert.equal(t.run('g.field.stick.x'),100);assert.ok(t.run('g.field.stick.dx>0'));assert.equal(t.run('pointer'),true);
  n.listeners.lostpointercapture({pointerId:1});assert.equal(t.run('pointer'),false);
 });
 test('zero-score defeat is not a new record',t=>{t.run('endGame()');assert.equal(t.run('ui.resultTitle.textContent'),'战机损毁');assert.equal(t.run('ui.dashBtn.disabled'),true);});
