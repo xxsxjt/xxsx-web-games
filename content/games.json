@@ -64,5 +64,16 @@
     "status": "测试版",
     "cover": "assets/icons/relay-v1.webp",
     "format": "战役"
+  },
+  {
+    "id": "shell",
+    "name": "寄壳行动",
+    "type": "解谜",
+    "description": "借用敌人的壳体能力穿过设施：冲锋、炮台、侦察与护盾各有代价。",
+    "controls": "方向键 / 触屏按钮 · 寄壳",
+    "save": "本机竖切片记录",
+    "status": "竖切片",
+    "cover": "assets/icons/shell-heist.svg",
+    "format": "固定关卡"
   }
 ]

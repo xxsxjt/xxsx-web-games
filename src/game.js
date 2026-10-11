@@ -615,7 +615,7 @@ function toggleHubMore(){
   var button=ui.hubMoreBtn,rail=button&&button.parentNode;if(!button||!rail)return;
   var open=!rail.classList.contains('moreOpen');rail.classList.toggle('moreOpen',open);button.setAttribute('aria-expanded',open?'true':'false');
 }
-var arcadeGameViews={relay:'signals',lab:'lab',salvage:'salvage',blackbox:'blackbox'};
+var arcadeGameViews={relay:'signals',lab:'lab',salvage:'salvage',blackbox:'blackbox'};var shellSession=null;
 var arcadeGameByHubView={signals:'relay',lab:'lab',salvage:'salvage',blackbox:'blackbox',border:'border'};
 var stationViews=['bridge','armory','routes','chronicle','codex','archive','guides','workbench','protocols','challenges','dispatch'];
 var legacyGameStationRoutes={expedition:'expedition',border:'border',signals:'relay',salvage:'salvage',lab:'lab',blackbox:'blackbox'};
@@ -634,7 +634,7 @@ function renderArcadeLanding(){
 function stopArcadeSession(){
   pendingStartToken++;startingRun=false;if(ui.expeditionStartBtn){ui.expeditionStartBtn.disabled=false;selectRunMode(selectedRunMode);}
   if(window.NeonBorderTactics&&typeof window.NeonBorderTactics.leave==='function')window.NeonBorderTactics.leave();
-  stopRelay(true);stopLab(true);stopSalvage(true);stopBlackbox(true);
+  stopRelay(true);stopLab(true);stopSalvage(true);stopBlackbox(true);if(shellSession&&shellSession.leave)shellSession.leave();shellSession=null;
   if(g.running)endGame('abandoned');
   g.paused=false;g.modalPaused=false;g.suspended=false;g.choosing=false;g.eventActive=false;g.pendingEvent=false;g.modal=null;
   pointer=false;if(input&&input.clear)input.clear();if(g.field)g.field.stick=null;setCombatControls(false);
@@ -675,6 +675,16 @@ function enterArcadeGame(kind,silent){
     if(!silent)setArcadeHash('game/expedition');
     return;
   }
+  if(kind==='shell'){
+    stopArcadeSession();closeAnnouncement();showArcadeShell('arcadeGameMode');
+    if(ui.arcadeGamePages)ui.arcadeGamePages.classList.remove('hidden');
+    if(ui.expeditionGamePage)ui.expeditionGamePage.classList.add('hidden');
+    if(ui.borderTacticsPage)ui.borderTacticsPage.classList.add('hidden');
+    var shellPage=byId('shellHeistPage');if(shellPage)shellPage.classList.remove('hidden');
+    if(window.NeonShellHeist&&typeof window.NeonShellHeist.enter==='function')shellSession=window.NeonShellHeist.enter();
+    if(!silent)setArcadeHash('game/shell');
+    return;
+  }
   if(kind==='border'){
     stopArcadeSession();closeAnnouncement();showArcadeShell('arcadeGameMode');
     if(ui.arcadeGamePages)ui.arcadeGamePages.classList.remove('hidden');
@@ -694,7 +704,7 @@ function enterArcadeGame(kind,silent){
 }
 function syncArcadeRoute(){
   var hash='';try{hash=window.location&&window.location.hash||'';}catch(e){}
-  var gameMatch=/^#game\/(expedition|border|relay|lab|salvage|blackbox|bridge)$/.exec(hash);
+  var gameMatch=/^#game\/(expedition|border|relay|lab|salvage|blackbox|shell|bridge)$/.exec(hash);
   var stationMatch=/^#station\/([a-z]+)$/.exec(hash);
   if(gameMatch){
     if(gameMatch[1]==='bridge'){enterStation('bridge',true);setArcadeHash('station/bridge');}
