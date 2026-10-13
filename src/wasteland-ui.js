@@ -7,20 +7,23 @@
 
   // ── 物品类型配置 ──────────────────────────────────────────
   var ITEM_TYPES = {
-    weapon:   { icon: '🔫', color: 'var(--wl-weapon)',   label: '武器' },
-    ammo:     { icon: '📦', color: 'var(--wl-ammo)',     label: '弹药' },
-    food:     { icon: '🥫', color: 'var(--wl-food)',     label: '食物' },
-    water:    { icon: '💧', color: 'var(--wl-water)',    label: '水' },
-    medicine: { icon: '💊', color: 'var(--wl-medicine)', label: '药品' },
-    chemical: { icon: '⚗️',  color: 'var(--wl-chemical)',label: '化学品' },
-    metal:    { icon: '⚙️',  color: 'var(--wl-metal)',   label: '金属' },
-    elec:     { icon: '🔋', color: 'var(--wl-elec)',     label: '电子' },
-    cloth:    { icon: '🧥', color: 'var(--wl-cloth)',    label: '布料' },
-    alcohol:  { icon: '🍾', color: 'var(--wl-alcohol)',  label: '酒' },
-    drug:     { icon: '💉', color: 'var(--wl-drug)',     label: '针剂' },
-    tool:     { icon: '🔧', color: 'var(--wl-tool)',     label: '工具' },
-    fake:     { icon: '🎭', color: 'var(--wl-fake)',     label: '假货' },
-    misc:     { icon: '📋', color: 'var(--wl-misc)',     label: '杂项' },
+    weapon:     { icon: '🔫', color: '#ff4a6a', label: '武器'   },
+    ammo:       { icon: '💣', color: '#ffb75c', label: '弹药'   },
+    food:       { icon: '🥫', color: '#3dcc7a', label: '食物'   },
+    water:      { icon: '💧', color: '#3abfff', label: '水'     },
+    medicine:   { icon: '💊', color: '#9a5cff', label: '药品'   },
+    chemical:   { icon: '⚗️', color: '#ff66c4', label: '化学品' },
+    metal:      { icon: '⚙️', color: '#e6b820', label: '金属'   },
+    elec:       { icon: '🔋', color: '#00d8e6', label: '电子'   },
+    electronic: { icon: '🔋', color: '#00d8e6', label: '电子'   },
+    cloth:      { icon: '🧥', color: '#9a7cff', label: '布料'   },
+    alcohol:    { icon: '🍶', color: '#ff8c20', label: '酒'     },
+    drug:       { icon: '💉', color: '#ff718e', label: '针剂'   },
+    tool:       { icon: '🔧', color: '#6a8aaa', label: '工具'   },
+    junk:       { icon: '📦', color: '#7a8a9a', label: '废品',  blink: false },
+    contraband: { icon: '⚡', color: '#ff2020', label: '违禁品', blink: true  },
+    fake:       { icon: '🎭', color: '#ff718e', label: '假货'   },
+    misc:       { icon: '📋', color: '#7a8fa8', label: '杂项'   },
   };
 
   // ── 辅助函数 ─────────────────────────────────────────────
@@ -129,6 +132,31 @@
             cellDiv.appendChild(el('span', { class: 'wl-cell__badge wl-cell__badge--fake', title: '假货' }, '⚠'));
           }
 
+          // Quality dots (1–5) at bottom-right
+          var _qLvl = item.qualityLevel != null
+            ? Math.min(5, Math.max(1, Math.round(item.qualityLevel)))
+            : (item.quality != null && item.quality >= 1 && item.quality <= 5
+                ? Math.round(item.quality) : null);
+          if (_qLvl) {
+            var _qColors = ['', '#ff4a6a', '#ffb75c', '#ffd76a', '#75ffb2', '#72f4ff'];
+            var _dotsWrap = el('span', {
+              style: 'position:absolute;bottom:2px;right:2px;display:flex;gap:1px;',
+              'aria-label': '品质等级 ' + _qLvl,
+            });
+            for (var _qi = 0; _qi < _qLvl; _qi++) {
+              _dotsWrap.appendChild(el('i', {
+                style: 'display:inline-block;width:4px;height:4px;border-radius:50%;background:' +
+                  _qColors[_qLvl] + ';opacity:.9;font-style:normal;',
+              }));
+            }
+            cellDiv.appendChild(_dotsWrap);
+          }
+
+          // Contraband blink effect
+          if (conf.blink) {
+            cellDiv.style.animation = 'wlContrabandBlink 1.2s ease-in-out infinite';
+          }
+
           // Pointer / drag events
           on(cellDiv, 'click', function (capturedItem) {
             return function (e) {
@@ -215,7 +243,7 @@
    * @param {Array}  tools  可用工具列表 [{ id, name, targetType }]
    * @param {Number} skill  0-100 鉴定技能值（对应类型）
    */
-  function renderItemDetail(panel, item, tools, skill) {
+  function renderItemDetail(panel, item, tools, skill, marketPrice) {
     var conf = typeConf(item.type);
     var cb_detect = panel._wlDetectCb || null; // caller sets panel._wlDetectCb before calling
 
@@ -257,6 +285,63 @@
       grid.appendChild(cell);
     });
     panel.appendChild(grid);
+
+    // ── 价格参考 ──
+    if (marketPrice != null) {
+      var _qlColors = ['', '#ff4a6a', '#ffb75c', '#ffd76a', '#75ffb2', '#72f4ff'];
+      var _qlNames  = ['', '劣质', '普通', '良好', '优质', '极品'];
+      var _qLvlD = item.qualityLevel != null
+        ? Math.min(5, Math.max(1, Math.round(item.qualityLevel)))
+        : (item.quality != null && item.quality >= 1 && item.quality <= 5
+            ? Math.round(item.quality) : null);
+
+      var priceSection = el('div', { class: 'wl-detail__prices' });
+      priceSection.appendChild(el('span', { class: 'wl-detail__tools-label' }, '💹 市场行情'));
+
+      var priceGrid = el('div', {
+        style: 'display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;',
+      });
+      [
+        { label: '市场均价',   value: marketPrice.toLocaleString() + ' ¥',                      color: '#c8dcea' },
+        { label: '建议零售',   value: Math.round(marketPrice * 1.3).toLocaleString() + ' ¥',    color: '#ffd76a' },
+        { label: '建议收购',   value: Math.round(marketPrice * 0.65).toLocaleString() + ' ¥',   color: '#75ffb2' },
+      ].forEach(function (pd) {
+        var pCell = el('div', {
+          style: 'padding:8px 9px;border:1px solid rgba(255,255,255,.08);border-radius:8px;background:rgba(255,255,255,.03);',
+        });
+        pCell.appendChild(el('span', {
+          style: 'display:block;font-size:10px;color:#7890ab;font-weight:700;letter-spacing:.06em;',
+        }, pd.label));
+        pCell.appendChild(el('b', {
+          style: 'display:block;margin-top:3px;font-size:13px;color:' + pd.color + ';font-family:ui-monospace,monospace;font-weight:700;',
+        }, pd.value));
+        priceGrid.appendChild(pCell);
+      });
+      priceSection.appendChild(priceGrid);
+
+      // Quality level badge
+      if (_qLvlD) {
+        priceSection.appendChild(el('span', {
+          style: 'display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid ' + _qlColors[_qLvlD] +
+            ';color:' + _qlColors[_qLvlD] + ';font-size:11px;font-weight:800;margin-right:6px;background:rgba(0,0,0,.25);',
+        }, '★ ' + _qlNames[_qLvlD] + ' (' + _qLvlD + '/5)'));
+      }
+
+      // Authentic badge
+      if (item.authentic === true) {
+        priceSection.appendChild(el('span', {
+          style: 'display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid #75ffb2;color:#75ffb2;' +
+            'font-size:11px;font-weight:800;background:rgba(117,255,178,.08);',
+        }, '✓ 正品'));
+      } else if (item.authentic === false) {
+        priceSection.appendChild(el('span', {
+          style: 'display:inline-block;padding:3px 9px;border-radius:999px;border:1px solid #ff4a6a;color:#ff4a6a;' +
+            'font-size:11px;font-weight:800;background:rgba(255,74,106,.08);',
+        }, '⚠ 仿品'));
+      }
+
+      panel.appendChild(priceSection);
+    }
 
     // 真实性 / 鉴定状态
     var authSection = el('div', { class: 'wl-detail__auth' });
@@ -603,6 +688,178 @@
     }
   }
 
+  // ── 5. 行情滚动通知条 renderMarketTicker ─────────────────
+  function _ensureTickerStyles() {
+    if (typeof document === 'undefined') return;
+    if (document.getElementById('wl-ticker-kf')) return;
+    var s = document.createElement('style');
+    s.id = 'wl-ticker-kf';
+    s.textContent =
+      '@keyframes wlTickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}' +
+      '@keyframes wlContrabandBlink{50%{border-color:rgba(255,32,32,.2);box-shadow:none;}}' +
+      '.wl-ticker{overflow:hidden;background:rgba(0,0,0,.55);border:1px solid rgba(114,244,255,.2);border-radius:6px;padding:7px 0;}' +
+      '.wl-ticker__track{display:inline-block;white-space:nowrap;will-change:transform;}' +
+      '.wl-ticker__text{padding:0 20px;font:700 12px ui-monospace,SFMono-Regular,monospace;color:#72f4ff;letter-spacing:.05em;}' +
+      '@media(prefers-reduced-motion:reduce){.wl-ticker__track{animation:none!important;}}';
+    document.head.appendChild(s);
+  }
+
+  /**
+   * @param {HTMLElement} container
+   * @param {string[]} events  每条滚动消息
+   */
+  function renderMarketTicker(container, events) {
+    _ensureTickerStyles();
+    container.innerHTML = '';
+    container.className = (container.className || '').replace(/\bwl-ticker\b/g, '').trim() + ' wl-ticker';
+    var items = events || [];
+    if (!items.length) return;
+    var text = items.join('  ·  ');
+    var dur = Math.max(12, items.length * 5);
+    // Duplicate for seamless infinite loop (translateX -50% returns to visual start)
+    var full = text + '　　　·　　　' + text;
+    var track = el('div', {
+      class: 'wl-ticker__track',
+      style: 'animation:wlTickerScroll ' + dur + 's linear infinite;',
+    });
+    track.appendChild(el('span', { class: 'wl-ticker__text', 'aria-live': 'polite' }, full));
+    container.appendChild(track);
+  }
+
+  // ── 6. 派遣面板 renderDispatchPanel ──────────────────────
+  /**
+   * @param {HTMLElement} container
+   * @param {{id,npcName,destination,daysLeft,status}[]} dispatches
+   * @param {function(string)} onDispatch  目的地 key
+   */
+  function renderDispatchPanel(container, dispatches, onDispatch) {
+    container.innerHTML = '';
+    container.className = (container.className || '').replace(/\bwl-dispatch\b/g, '').trim() + ' wl-dispatch';
+    container.appendChild(el('h3', { class: 'wl-section-title' }, '🗺 在途派遣'));
+
+    var list = dispatches || [];
+    var statusLabels = { active: '行进中', returned: '已归来', failed: '任务失败', waiting: '待命' };
+    var statusColors = { active: '#72f4ff', returned: '#75ffb2', failed: '#ff718e', waiting: '#ffd76a' };
+
+    if (!list.length) {
+      container.appendChild(el('p', { class: 'wl-empty' }, '暂无在途派遣。'));
+    } else {
+      var listDiv = el('div', { style: 'display:flex;flex-direction:column;gap:6px;margin-bottom:14px;' });
+      list.forEach(function (d) {
+        var sc = statusColors[d.status] || '#91a4bf';
+        var sl = statusLabels[d.status] || (d.status || '—');
+        var row = el('div', {
+          style: 'display:flex;align-items:center;gap:10px;padding:10px 12px;' +
+            'border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.03);',
+        });
+        row.appendChild(el('span', { style: 'flex:0 0 auto;font-size:18px;' }, '🧭'));
+        var info = el('div', { style: 'flex:1;min-width:0;' });
+        info.appendChild(el('b', {
+          style: 'display:block;font-size:13px;color:#ddeeff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;',
+        }, esc(d.npcName || '未知 NPC') + ' → ' + esc(d.destination || '?')));
+        info.appendChild(el('span', { style: 'font-size:11px;color:#7890ab;' },
+          '剩余 ' + (d.daysLeft != null ? d.daysLeft + ' 天' : '—')));
+        row.appendChild(info);
+        row.appendChild(el('span', {
+          style: 'flex:0 0 auto;padding:3px 8px;border-radius:999px;border:1px solid ' + sc +
+            ';color:' + sc + ';font-size:11px;font-weight:800;',
+        }, sl));
+        listDiv.appendChild(row);
+      });
+      container.appendChild(listDiv);
+    }
+
+    // Destination buttons
+    var btnSection = el('div', { style: 'margin-top:8px;' });
+    btnSection.appendChild(el('span', {
+      style: 'display:block;font-size:10px;font-weight:800;letter-spacing:.12em;color:#7890ab;' +
+        'margin-bottom:8px;text-transform:uppercase;',
+    }, '发起新派遣'));
+    var btnRow = el('div', { style: 'display:flex;gap:8px;flex-wrap:wrap;' });
+    [
+      { key: '近郊',    label: '近郊',    icon: '🏘', color: '#75ffb2' },
+      { key: '中距离',  label: '中距离',  icon: '🏔', color: '#ffd76a' },
+      { key: '深入禁区', label: '深入禁区', icon: '☢', color: '#ff718e' },
+    ].forEach(function (dest) {
+      var btn = el('button', {
+        class: 'wl-btn',
+        type: 'button',
+        style: 'flex:1;min-width:80px;border-color:' + dest.color + '44;color:' + dest.color + ';',
+      }, dest.icon + ' ' + dest.label);
+      on(btn, 'click', function (d) {
+        return function () { if (onDispatch) onDispatch(d.key); };
+      }(dest));
+      btnRow.appendChild(btn);
+    });
+    btnSection.appendChild(btnRow);
+    container.appendChild(btnSection);
+  }
+
+  // ── 7. 战利品面板 renderLootPanel ────────────────────────
+  /**
+   * @param {HTMLElement} container
+   * @param {{id,name,type,qualityLevel,quality,qty}[]} lootItems
+   * @param {function(Array)} onCollect
+   */
+  function renderLootPanel(container, lootItems, onCollect) {
+    container.innerHTML = '';
+    container.className = (container.className || '').replace(/\bwl-loot\b/g, '').trim() + ' wl-loot';
+    container.appendChild(el('h3', { class: 'wl-section-title' }, '🎁 战利品'));
+
+    var items = lootItems || [];
+    var qlColors = ['', '#ff4a6a', '#ffb75c', '#ffd76a', '#75ffb2', '#72f4ff'];
+
+    if (!items.length) {
+      container.appendChild(el('p', { class: 'wl-empty' }, '暂无战利品。'));
+    } else {
+      var listDiv = el('div', { style: 'display:flex;flex-direction:column;gap:6px;margin-bottom:14px;' });
+      items.forEach(function (loot) {
+        var conf = typeConf(loot.type);
+        var qLvl = loot.qualityLevel != null
+          ? Math.min(5, Math.max(1, Math.round(loot.qualityLevel)))
+          : (loot.quality != null && loot.quality >= 1 && loot.quality <= 5
+              ? Math.round(loot.quality) : null);
+        var qColor = qLvl ? qlColors[qLvl] : '#7a8fa8';
+
+        var row = el('div', {
+          style: 'display:flex;align-items:center;gap:10px;padding:9px 12px;' +
+            'border:1px solid rgba(255,255,255,.09);border-radius:8px;background:rgba(255,255,255,.025);',
+        });
+        row.appendChild(el('span', {
+          style: 'flex:0 0 auto;font-size:20px;filter:drop-shadow(0 0 4px ' + conf.color + ');',
+          'aria-hidden': 'true',
+        }, conf.icon));
+        var info = el('div', { style: 'flex:1;min-width:0;' });
+        info.appendChild(el('b', {
+          style: 'display:block;font-size:13px;color:#ddeeff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;',
+        }, esc(loot.name || conf.label)));
+        info.appendChild(el('span', { style: 'font-size:11px;color:#7890ab;' },
+          conf.label + (loot.qty > 1 ? ' ×' + loot.qty : '')));
+        row.appendChild(info);
+        if (qLvl) {
+          row.appendChild(el('span', {
+            style: 'flex:0 0 auto;padding:3px 8px;border-radius:999px;border:1px solid ' + qColor +
+              ';color:' + qColor + ';font-size:11px;font-weight:800;',
+          }, '★'.repeat(qLvl)));
+        }
+        listDiv.appendChild(row);
+      });
+      container.appendChild(listDiv);
+    }
+
+    var footer = el('div', { style: 'display:flex;justify-content:flex-end;' });
+    var collectBtn = el('button', {
+      class: 'wl-btn wl-btn--primary',
+      type: 'button',
+      style: 'width:100%;',
+    }, '全部收入仓库 →');
+    on(collectBtn, 'click', function () {
+      if (onCollect) onCollect(items.slice());
+    });
+    footer.appendChild(collectBtn);
+    container.appendChild(footer);
+  }
+
   // ── mount / unmount helpers ──────────────────────────────
   function mount(el, fn) {
     if (fn) fn(el);
@@ -614,11 +871,14 @@
 
   // ── 公开 API ─────────────────────────────────────────────
   window.WastelandUI = {
-    VERSION: '1',
+    VERSION: '2',
     renderGrid: renderGrid,
     renderItemDetail: renderItemDetail,
     renderShopFloor: renderShopFloor,
     renderAuction: renderAuction,
+    renderMarketTicker: renderMarketTicker,
+    renderDispatchPanel: renderDispatchPanel,
+    renderLootPanel: renderLootPanel,
     mount: mount,
     unmount: unmount,
   };
