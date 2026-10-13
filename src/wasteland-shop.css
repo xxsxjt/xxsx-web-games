@@ -1,0 +1,667 @@
+/* wasteland-shop.css – 废土杂货铺 UI 样式
+ * 深色废土调色板，复用 styles.css 变量，移动端优先
+ */
+
+/* ── 颜色变量（废土专用） ─────────────────────────────────── */
+:root {
+  /* 物品类型色 */
+  --wl-weapon:   #ff718e;
+  --wl-ammo:     #ffb75c;
+  --wl-food:     #75ffb2;
+  --wl-water:    #72f4ff;
+  --wl-medicine: #c29aff;
+  --wl-chemical: #ff66c4;
+  --wl-metal:    #ffd76a;
+  --wl-elec:     #72f4ff;
+  --wl-cloth:    #9a7cff;
+  --wl-alcohol:  #ffb75c;
+  --wl-drug:     #ff718e;
+  --wl-tool:     #91a4bf;
+  --wl-fake:     #ff718e;
+  --wl-misc:     #91a4bf;
+
+  /* 拍卖档位色 */
+  --wl-tier-low:  #91a4bf;
+  --wl-tier-mid:  #72f4ff;
+  --wl-tier-high: #ffd76a;
+
+  /* 通用间距 */
+  --wl-gap:    10px;
+  --wl-radius: 12px;
+  --wl-radius-sm: 8px;
+}
+
+/* ── 通用按钮 ────────────────────────────────────────────── */
+.wl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 38px;
+  padding: 7px 14px;
+  border: 1px solid rgba(114, 244, 255, .28);
+  border-radius: var(--wl-radius-sm);
+  background: rgba(114, 244, 255, .07);
+  color: #e8fcff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .14s, border-color .14s, transform .1s;
+}
+.wl-btn:hover { background: rgba(114, 244, 255, .14); border-color: rgba(114, 244, 255, .55); }
+.wl-btn:active { transform: scale(.97); }
+.wl-btn:focus-visible { outline: 2px solid var(--cyan, #72f4ff); outline-offset: 2px; }
+
+.wl-btn--primary {
+  background: linear-gradient(135deg, var(--cyan, #72f4ff), #c5fbff 48%, var(--violet, #9a7cff));
+  border: 0;
+  color: #06101c;
+  font-weight: 950;
+}
+.wl-btn--primary:hover { filter: brightness(1.08); }
+
+.wl-btn--sm   { min-height: 30px; padding: 4px 10px; font-size: 12px; }
+.wl-btn--ghost { background: transparent; border-color: rgba(255,255,255,.18); color: #b0c4d8; }
+.wl-btn--ghost:hover { background: rgba(255,255,255,.06); }
+
+.wl-btn--tool {
+  border-color: rgba(114, 244, 255, .35);
+  background: rgba(114, 244, 255, .06);
+  color: #d4f6ff;
+}
+
+.wl-section-title {
+  margin: 0 0 10px;
+  font: 700 13px ui-monospace, SFMono-Regular, monospace;
+  letter-spacing: .12em;
+  color: var(--cyan, #72f4ff);
+  text-transform: uppercase;
+}
+
+.wl-empty {
+  padding: 16px 12px;
+  border: 1px dashed rgba(255,255,255,.12);
+  border-radius: var(--wl-radius);
+  color: #7a8fa8;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ── 格子仓库 ────────────────────────────────────────────── */
+.wl-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--wl-grid-cols, 10), 1fr);
+  grid-template-rows:    repeat(var(--wl-grid-rows,  8), 1fr);
+  gap: 3px;
+  padding: 6px;
+  background: rgba(3, 7, 18, .72);
+  border: 1px solid rgba(114, 244, 255, .18);
+  border-radius: var(--wl-radius);
+  aspect-ratio: var(--wl-grid-cols, 10) / var(--wl-grid-rows, 8);
+  width: 100%;
+  touch-action: none;
+  user-select: none;
+}
+
+.wl-cell {
+  position: relative;
+  border-radius: 5px;
+  transition: box-shadow .1s, opacity .1s;
+}
+
+/* Empty cell */
+.wl-cell--empty {
+  background: rgba(255, 255, 255, .025);
+  border: 1px dashed rgba(255, 255, 255, .07);
+  cursor: default;
+}
+.wl-cell--dragover {
+  background: rgba(114, 244, 255, .15);
+  border-color: var(--cyan, #72f4ff);
+  box-shadow: inset 0 0 8px rgba(114, 244, 255, .25);
+}
+
+/* Item cell */
+.wl-cell--item {
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--wl-item-color, #72f4ff) 22%, rgba(12, 24, 52, .95)),
+    rgba(5, 10, 26, .95)
+  );
+  border: 1px solid color-mix(in srgb, var(--wl-item-color, #72f4ff) 45%, transparent);
+  box-shadow: 0 0 0 0 transparent;
+  cursor: grab;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  overflow: hidden;
+  padding: 3px 2px;
+}
+.wl-cell--item:hover {
+  border-color: var(--wl-item-color, #72f4ff);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--wl-item-color, #72f4ff) 50%, transparent);
+  z-index: 2;
+}
+.wl-cell--item:focus-visible {
+  outline: 2px solid var(--wl-item-color, #72f4ff);
+  outline-offset: 1px;
+  z-index: 3;
+}
+.wl-cell--selected {
+  border-color: var(--wl-item-color, #72f4ff);
+  box-shadow: 0 0 0 2px var(--wl-item-color, #72f4ff), 0 0 14px color-mix(in srgb, var(--wl-item-color, #72f4ff) 55%, transparent);
+  z-index: 3;
+}
+.wl-cell--dragging { opacity: .45; cursor: grabbing; }
+
+.wl-cell__icon {
+  font-size: clamp(10px, 2.2cqi, 22px);
+  line-height: 1;
+  filter: drop-shadow(0 0 4px var(--wl-item-color, #72f4ff));
+}
+.wl-cell__name {
+  font-size: clamp(7px, 1.1cqi, 10px);
+  font-weight: 700;
+  line-height: 1.1;
+  color: #ddeeff;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  padding: 0 2px;
+}
+.wl-cell__qty {
+  font-size: clamp(6px, 1cqi, 9px);
+  color: #8aa8c0;
+  font-weight: 900;
+}
+.wl-cell__badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 9px;
+  line-height: 1;
+}
+.wl-cell__badge--fake { color: var(--wl-fake, #ff718e); }
+
+/* ── 物品详情 ────────────────────────────────────────────── */
+.wl-detail {
+  padding: 18px;
+  border: 1px solid rgba(114, 244, 255, .22);
+  border-radius: var(--wl-radius);
+  background: linear-gradient(180deg, rgba(12, 22, 50, .97), rgba(5, 10, 24, .97));
+  color: #eef7ff;
+}
+
+.wl-detail__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.wl-detail__icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 13px;
+  border: 1px solid color-mix(in srgb, var(--wl-item-color, #72f4ff) 45%, transparent);
+  background: color-mix(in srgb, var(--wl-item-color, #72f4ff) 12%, rgba(4, 8, 22, .9));
+  font-size: 26px;
+  filter: drop-shadow(0 0 7px var(--wl-item-color, #72f4ff));
+}
+.wl-detail__title-wrap { min-width: 0; }
+.wl-detail__name {
+  margin: 0 0 5px;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+.wl-detail__type-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 999px;
+  background: rgba(255,255,255,.05);
+  color: #a0b8d0;
+  font-size: 11px;
+  font-weight: 700;
+}
+.wl-detail__fake-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 3px 8px;
+  border: 1px solid rgba(255, 113, 142, .4);
+  border-radius: 999px;
+  background: rgba(255, 113, 142, .1);
+  color: #ff718e;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.wl-detail__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  margin-bottom: 12px;
+}
+.wl-detail__stat {
+  padding: 8px 9px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--wl-radius-sm);
+  background: rgba(255,255,255,.03);
+}
+.wl-detail__stat-label {
+  display: block;
+  font-size: 10px;
+  color: #7890ab;
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+.wl-detail__stat-value {
+  display: block;
+  margin-top: 3px;
+  font-size: 13px;
+  color: #e0f0ff;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+}
+
+.wl-detail__auth {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: var(--wl-radius-sm);
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(0,0,0,.2);
+  font-size: 13px;
+}
+.wl-detail__auth-result--ok      { color: var(--green, #75ffb2); }
+.wl-detail__auth-result--fake     { color: var(--red, #ff718e); }
+.wl-detail__auth-result--unknown  { color: #8fa8c0; }
+.wl-detail__auth-estimate         { color: #91a8c0; font-style: italic; }
+
+.wl-detail__notes {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-left: 2px solid var(--gold, #ffd76a);
+  border-radius: 0 var(--wl-radius-sm) var(--wl-radius-sm) 0;
+  background: rgba(255, 215, 106, .05);
+}
+.wl-detail__notes-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  color: #c8a84a;
+  margin-bottom: 5px;
+}
+.wl-detail__notes-body {
+  margin: 0;
+  color: #b0c4d8;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.wl-detail__tools { margin-top: 4px; }
+.wl-detail__tools-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  color: #7890ab;
+  margin-bottom: 7px;
+}
+.wl-detail__tool-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.wl-detail__no-tools {
+  margin: 6px 0 0;
+  color: #5e7a92;
+  font-size: 12px;
+  font-style: italic;
+}
+
+/* ── 店铺主界面 ──────────────────────────────────────────── */
+.wl-shop {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.wl-shop__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border: 1px solid rgba(114, 244, 255, .2);
+  border-radius: var(--wl-radius);
+  background: linear-gradient(90deg, rgba(114, 244, 255, .07), rgba(154, 124, 255, .05));
+}
+.wl-shop__day {
+  font: 700 14px ui-monospace, SFMono-Regular, monospace;
+  letter-spacing: .1em;
+  color: var(--cyan, #72f4ff);
+}
+.wl-shop__cash {
+  font: 700 15px ui-monospace, SFMono-Regular, monospace;
+  color: var(--gold, #ffd76a);
+}
+
+/* Events */
+.wl-shop__events { margin: 0; }
+.wl-event-list { display: flex; flex-direction: column; gap: 8px; }
+
+.wl-event-card {
+  padding: 11px 13px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: var(--wl-radius);
+  background: linear-gradient(135deg, rgba(20, 36, 72, .82), rgba(7, 13, 31, .94));
+}
+.wl-event-card[data-type="theft"]    { border-color: rgba(255, 113, 142, .35); }
+.wl-event-card[data-type="trader"]   { border-color: rgba(255, 215, 106, .3); }
+.wl-event-card[data-type="enforce"]  { border-color: rgba(114, 244, 255, .3); }
+.wl-event-card[data-type="harass"]   { border-color: rgba(255, 102, 196, .3); }
+.wl-event-card--resolved             { opacity: .55; }
+
+.wl-event-card__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.wl-event-card__hour {
+  font: 700 11px ui-monospace, SFMono-Regular, monospace;
+  color: #7890ab;
+  flex: 0 0 auto;
+}
+.wl-event-card__label {
+  font-size: 14px;
+  font-weight: 800;
+  color: #e2f2ff;
+  flex: 1;
+}
+.wl-event-card__done { color: var(--green, #75ffb2); font-size: 14px; }
+.wl-event-card__desc {
+  margin: 0 0 8px;
+  color: #8fa8c0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Price table */
+.wl-shop__prices { margin: 0; }
+.wl-price-table { display: flex; flex-direction: column; gap: 4px; }
+
+.wl-price-row {
+  display: grid;
+  grid-template-columns: 1fr 70px 90px 90px;
+  gap: 6px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: var(--wl-radius-sm);
+}
+.wl-price-row--hdr {
+  background: rgba(114, 244, 255, .06);
+  border: 1px solid rgba(114, 244, 255, .14);
+}
+.wl-price-row:not(.wl-price-row--hdr) {
+  background: rgba(255, 255, 255, .025);
+  border: 1px solid rgba(255, 255, 255, .06);
+}
+.wl-price-row:not(.wl-price-row--hdr):hover {
+  background: rgba(255, 255, 255, .045);
+}
+.wl-price-cell--hdr {
+  font: 700 10px ui-monospace, SFMono-Regular, monospace;
+  letter-spacing: .1em;
+  color: #6a84a0;
+}
+.wl-price-cell--name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #d8ecff;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.wl-price-cell--type { font-size: 11px; color: #7890ab; }
+.wl-price-cell--input { display: flex; }
+
+.wl-price-input {
+  width: 100%;
+  padding: 5px 7px;
+  border: 1px solid rgba(114, 244, 255, .22);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, .3);
+  color: #e2f4ff;
+  font: inherit;
+  font-size: 13px;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  text-align: right;
+  -moz-appearance: textfield;
+}
+.wl-price-input::-webkit-inner-spin-button,
+.wl-price-input::-webkit-outer-spin-button { opacity: .5; }
+.wl-price-input:focus {
+  outline: 1px solid var(--cyan, #72f4ff);
+  outline-offset: 0;
+}
+
+/* End day button */
+.wl-shop__footer {
+  padding-top: 4px;
+  display: flex;
+  justify-content: flex-end;
+}
+.wl-btn--end-day {
+  width: 100%;
+  min-height: 46px;
+  font-size: 15px;
+  letter-spacing: .04em;
+}
+
+/* ── 集装箱拍卖 ──────────────────────────────────────────── */
+.wl-auction {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.wl-auction__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.wl-auction__kicker {
+  display: block;
+  font: 700 10px ui-monospace, SFMono-Regular, monospace;
+  letter-spacing: .18em;
+  color: var(--cyan, #72f4ff);
+  margin-bottom: 4px;
+}
+.wl-auction__name {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+.wl-auction__tier {
+  flex: 0 0 auto;
+  padding: 5px 10px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font: 700 11px ui-monospace, SFMono-Regular, monospace;
+  letter-spacing: .1em;
+  opacity: .85;
+}
+
+.wl-auction__status {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.wl-auction__stat {
+  padding: 10px 11px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: var(--wl-radius-sm);
+  background: rgba(255,255,255,.03);
+}
+.wl-auction__stat > span {
+  display: block;
+  font-size: 10px;
+  color: #7890ab;
+  font-weight: 700;
+  letter-spacing: .08em;
+  margin-bottom: 4px;
+}
+.wl-auction__stat > b {
+  display: block;
+  font: 700 16px ui-monospace, SFMono-Regular, monospace;
+  color: #e8faff;
+}
+.wl-auction__timer { color: var(--gold, #ffd76a); }
+.wl-auction__timer--urgent {
+  color: var(--red, #ff718e);
+  animation: wlTimerPulse .8s ease-in-out infinite;
+}
+@keyframes wlTimerPulse {
+  50% { opacity: .5; }
+}
+
+/* Clues */
+.wl-auction__clues { margin: 0; }
+.wl-clue-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.wl-clue-card {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 12px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: var(--wl-radius-sm);
+  background: rgba(255,255,255,.03);
+  min-width: 0;
+}
+.wl-clue-card--revealed {
+  border-color: rgba(114, 244, 255, .28);
+  background: rgba(114, 244, 255, .05);
+}
+.wl-clue-card__icon { font-size: 18px; flex: 0 0 auto; }
+.wl-clue-card__label {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: #c8dcea;
+  line-height: 1.4;
+  word-break: break-word;
+}
+.wl-clue-card .wl-btn--sm { flex: 0 0 auto; }
+
+/* Bid area */
+.wl-auction__bid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid rgba(255, 215, 106, .22);
+  border-radius: var(--wl-radius);
+  background: rgba(255, 215, 106, .04);
+}
+.wl-auction__bid-label {
+  font: 700 11px ui-monospace, SFMono-Regular, monospace;
+  letter-spacing: .12em;
+  color: #c8a84a;
+  flex: 0 0 100%;
+}
+.wl-auction__bid-input {
+  flex: 1;
+  min-width: 120px;
+  padding: 9px 12px;
+  border: 1px solid rgba(255, 215, 106, .35);
+  border-radius: var(--wl-radius-sm);
+  background: rgba(0, 0, 0, .35);
+  color: #fff5d0;
+  font: 700 16px ui-monospace, SFMono-Regular, monospace;
+  text-align: right;
+  -moz-appearance: textfield;
+}
+.wl-auction__bid-input::-webkit-inner-spin-button,
+.wl-auction__bid-input::-webkit-outer-spin-button { opacity: .5; }
+.wl-auction__bid-input:focus {
+  outline: 1px solid var(--gold, #ffd76a);
+  outline-offset: 0;
+}
+.wl-auction__bid-hint {
+  flex: 0 0 100%;
+  font-size: 11px;
+  color: #7a8fa8;
+  margin-top: -2px;
+}
+
+/* Auction result */
+.wl-auction__result {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: var(--wl-radius);
+}
+.wl-auction__result--won {
+  border: 1px solid rgba(117, 255, 178, .32);
+  background: rgba(117, 255, 178, .07);
+}
+.wl-auction__result--lost {
+  border: 1px solid rgba(255, 255, 255, .12);
+  background: rgba(255, 255, 255, .03);
+}
+.wl-auction__result-icon { font-size: 30px; flex: 0 0 auto; }
+.wl-auction__result--won .wl-auction__result-text { color: var(--green, #75ffb2); }
+.wl-auction__result--lost .wl-auction__result-text { color: #8fa8c0; }
+.wl-auction__result-text { font-size: 15px; font-weight: 800; }
+
+/* ── 响应式：小屏调整 ────────────────────────────────────── */
+@media (max-width: 480px) {
+  .wl-detail__stats { grid-template-columns: repeat(2, 1fr); }
+
+  .wl-price-row {
+    grid-template-columns: 1fr 60px 76px 76px;
+    padding: 6px 8px;
+  }
+
+  .wl-auction__status { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .wl-clue-grid { grid-template-columns: 1fr; }
+
+  .wl-grid { gap: 2px; padding: 4px; }
+}
+
+@media (max-width: 360px) {
+  .wl-price-row {
+    grid-template-columns: 1fr 56px 68px 68px;
+    font-size: 12px;
+  }
+  .wl-price-input { font-size: 12px; }
+  .wl-detail__stats { grid-template-columns: 1fr 1fr; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .wl-btn,
+  .wl-cell,
+  .wl-cell--item { transition: none; }
+  .wl-auction__timer--urgent,
+  .wl-cell__icon { animation: none; }
+}
