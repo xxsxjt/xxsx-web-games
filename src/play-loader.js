@@ -16,5 +16,13 @@
   };
   function load(name){return new Promise(function(resolve,reject){var script=document.createElement('script');script.src=files[name];script.onload=resolve;script.onerror=reject;document.head.appendChild(script);});}
   var loading=document.getElementById('playLoading');
-  common.concat(extra,['game']).reduce(function(p,name){return p.then(function(){return load(name);});},Promise.resolve()).then(function(){if(!window.NeonGameBooted)throw new Error('game initialization');loading.remove();}).catch(function(){loading.innerHTML='<h1>游戏暂时未能载入</h1><p>请刷新重试，已有本机存档仍会保留。</p><a href="./">返回所有游戏</a>';});
+  common.concat(extra,['game']).reduce(function(p,name){return p.then(function(){return load(name);});},Promise.resolve()).then(function(){
+    if(kind==='wasteland'){
+      if(window.WastelandShop&&typeof window.WastelandShop.enter==='function')window.WastelandShop.enter();
+      loading.remove();
+      return;
+    }
+    if(!window.NeonGameBooted)throw new Error('game initialization');
+    loading.remove();
+  }).catch(function(){loading.innerHTML='<h1>游戏暂时未能载入</h1><p>请刷新重试，已有本机存档仍会保留。</p><a href="./">返回所有游戏</a>';});
 })();

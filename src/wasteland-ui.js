@@ -439,6 +439,27 @@
     }
     container.appendChild(priceSection);
 
+    // ── 格子仓库占位 ──
+    var gridSection = el('section', { class: 'wl-shop__grid-wrap', 'aria-label': '仓库' });
+    gridSection.appendChild(el('h3', { class: 'wl-section-title' }, '仓库'));
+    var gridEl = el('div', { id: 'wl-grid' });
+    gridSection.appendChild(gridEl);
+    container.appendChild(gridSection);
+
+    // ── 物品详情占位 ──
+    var detailWrap = el('div', { class: 'wl-shop__detail-wrap' });
+    detailWrap.appendChild(el('h3', { class: 'wl-section-title' }, '物品详情'));
+    var detailEl = el('div', { id: 'wl-detail' });
+    detailWrap.appendChild(detailEl);
+    container.appendChild(detailWrap);
+
+    // ── 集装箱拍卖占位 ──
+    var aucWrap = el('section', { class: 'wl-shop__auction-wrap', 'aria-label': '集装箱拍卖' });
+    aucWrap.appendChild(el('h3', { class: 'wl-section-title' }, '集装箱拍卖'));
+    var aucEl = el('div', { id: 'wl-auction' });
+    aucWrap.appendChild(aucEl);
+    container.appendChild(aucWrap);
+
     // ── 结束今天按钮 ──
     var footer = el('div', { class: 'wl-shop__footer' });
     var endBtn = el('button', { class: 'wl-btn wl-btn--primary wl-btn--end-day', type: 'button' },
