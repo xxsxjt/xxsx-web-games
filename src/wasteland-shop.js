@@ -13,7 +13,10 @@
 
   // ── 格子适配器（Core.grid → UI.renderGrid 期待的格式）────────
   function adaptGrid(coreGrid, selId) {
-    var cells = Object.values(coreGrid.items).map(function (entry) {
+    if (!coreGrid || !coreGrid.items) return { cols: 10, rows: 8, cells: [], selectedId: null };
+    var cells = Object.values(coreGrid.items).filter(function(entry) {
+      return entry && entry.item && entry.item.w && entry.item.h;
+    }).map(function (entry) {
       var item = entry.item;
       return {
         id:      item.id,
@@ -28,7 +31,7 @@
         fake:    !item.genuine
       };
     });
-    return { cols: coreGrid.cols, rows: coreGrid.rows, cells: cells, selectedId: selId || null };
+    return { cols: coreGrid.cols || 10, rows: coreGrid.rows || 8, cells: cells, selectedId: selId || null };
   }
 
   // ── 初始游戏状态 ───────────────────────────────────────────
