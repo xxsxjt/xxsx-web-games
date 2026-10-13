@@ -75,5 +75,16 @@
     "status": "竖切片",
     "cover": "assets/icons/shell-heist.svg",
     "format": "固定关卡"
+  },
+  {
+    "id": "wasteland",
+    "name": "废土杂货铺",
+    "type": "经营",
+    "description": "在资源匮乏的废土世界经营二手杂货铺：格子仓库、集装箱拍卖、鉴定造假、派遣搜查，在执法与黑市之间求生。",
+    "controls": "点击 / 触屏",
+    "save": "每日结算自动存档",
+    "status": "早期版本",
+    "cover": "assets/icons/shell-heist.svg",
+    "format": "经营模拟"
   }
 ]
