@@ -48,7 +48,10 @@ body::after{
   align-items:center;justify-content:center;
   min-height:100vh;padding:2rem 1rem;
   background:
+    radial-gradient(ellipse 55% 35% at 50% 42%, rgba(200,120,20,.07) 0%, transparent 55%),
     radial-gradient(ellipse 80% 50% at 50% 60%, rgba(120,60,10,.12) 0%, transparent 70%),
+    radial-gradient(ellipse 35% 25% at 15% 85%, rgba(80,40,10,.06) 0%, transparent 50%),
+    radial-gradient(ellipse 35% 25% at 85% 15%, rgba(60,30,5,.05) 0%, transparent 50%),
     #0a0705;
   position:relative;
 }
@@ -334,6 +337,148 @@ body::after{
   border-color:rgba(114,244,255,.7);
 }
 
+/* ════════════════════════════════
+   按钮箭头动画
+   ════════════════════════════════ */
+.wl-menu__btn__arrow{
+  font-size:.82rem;opacity:.35;margin-left:auto;flex-shrink:0;
+  transition:transform .2s,opacity .2s;
+}
+.wl-menu__btn:hover .wl-menu__btn__arrow{
+  transform:translateX(6px);opacity:.75;
+}
+
+/* ════════════════════════════════
+   早期测试版警告
+   ════════════════════════════════ */
+.wl-early-access{
+  position:fixed;bottom:.6rem;left:.8rem;
+  font-size:.58rem;color:#4a2a10;letter-spacing:.08em;text-transform:uppercase;
+  border:1px solid rgba(120,60,10,.2);padding:.2rem .5rem;border-radius:2px;
+  background:rgba(10,7,5,.8);pointer-events:none;
+}
+
+/* ════════════════════════════════
+   格子坐标标注
+   ════════════════════════════════ */
+.wl-grid-coords-outer{flex:1;min-height:0;display:flex;flex-direction:column;}
+.wl-grid-col-labels{
+  display:flex;flex-shrink:0;
+  margin-left:18px;  /* row-label width + gap */
+  padding-left:6px;  /* grid internal left padding */
+  margin-bottom:2px;
+}
+.wl-grid-col-labels span{
+  width:39px;text-align:center;  /* cell(36)+gap(3) */
+  font-size:.48rem;color:rgba(200,150,50,.28);flex-shrink:0;
+}
+.wl-grid-col-labels span:last-child{width:36px;}
+.wl-grid-row-outer{display:flex;flex:1;min-height:0;}
+.wl-grid-row-labels{
+  display:flex;flex-direction:column;width:15px;margin-right:3px;
+  padding-top:6px;  /* grid internal top padding */
+  flex-shrink:0;
+}
+.wl-grid-row-labels span{
+  height:39px;  /* cell(36)+gap(3) */
+  display:flex;align-items:center;justify-content:flex-end;
+  font-size:.48rem;color:rgba(200,150,50,.28);flex-shrink:0;padding-right:2px;
+}
+.wl-grid-row-labels span:last-child{height:36px;}
+
+/* ════════════════════════════════
+   行情通知条 #wl-ticker
+   ════════════════════════════════ */
+#wl-ticker{
+  display:none;flex-shrink:0;
+  height:26px;overflow:hidden;
+  background:rgba(6,4,2,.95);
+  border:1px solid rgba(114,244,255,.12);border-radius:2px;
+  margin-bottom:6px;position:relative;
+}
+#wl-ticker.active{display:block;}
+.wl-ticker__track{
+  display:inline-flex;align-items:center;white-space:nowrap;
+  height:100%;padding:0 8px;
+  font-size:.63rem;color:#3a5a70;letter-spacing:.07em;
+  animation:wl-ticker-scroll 22s linear infinite;
+}
+@keyframes wl-ticker-scroll{
+  0%{transform:translateX(100vw);}
+  100%{transform:translateX(-100%);}
+}
+
+/* ════════════════════════════════
+   战利品面板
+   ════════════════════════════════ */
+#wl-loot-section{display:none;}
+#wl-loot-section.active{display:block;}
+
+/* ════════════════════════════════
+   品质圆点 .wl-quality-dots
+   ════════════════════════════════ */
+.wl-quality-dots{display:flex;gap:3px;margin-top:4px;}
+.wl-quality-dots__dot{
+  width:6px;height:6px;border-radius:50%;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);
+  transition:background .15s;
+}
+.wl-quality-dots__dot.lit{
+  background:#c8a050;border-color:#e8c060;
+  box-shadow:0 0 4px rgba(200,160,80,.5);
+}
+.wl-quality-dots__dot.lit-rare{
+  background:#72f4ff;border-color:#a0f8ff;
+  box-shadow:0 0 4px rgba(114,244,255,.5);
+}
+.wl-quality-dots__dot.lit-epic{
+  background:#c070e0;border-color:#d898f0;
+  box-shadow:0 0 4px rgba(180,80,220,.5);
+}
+
+/* ════════════════════════════════
+   价格块 .wl-price-block
+   ════════════════════════════════ */
+.wl-price-block{
+  margin-top:8px;border:1px solid rgba(80,60,20,.3);border-radius:3px;
+  overflow:hidden;font-size:.7rem;
+}
+.wl-price-block__row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:4px 8px;border-bottom:1px solid rgba(80,60,20,.12);
+}
+.wl-price-block__row:last-child{border-bottom:none;}
+.wl-price-block__row--market{background:rgba(20,14,6,.55);}
+.wl-price-block__row--retail{background:rgba(18,12,4,.65);}
+.wl-price-block__row--buy{background:rgba(14,10,3,.75);}
+.wl-price-block__label{color:#5a4a32;letter-spacing:.05em;}
+.wl-price-block__value{color:#c8a870;font-weight:700;}
+.wl-price-block__value--high{color:#72f4ff;}
+.wl-price-block__value--low{color:#e07050;}
+
+/* ════════════════════════════════
+   声誉进度条（底栏）
+   ════════════════════════════════ */
+.wl-footer-left{display:flex;flex-direction:column;gap:3px;}
+#wl-footer-week{font-size:.62rem;letter-spacing:.07em;color:#3a5068;}
+.wl-rep-bar-wrap{
+  display:flex;align-items:center;gap:5px;
+  font-size:.6rem;color:#3a5068;
+}
+.wl-rep-bar-wrap__label{letter-spacing:.05em;white-space:nowrap;}
+.wl-rep-bar{
+  width:54px;height:5px;background:rgba(255,255,255,.06);
+  border-radius:3px;overflow:hidden;flex-shrink:0;
+}
+.wl-rep-bar__fill{
+  height:100%;width:0%;border-radius:3px;
+  /* CSS trick: background spans full bar; background-position shifts red→yellow→green */
+  background:linear-gradient(90deg,#e05030 0%,#c8a050 50%,#50c870 100%);
+  background-size:200% 100%;
+  /* position is driven by inline style: 0%=red end, 100%=green end */
+  transition:width .4s,background-position .4s;
+}
+
 /* ── 响应式 ──────────────────────────────────────────────── */
 @media(max-width:700px){
   #wl-game-body{
@@ -360,7 +505,28 @@ body::after{
      ════════════════════════════ -->
 <div id="wl-menu">
   <div class="wl-logo">
-    <div class="wl-logo__emblem">🏚</div>
+    <div class="wl-logo__emblem">
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="54" height="54" aria-hidden="true">
+        <!-- roof -->
+        <polyline points="4,25 24,7 44,25" stroke="#c8a050" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+        <!-- broken roof tile displaced to upper-right -->
+        <line x1="35" y1="14" x2="38" y2="11" stroke="#c8a050" stroke-width="1.4" opacity=".45" stroke-linecap="round"/>
+        <!-- chimney (tilted, crumbling) -->
+        <rect x="29" y="9" width="5" height="7" stroke="#c8a050" stroke-width="1.4" fill="none" transform="rotate(-4,31.5,12)"/>
+        <line x1="29" y1="9" x2="27" y2="7" stroke="#c8a050" stroke-width="1" opacity=".4" stroke-linecap="round"/>
+        <!-- walls -->
+        <rect x="9" y="25" width="30" height="16" stroke="#c8a050" stroke-width="2" fill="none"/>
+        <!-- door (arched opening) -->
+        <path d="M19,41 L19,33 Q24,28.5 29,33 L29,41" stroke="#c8a050" stroke-width="1.5" fill="none"/>
+        <!-- left window (broken glass diagonal crack) -->
+        <rect x="10" y="27" width="6" height="5" stroke="#c8a050" stroke-width="1.2" fill="none"/>
+        <line x1="10" y1="27" x2="16" y2="32" stroke="#c8a050" stroke-width=".85" opacity=".5" stroke-linecap="round"/>
+        <!-- right window (intact) -->
+        <rect x="32" y="27" width="6" height="5" stroke="#c8a050" stroke-width="1.2" fill="none"/>
+        <!-- wall crack -->
+        <polyline points="22,29 23.5,33 21,38" stroke="#c8a050" stroke-width=".9" fill="none" opacity=".38" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
     <div class="wl-logo__title">废土杂货铺</div>
     <div class="wl-logo__sub">Wasteland Shop</div>
     <div class="wl-logo__lore">水贵如血，信任比货更稀缺。<br>在废土的夹缝里，你开了家店。</div>
@@ -373,6 +539,7 @@ body::after{
         <span class="wl-menu__btn__title">开始新游戏</span>
         <span class="wl-menu__btn__desc">第1天 · 资金200元 · 空仓库（含3件初始物资）</span>
       </span>
+      <span class="wl-menu__btn__arrow">→</span>
     </button>
     <button class="wl-menu__btn" id="btn-continue" style="display:none">
       <span class="wl-menu__btn__icon">◎</span>
@@ -380,6 +547,7 @@ body::after{
         <span class="wl-menu__btn__title">继续游戏</span>
         <span class="wl-menu__btn__desc" id="continue-desc">读取存档…</span>
       </span>
+      <span class="wl-menu__btn__arrow">→</span>
     </button>
   </div>
 
@@ -390,6 +558,7 @@ body::after{
   </div>
 
   <div class="wl-version">V58-ALPHA</div>
+  <div class="wl-early-access">早期测试版 · 内容随时变动</div>
 </div>
 
 <!-- ════════════════════════════
@@ -411,8 +580,18 @@ body::after{
       <!-- 左栏：仓库格子 -->
       <div id="wl-left-col">
         <div class="wl-grid-label">▦ 仓库 10×8</div>
-        <div id="wl-grid-wrap">
-          <div id="wl-grid"></div>
+        <div class="wl-grid-coords-outer">
+          <div class="wl-grid-col-labels">
+            <span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span><span>I</span><span>J</span>
+          </div>
+          <div class="wl-grid-row-outer">
+            <div class="wl-grid-row-labels">
+              <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span>
+            </div>
+            <div id="wl-grid-wrap">
+              <div id="wl-grid"></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -427,9 +606,18 @@ body::after{
 
         <div id="wl-right-scroll">
 
+          <!-- 行情通知条（有数据时 JS 加 .active 并填充 .wl-ticker__track） -->
+          <div id="wl-ticker"><div class="wl-ticker__track"></div></div>
+
           <div class="wl-panel-section">
             <div class="wl-panel-title">▸ 今日事件</div>
             <div id="wl-events"><p class="wl-empty">载入中…</p></div>
+          </div>
+
+          <!-- 派遣面板（JS 控制显示内容） -->
+          <div class="wl-panel-section" id="wl-dispatch-section">
+            <div class="wl-panel-title">▸ 派遣任务</div>
+            <div id="wl-dispatch"><p class="wl-empty">暂无派遣任务。</p></div>
           </div>
 
           <div class="wl-panel-section">
@@ -437,6 +625,12 @@ body::after{
             <div id="wl-detail">
               <p class="wl-empty">点击仓库中的物品查看详情。</p>
             </div>
+          </div>
+
+          <!-- 战利品面板（有战利品时 JS 加 .active） -->
+          <div class="wl-panel-section" id="wl-loot-section">
+            <div class="wl-panel-title">▸ 战利品</div>
+            <div id="wl-loot"></div>
           </div>
 
           <div class="wl-panel-section" id="wl-auction-wrap" style="display:none">
@@ -449,7 +643,15 @@ body::after{
     </div>
 
     <footer id="wl-footer">
-      <span id="wl-rent-countdown"></span>
+      <div class="wl-footer-left">
+        <span id="wl-footer-week"></span>
+        <span id="wl-rent-countdown"></span>
+        <div class="wl-rep-bar-wrap">
+          <span class="wl-rep-bar-wrap__label">声誉</span>
+          <div class="wl-rep-bar"><div class="wl-rep-bar__fill" id="wl-rep-fill"></div></div>
+          <span id="wl-rep-value">0</span>
+        </div>
+      </div>
       <button type="button" id="wl-end-day-btn">结束今天 →</button>
     </footer>
   </div>
