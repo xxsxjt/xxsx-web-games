@@ -25,16 +25,11 @@
   };
 
   var QUALITY_NAMES={1:'损坏',2:'劣质',3:'普通',4:'良好',5:'优质'};
+  var QUALITY_MULT={1:0.3, 2:0.6, 3:1.0, 4:1.4, 5:2.0};
   var ORIGIN_NAMES={salvage:'拾荒所得',auction:'集装箱拍卖',trade:'贸易',craft:'自制',unknown:'来源不明'};
 
   /* ─── 物品模型 ─────────────────────────────────────────────────── */
   // createItem(type, w, h, quality, genuine, expiry, origin)
-  // type: keyof ITEM_TYPES
-  // w,h: grid size (int ≥ 1)
-  // quality: 1-5
-  // genuine: bool
-  // expiry: days remaining, null = no expiry
-  // origin: keyof ORIGIN_NAMES
   function createItem(type,w,h,quality,genuine,expiry,origin){
     if(!ITEM_TYPES[type])throw new Error('Unknown item type: '+type);
     var def=ITEM_TYPES[type];
@@ -45,14 +40,13 @@
       category: def.category,
       w: w||1,
       h: h||1,
-      rotated: false,       // if true, effective dims are h×w
+      rotated: false,
       quality: quality||3,
       genuine: genuine!==false,
-      expiry: expiry!=null?expiry:null,  // null = no expiry
+      expiry: expiry!=null?expiry:null,
       origin: origin||'unknown',
       basePrice: def.basePrice,
-      // effective sell price is computed by market state
-      notes: ''             // player's private annotation
+      notes: ''
     };
   }
 
@@ -61,15 +55,12 @@
   }
 
   /* ─── 格子仓库 ─────────────────────────────────────────────────── */
-  // createGrid(cols, rows) → grid object
-  // cells: flat array length cols*rows, each null or {itemId,x,y} back-ref
-  // items: map id→item+placement{x,y,rotated}
   function createGrid(cols,rows){
     return {
       cols: cols,
       rows: rows,
-      cells: _blankCells(cols,rows),  // null | itemId string
-      items: {}                        // id → {item, x, y}
+      cells: _blankCells(cols,rows),
+      items: {}
     };
   }
 
@@ -130,19 +121,16 @@
     return grid.items[id]?grid.items[id].item:null;
   }
 
-  // rotate(item) → item (mutates rotated flag, returns same item)
+  // rotate(item) → item (mutates rotated flag)
   function rotate(item){
     item.rotated=!item.rotated;
     return item;
   }
 
   /* ─── 市场行情 ─────────────────────────────────────────────────── */
-  // createMarketState() → market
-  // coefficient: price multiplier per category (1.0 = baseline)
   function createMarketState(){
     return {
       day: 0,
-      // supply coefficients by category; >1 = price up, <1 = price down
       coefficients:{
         consumable:  1.0,
         medicine:    1.0,
@@ -152,7 +140,6 @@
         illegal:     1.0,
         misc:        1.0
       },
-      // stockout flags: category → days remaining (0 = available)
       stockout:{
         consumable:  0,
         medicine:    0,
@@ -162,28 +149,76 @@
         illegal:     0,
         misc:        0
       },
-      // pending events (applied on next advanceDay)
-      pendingShocks: []  // [{category, delta, duration}]
+      pendingShocks: []
     };
   }
 
-  // computePrice(market, item) → number
+  // computePrice - 三段式：品质×行情×真伪
+  // qualityMult: 1=×0.3, 2=×0.6, 3=×1.0, 4=×1.4, 5=×2.0
   function computePrice(market,item){
     var coeff=market.coefficients[item.category]||1.0;
-    var qualityMult=0.5+(item.quality-1)*0.2;   // 0.5 / 0.7 / 0.9 / 1.1 / 1.3
-    var genuineMult=item.genuine?1.0:0.45;
-    return Math.round(item.basePrice*coeff*qualityMult*genuineMult);
+    var qualityMult=QUALITY_MULT[item.quality]||1.0;
+    var genuineMult=item.genuine?1.0:0.35;
+    return Math.round(item.basePrice*qualityMult*coeff*genuineMult);
+  }
+
+  /* ─── 派遣系统 ─────────────────────────────────────────────────── */
+  // createDispatch(npcId, npcName, destination, days) → dispatch object
+  // destination: 'suburb'|'midrange'|'deepzone'  (1-2 / 3-5 / 7-14 days)
+  function createDispatch(npcId,npcName,destination,days){
+    var defaultDays={suburb:1,midrange:3,deepzone:7};
+    var d=days||defaultDays[destination]||1;
+    return {
+      id: _uid(),
+      npcId: npcId,
+      npcName: npcName||'NPC',
+      destination: destination||'suburb',
+      daysRemaining: d,
+      totalDays: d,
+      status: 'out'  // 'out' | 'returned'
+    };
+  }
+
+  var _DISPATCH_LOOT={
+    suburb:   {types:['water','food','junk','metal'],count:[1,3],qualityRange:[1,3]},
+    midrange: {types:['water','food','junk','metal','medicine','electronic'],count:[1,4],qualityRange:[2,4]},
+    deepzone: {types:['water','food','junk','metal','medicine','electronic','chemical','weapon','contraband'],count:[2,5],qualityRange:[2,5]}
+  };
+
+  function _randInt(lo,hi){return lo+Math.floor(Math.random()*(hi-lo+1));}
+
+  function _generateDispatchLoot(destination){
+    var spec=_DISPATCH_LOOT[destination]||_DISPATCH_LOOT.suburb;
+    var count=_randInt(spec.count[0],spec.count[1]);
+    var loot=[];
+    for(var i=0;i<count;i++){
+      var types=spec.types.slice();
+      if(destination==='midrange'){
+        var rare=['medicine','electronic'];
+        types=types.filter(function(t){return rare.indexOf(t)===-1||Math.random()<0.3;});
+        if(types.length===0)types=['water','food','junk','metal'];
+      }
+      if(destination==='deepzone'){
+        var veryRare=['contraband','weapon'];
+        types=types.filter(function(t){return veryRare.indexOf(t)===-1||Math.random()<0.2;});
+        if(types.length===0)types=['water','food','junk','metal'];
+      }
+      var type=types[Math.floor(Math.random()*types.length)];
+      var quality=_randInt(spec.qualityRange[0],spec.qualityRange[1]);
+      loot.push(createItem(type,1,1,quality,true,null,'salvage'));
+    }
+    return loot;
   }
 
   /* ─── 日推进 ─────────────────────────────────────────────────────
    * advanceDay(state) → DayResult
    * state shape (minimal required):
-   *   { day, market, grid, player, events:[], log:[] }
+   *   { day, market, grid, player, events:[], log:[], dispatches:[], returnedLoot:[] }
    * DayResult:
-   *   { ok:bool, day, expired:[itemId], events:[str], warnings:[str] }
+   *   { ok:bool, day, expired:[itemId], events:[], warnings:[str] }
+   * NOTE: does NOT increment state.day — caller is responsible for that.
    ─────────────────────────────────────────────────────────────────── */
   function advanceDay(state){
-    state.day=(state.day||0)+1;
     var result={ok:true,day:state.day,expired:[],events:[],warnings:[]};
 
     // 1. 保质期损耗
@@ -213,12 +248,11 @@
       var still=[];
       market.pendingShocks.forEach(function(shock){
         market.coefficients[shock.category]=(market.coefficients[shock.category]||1)+shock.delta;
-        // clamp [0.2, 5]
         market.coefficients[shock.category]=Math.max(0.2,Math.min(5,market.coefficients[shock.category]));
         shock.duration--;
-        if(shock.duration>0)still.push(shock);
-        else{
-          // revert to 1.0 gradually — just reset here for simplicity
+        if(shock.duration>0){
+          still.push(shock);
+        }else{
           market.coefficients[shock.category]=_clamp(market.coefficients[shock.category]-shock.delta,0.5,3);
         }
       });
@@ -233,24 +267,61 @@
           }
         }
       });
+      // 行情随机事件（约15%日触发概率）
+      if(Math.random()<0.15){
+        var cats=Object.keys(market.coefficients);
+        var cat=cats[Math.floor(Math.random()*cats.length)];
+        var evType=Math.floor(Math.random()*3);
+        if(evType===0){
+          // 缺货涨价：coefficient ×1.5，持续3-5天
+          var dur0=_randInt(3,5);
+          market.pendingShocks.push({category:cat,delta:0.5,duration:dur0});
+          result.events.push({type:'market',text:'「'+cat+'」类物资出现缺货，价格上涨。',category:cat,coeff:1.5});
+        }else if(evType===1){
+          // 大量供应：coefficient ×0.6，持续2-3天
+          var dur1=_randInt(2,3);
+          market.pendingShocks.push({category:cat,delta:-0.4,duration:dur1});
+          result.events.push({type:'market',text:'「'+cat+'」类物资大量涌入，价格暴跌。',category:cat,coeff:0.6});
+        }else{
+          // 彻底断供：stockout 5-7天，期间 coefficient = 3.0
+          var dur2=_randInt(5,7);
+          market.stockout[cat]=dur2;
+          market.coefficients[cat]=3.0;
+          result.events.push({type:'market',text:'「'+cat+'」类物资彻底断供，价格飙升。',category:cat,coeff:3.0});
+        }
+      }
     }
 
-    // 3. 玩家消耗检定
+    // 3. 派遣推进
+    if(state.dispatches&&state.dispatches.length>0){
+      state.dispatches.forEach(function(dispatch){
+        if(dispatch.status==='out'){
+          dispatch.daysRemaining--;
+          if(dispatch.daysRemaining<=0){
+            dispatch.status='returned';
+            var loot=_generateDispatchLoot(dispatch.destination);
+            if(!state.returnedLoot)state.returnedLoot=[];
+            loot.forEach(function(it){state.returnedLoot.push(it);});
+            result.events.push('[派遣] '+dispatch.npcName+'从'+dispatch.destination+'返回，带回'+loot.length+'件物资。');
+          }
+        }
+      });
+    }
+
+    // 4. 玩家消耗检定
     var player=state.player;
     if(player){
-      // hunger/thirst tick
       player.hunger=(player.hunger||0)+1;
       player.thirst=(player.thirst||0)+1;
       if(player.thirst>=3)result.warnings.push('玩家缺水，健康下降风险提升。');
       if(player.hunger>=3)result.warnings.push('玩家缺食物，健康下降风险提升。');
-      // health decay
       if(player.thirst>=4||player.hunger>=4){
         player.health=Math.max(0,(player.health||100)-10);
         result.events.push('因长期缺乏补给，健康值下降至 '+player.health+'。');
       }
     }
 
-    // 4. 周结算（每 7 天）
+    // 5. 周结算（每 7 天）
     if(state.day%7===0){
       var rent=state.rent||0;
       if(rent>0&&player){
@@ -261,7 +332,7 @@
       result.events.push('集装箱拍卖场次刷新，请关注本周线索。');
     }
 
-    // 5. 随机事件检定（10% 日触发概率）
+    // 6. 随机事件检定（10% 日触发概率）
     if(Math.random()<0.10){
       var rndEvents=[
         '情报贩子在门口转悠，或许有有价值的消息。',
@@ -274,10 +345,9 @@
       result.events.push('[随机事件] '+ev);
     }
 
-    // 6. 记录日志
+    // 7. 记录日志
     if(state.log){
       state.log.push({day:state.day,events:result.events.slice(),warnings:result.warnings.slice()});
-      // keep last 30 days only
       if(state.log.length>30)state.log=state.log.slice(-30);
     }
 
@@ -299,7 +369,18 @@
     try{
       var raw=root.localStorage&&root.localStorage.getItem(SAVE_KEY);
       if(!raw)return null;
-      return JSON.parse(raw);
+      var state=JSON.parse(raw);
+      // fix: ensure restored grid items have w/h
+      if(state&&state.grid&&state.grid.items){
+        Object.keys(state.grid.items).forEach(function(id){
+          var entry=state.grid.items[id];
+          if(entry&&entry.item){
+            if(!entry.item.w)entry.item.w=1;
+            if(!entry.item.h)entry.item.h=1;
+          }
+        });
+      }
+      return state;
     }catch(e){return null;}
   }
 
@@ -316,11 +397,13 @@
     createMarketState: createMarketState,
     computePrice: computePrice,
     advanceDay: advanceDay,
+    createDispatch: createDispatch,
     saveGame: saveGame,
     loadGame: loadGame,
     // expose type/quality tables for UI use
     ITEM_TYPES: ITEM_TYPES,
     QUALITY_NAMES: QUALITY_NAMES,
+    QUALITY_MULT: QUALITY_MULT,
     ORIGIN_NAMES: ORIGIN_NAMES
   };
 })(typeof window!=='undefined'?window:this);
