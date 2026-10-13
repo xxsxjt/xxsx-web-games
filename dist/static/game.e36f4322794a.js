@@ -135,6 +135,7 @@ var guideEntries=[
 ];
 var dispatchEntries=[
   {date:'2026.10.05',tag:'V50 / BREACH PRESSURE',title:'敌机不再悄悄穿过防线',accent:'#ff718e',text:'远征现在会把越过屏幕底部的敌机视为真正的突破：它们会造成冲击、打断连杀并扣除少量分数。进入底线前会显示 BREACH 预警，优先处理高威胁目标终于有了明确代价。',bullets:['越界敌机会按波次、航线压力和接触伤害计算突破冲击，护盾会先承受这次伤害','每次突破会清零当前连杀并扣分；HUD 会显示本波越界次数，方便复盘失误','敌机接近底线时会出现红色 BREACH / 越界标签，不再因为离屏而静默消失']},
+  {date:'2026.10.11',tag:'DESIGN LAB / NEXT GAME',title:'先做寄壳行动，而不是堆更多普通小游戏',accent:'#bb9bff',text:'新作候选开始按可玩性筛选：前 30 秒要出现一次明确爽点，失败要能归因，手机只保留少量核心操作。当前优先验证寄壳行动：借用敌人的能力穿过设施，再承担每种壳的限制。',bullets:['第一竖切片：1 张 9×9 房间、4 种敌壳、两条可行路线','寄壳不是永久收集：炮台不能移动、冲锋难转向，能力必须伴随代价','借来的十秒、反弹工坊、黑市换班和潮汐回廊保留为后续候选；完整方案已写入新作设计文档']},
   {date:'2026.10.05',tag:'V49 / OVERDRIVE PROTOCOL',title:'连杀现在可以兑现成一次真正的战术决策',accent:'#ffd76a',text:'霓虹突围新增过载协议：击破敌机、精英和 Boss 会积累过载能量。能量满后，你可以把它留给 Boss 护盾窗口，也可以在弹幕失控时主动释放，清除威胁并换取短时火力爆发。',bullets:['普通击破、精英击破和 Boss 击破提供不同额度的过载能量；连杀越高，充能越快','释放过载会清空敌方弹幕与激光，对战场敌群造成范围输出，同时恢复一部分护盾并短暂加速主炮','新增 OVR 按钮与 Q 键快捷键；未充满时不会误消耗，满能量后会有明确的 READY 反馈']},
   {date:'2026.10.05',tag:'V48 / TACTICAL FEEDBACK',title:'战术契约现在会改变接下来的几秒',accent:'#72f4ff',text:'契约不再只是战场角落里的一串进度数字：锁定目标会在目标消失后重新接管威胁，Boss 波的破盾要求和奖励会按实际护盾调整，完成后会立刻给主炮加速、漂移过载或短暂输出窗口。',bullets:['目标被撞毁或离屏后会自动补标新的优先敌人，锁定契约不会因为一次意外清空而卡住','Boss 波的破盾契约目标改为一次，普通波仍要求两次破盾；契约卡与主任务分开展示，手机端更容易读懂','完成契约会触发短时战斗状态：漂移过载提升射速、锁定奖励给主炮加速、破盾奖励给输出窗口']},
   {date:'2026.10.03',tag:'V47 / GAMEPLAY PASS',title:'霓虹突围开始要求你主动做选择',accent:'#ff718e',text:'这一版把远征的核心循环从“拖动躲弹幕并等待自动开火”推进成真正的战术驾驶：拖动方向会改变主炮瞄准，每个波次会给出移动、锁定或破盾契约，标记目标、契约进度和完成奖励都会直接出现在战场上。',bullets:['主炮沿机体当前瞄准方向发射，移动和手指拖动同时承担走位与瞄准；机体会跟随方向转向','每波契约轮换：漂移航线鼓励持续移动，锁定威胁会标记优先目标，破盾窗口要求主动击穿护盾','标记敌人有清晰的 FOCUS 轮廓与标签；契约完成会触发分数、废料、音效和浮动反馈']},
@@ -160,7 +161,7 @@ var dispatchEntries=[
   {date:'2026.09.14',tag:'DESIGN NOTE',title:'为什么站点仍然离线可用',accent:'#c29aff',text:'Neon Drift 的核心体验是“打开就能玩、玩完看得见成长”。当前版本刻意不接账号、云同步或虚构排行榜，避免把尚未实现的服务伪装成内容。',bullets:['所有档案保存在当前浏览器的本机空间','没有跨设备同步与多人榜单','后续扩展会先在动态页标注边界，再决定是否接入服务']},
   {date:'2026.09.13',tag:'WORLD SIGNAL',title:'零相教团的观测包仍未解密',accent:'#ff718e',text:'深渊断层的黑盒回传出现一组重复节拍。回声实验室可以复现其中一部分，但尚未确认它是否来自新的 Boss。',bullets:['现阶段可在实验室练习节奏','图鉴中的四种 Boss 仍是已验证敌对谱系','未知内容不会以锁死按钮的方式伪装上线']}
 ];
-dispatchEntries=dispatchEntries.slice(0,23);
+dispatchEntries=dispatchEntries.slice(0,24);
 var contentFilters={codex:[['all','全部'],['world','世界'],['sector','星区'],['faction','势力']],guides:[['all','全部'],['starter','入门'],['build','构筑'],['boss','Boss'],['mode','短局'],['economy','局外'],['route','航线']]};
 var contentState={codex:'all',guides:'all'};
 var hubViewMeta={
@@ -614,7 +615,7 @@ function toggleHubMore(){
   var button=ui.hubMoreBtn,rail=button&&button.parentNode;if(!button||!rail)return;
   var open=!rail.classList.contains('moreOpen');rail.classList.toggle('moreOpen',open);button.setAttribute('aria-expanded',open?'true':'false');
 }
-var arcadeGameViews={relay:'signals',lab:'lab',salvage:'salvage',blackbox:'blackbox'};
+var arcadeGameViews={relay:'signals',lab:'lab',salvage:'salvage',blackbox:'blackbox'};var shellSession=null;
 var arcadeGameByHubView={signals:'relay',lab:'lab',salvage:'salvage',blackbox:'blackbox',border:'border'};
 var stationViews=['bridge','armory','routes','chronicle','codex','archive','guides','workbench','protocols','challenges','dispatch'];
 var legacyGameStationRoutes={expedition:'expedition',border:'border',signals:'relay',salvage:'salvage',lab:'lab',blackbox:'blackbox'};
@@ -633,7 +634,7 @@ function renderArcadeLanding(){
 function stopArcadeSession(){
   pendingStartToken++;startingRun=false;if(ui.expeditionStartBtn){ui.expeditionStartBtn.disabled=false;selectRunMode(selectedRunMode);}
   if(window.NeonBorderTactics&&typeof window.NeonBorderTactics.leave==='function')window.NeonBorderTactics.leave();
-  stopRelay(true);stopLab(true);stopSalvage(true);stopBlackbox(true);
+  stopRelay(true);stopLab(true);stopSalvage(true);stopBlackbox(true);if(shellSession&&shellSession.leave)shellSession.leave();shellSession=null;
   if(g.running)endGame('abandoned');
   g.paused=false;g.modalPaused=false;g.suspended=false;g.choosing=false;g.eventActive=false;g.pendingEvent=false;g.modal=null;
   pointer=false;if(input&&input.clear)input.clear();if(g.field)g.field.stick=null;setCombatControls(false);
@@ -674,6 +675,27 @@ function enterArcadeGame(kind,silent){
     if(!silent)setArcadeHash('game/expedition');
     return;
   }
+  if(kind==='shell'){
+    stopArcadeSession();closeAnnouncement();showArcadeShell('arcadeGameMode');
+    if(ui.arcadeGamePages)ui.arcadeGamePages.classList.remove('hidden');
+    if(ui.expeditionGamePage)ui.expeditionGamePage.classList.add('hidden');
+    if(ui.borderTacticsPage)ui.borderTacticsPage.classList.add('hidden');
+    var shellPage=byId('shellHeistPage');if(shellPage)shellPage.classList.remove('hidden');
+    if(window.NeonShellHeist&&typeof window.NeonShellHeist.enter==='function')shellSession=window.NeonShellHeist.enter();
+    if(!silent)setArcadeHash('game/shell');
+    return;
+  }
+  if(kind==='wasteland'){
+    stopArcadeSession();closeAnnouncement();showArcadeShell('arcadeGameMode');
+    if(ui.arcadeGamePages)ui.arcadeGamePages.classList.remove('hidden');
+    if(ui.expeditionGamePage)ui.expeditionGamePage.classList.add('hidden');
+    if(ui.borderTacticsPage)ui.borderTacticsPage.classList.add('hidden');
+    var shellPage2=byId('shellHeistPage');if(shellPage2)shellPage2.classList.add('hidden');
+    var wlPage=byId('wastelandShopPage');if(wlPage)wlPage.classList.remove('hidden');
+    if(window.WastelandShop&&typeof window.WastelandShop.enter==='function')window.WastelandShop.enter();
+    if(!silent)setArcadeHash('game/wasteland');
+    return;
+  }
   if(kind==='border'){
     stopArcadeSession();closeAnnouncement();showArcadeShell('arcadeGameMode');
     if(ui.arcadeGamePages)ui.arcadeGamePages.classList.remove('hidden');
@@ -693,7 +715,7 @@ function enterArcadeGame(kind,silent){
 }
 function syncArcadeRoute(){
   var hash='';try{hash=window.location&&window.location.hash||'';}catch(e){}
-  var gameMatch=/^#game\/(expedition|border|relay|lab|salvage|blackbox|bridge)$/.exec(hash);
+  var gameMatch=/^#game\/(expedition|border|relay|lab|salvage|blackbox|shell|bridge)$/.exec(hash);
   var stationMatch=/^#station\/([a-z]+)$/.exec(hash);
   if(gameMatch){
     if(gameMatch[1]==='bridge'){enterStation('bridge',true);setArcadeHash('station/bridge');}

@@ -685,6 +685,17 @@ function enterArcadeGame(kind,silent){
     if(!silent)setArcadeHash('game/shell');
     return;
   }
+  if(kind==='wasteland'){
+    stopArcadeSession();closeAnnouncement();showArcadeShell('arcadeGameMode');
+    if(ui.arcadeGamePages)ui.arcadeGamePages.classList.remove('hidden');
+    if(ui.expeditionGamePage)ui.expeditionGamePage.classList.add('hidden');
+    if(ui.borderTacticsPage)ui.borderTacticsPage.classList.add('hidden');
+    var shellPage2=byId('shellHeistPage');if(shellPage2)shellPage2.classList.add('hidden');
+    var wlPage=byId('wastelandShopPage');if(wlPage)wlPage.classList.remove('hidden');
+    if(window.WastelandShop&&typeof window.WastelandShop.enter==='function')window.WastelandShop.enter();
+    if(!silent)setArcadeHash('game/wasteland');
+    return;
+  }
   if(kind==='border'){
     stopArcadeSession();closeAnnouncement();showArcadeShell('arcadeGameMode');
     if(ui.arcadeGamePages)ui.arcadeGamePages.classList.remove('hidden');

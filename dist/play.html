@@ -8,8 +8,9 @@
 <meta name="description" content="XXSX 游戏站的现有作品：动作战役、小队战术、十八关电路解谜与三款短局挑战。" />
 <title>游戏 · XXSX 游戏站</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070b18'/%3E%3Cpath d='M8 22 16 7l2.3 6.2L24 11l-6 14-2.2-6.4L8 22Z' fill='%2379e7ee'/%3E%3C/svg%3E" />
-<link rel="stylesheet" href="static/circuit-campaign.ee149b868821.css">
-<link rel="stylesheet" href="static/campaign-games.4e8ebeef8a3d.css"><link rel="stylesheet" href="static/styles.18a4bf9b22c2.css" />
+<link rel="stylesheet" href="static/circuit-campaign.cb22fc815531.css">
+<link rel="stylesheet" href="static/campaign-games.ea821c1d44ca.css"><link rel="stylesheet" href="static/styles.d2b220d78727.css" />
+<link rel="stylesheet" href="static/wasteland-shop.af778a9fbbcd.css" />
 </head>
 <body>
 <div id="playLoading" role="status" style="position:fixed;inset:0;z-index:1000;display:grid;place-content:center;background:var(--color-paper);color:var(--color-ink);padding:24px"><p>正在载入游戏…</p><a href="./">返回所有游戏</a></div>
@@ -179,6 +180,10 @@
       <div class="shellHeistHero"><div><span class="kicker">BORROW / POSITION / ESCAPE</span><h1 id="shellHeistTitle">寄壳行动</h1><p>你不能直接攻击。靠近敌壳后寄壳，借用它的能力打开路线，再在壳体继续行动前离开。接管 A、B 两个终端，最后从东侧撤离。</p><div class="shellHeistBriefChips"><span>1 张固定设施图</span><span>4 种敌壳</span><span>两条路线</span><span>60–120 秒</span></div></div><div class="shellHeistRuleCard"><b>先试一次寄壳</b><p>冲锋壳打开闸门；炮台壳接管 A；侦察壳发现捷径；护盾壳穿过激光。</p></div></div>
       <div id="shellHeistMount" class="shellHeistMount"></div>
     </section>
+    <section class="arcadeGamePage hidden" id="wastelandShopPage" data-arcade-page="wasteland" aria-labelledby="wastelandShopTitle">
+      <header class="standaloneGameHeader"><button class="standaloneBack" data-arcade-home type="button">所有游戏</button><span>GAME 08 / TRADE &amp; SURVIVAL</span><b>废土杂货铺</b></header>
+      <div id="wastelandShopMount" class="wastelandShopMount"></div>
+    </section>
     <section class="arcadeGamePage borderTacticsPage hidden" id="borderTacticsPage" data-arcade-page="border" aria-labelledby="borderTitle">
       <header class="standaloneGameHeader"><button class="standaloneBack" data-arcade-home type="button">所有游戏</button><span>GAME 02 / SQUAD TACTICS</span><b>LOST STATION</b></header>
       <section class="borderLobby" id="borderLobby">
@@ -238,7 +243,7 @@
 
 </main>
 
-<script type="application/json" id="gameFiles">{"catalog":"static/catalog.9697c4895f19.js","core":"static/core.87b88b3cec36.js","field":"static/freefield.0804837ed695.js","runtime":"static/runtime.a1e41e3ad758.js","blackbox":"static/blackbox.114bfe7e30fb.js","circuit":"static/circuit-campaign.1483d012d36f.js","arcade":"static/arcade.88e6b44653a8.js","border":"static/border.16da8115a577.js","game":"static/game.29e4bd024077.js","campaignCore":"static/campaign-core.c29db2aab231.js","salvageExpedition":"static/salvage-expedition.997fc1ce8acc.js","echoDeck":"static/echo-deck.a5d36d5bef00.js","relayDefense":"static/relay-defense.3cc5c3058aba.js","shellHeist":"static/shell-heist.08d9137614de.js"}</script>
-<script defer src="static/play-loader.a9d89f1f641e.js"></script>
+<script type="application/json" id="gameFiles">{"catalog":"static/catalog.561949529093.js","core":"static/core.2475254af354.js","field":"static/freefield.390bc87cfad7.js","runtime":"static/runtime.2dafeaf752ee.js","blackbox":"static/blackbox.55f91d3ea2b5.js","circuit":"static/circuit-campaign.a184b57a8d72.js","arcade":"static/arcade.c0a8dd221f1b.js","border":"static/border.044b72dc58f7.js","game":"static/game.e36f4322794a.js","campaignCore":"static/campaign-core.9c181d32986b.js","salvageExpedition":"static/salvage-expedition.37f7bd744f2a.js","echoDeck":"static/echo-deck.a5ed74fe566b.js","relayDefense":"static/relay-defense.646d29ebd49f.js","shellHeist":"static/shell-heist.aeba864528fb.js","wastelandCore":"static/wasteland-core.c2722575fc88.js","wastelandNPC":"static/wasteland-npc.320071cd8df8.js","wastelandUI":"static/wasteland-ui.4e9a672f4ab9.js","wastelandShop":"static/wasteland-shop.9caa166c9f6d.js"}</script>
+<script defer src="static/play-loader.0c1f3104d29b.js"></script>
 </body>
 </html>

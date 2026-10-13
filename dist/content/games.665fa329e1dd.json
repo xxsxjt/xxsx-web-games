@@ -3,8 +3,8 @@
     "id": "expedition",
     "name": "霓虹突围",
     "type": "动作",
-    "description": "选择突击、反击或僚机构筑，搭配武器，穿过五段航线迎战终局 Boss。",
-    "controls": "触屏拖动 / 键盘",
+    "description": "大地图自由移动、四面围攻与自动锁敌。吸取经验构筑武器，争夺补给站，挑战阶段 Boss。",
+    "controls": "浮动摇杆 / WASD · 自动瞄准",
     "save": "本机成长记录 · 局内不续玩",
     "status": "测试版",
     "cover": "assets/icons/expedition-v1.7b2e72347f0e.webp",
@@ -64,5 +64,27 @@
     "status": "测试版",
     "cover": "assets/icons/relay-v1.517db58ec8d0.webp",
     "format": "战役"
+  },
+  {
+    "id": "shell",
+    "name": "寄壳行动",
+    "type": "解谜",
+    "description": "借用敌人的壳体能力穿过设施：冲锋、炮台、侦察与护盾各有代价。",
+    "controls": "方向键 / 触屏按钮 · 寄壳",
+    "save": "本机竖切片记录",
+    "status": "竖切片",
+    "cover": "assets/icons/shell-heist.4bc133147924.svg",
+    "format": "固定关卡"
+  },
+  {
+    "id": "wasteland",
+    "name": "废土杂货铺",
+    "type": "经营",
+    "description": "在资源匮乏的废土世界经营二手杂货铺：格子仓库、集装箱拍卖、鉴定造假、派遣搜查，在执法与黑市之间求生。",
+    "controls": "点击 / 触屏",
+    "save": "每日结算自动存档",
+    "status": "早期版本",
+    "cover": "assets/icons/shell-heist.4bc133147924.svg",
+    "format": "经营模拟"
   }
 ]
