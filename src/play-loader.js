@@ -8,6 +8,7 @@
   fetch('content/games.json').then(function(r){return r.json();}).then(function(games){gameNames=games;updateTitle();}).catch(function(){});
   window.addEventListener('hashchange',function(){updateTitle();});window.addEventListener('popstate',function(){updateTitle();});
   var loadedKind=kind,common=['catalog','core','runtime','field'],extra=kind==='border'?['border']:kind==='blackbox'?['blackbox','circuit']:kind==='shell'?['shellHeist']:kind==='wasteland'?['wastelandCore','wastelandNPC','wastelandUI','wastelandShop']:short.indexOf(kind)>=0?['arcade','campaignCore','salvageExpedition','echoDeck','relayDefense']:[];
+  var tail=kind==='wasteland'?[]:['game'];
   window.NeonPlayLoader={
     updateTitle:updateTitle,
     supports:function(id){return id==='expedition'||id==='station'||id===loadedKind||id==='shell'||short.indexOf(id)>=0&&short.indexOf(loadedKind)>=0;},
@@ -16,7 +17,7 @@
   };
   function load(name){return new Promise(function(resolve,reject){var script=document.createElement('script');script.src=files[name];script.onload=resolve;script.onerror=reject;document.head.appendChild(script);});}
   var loading=document.getElementById('playLoading');
-  common.concat(extra,['game']).reduce(function(p,name){return p.then(function(){return load(name);});},Promise.resolve()).then(function(){
+  common.concat(extra,tail).reduce(function(p,name){return p.then(function(){return load(name);});},Promise.resolve()).then(function(){
     if(kind==='wasteland'){
       if(window.WastelandShop&&typeof window.WastelandShop.enter==='function')window.WastelandShop.enter();
       loading.remove();
