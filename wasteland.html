@@ -7,243 +7,410 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23120d08'/%3E%3Ctext x='16' y='23' font-size='18' text-anchor='middle'%3E%F0%9F%8F%9A%3C/text%3E%3C/svg%3E" />
 <link rel="stylesheet" href="src/wasteland-shop.css" />
 <style>
-/* ── 全局重置 ────────────────────────────────────────────── */
+/* ════════════════════════════════════════════════════════════════
+   废土杂货铺 — 独立页面样式
+   ════════════════════════════════════════════════════════════════ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;background:#0a0705;color:#c8b89a;
-  font-family:ui-monospace,SFMono-Regular,'Segoe UI',system-ui,sans-serif;
-  overflow-x:hidden;}
+html,body{
+  height:100%;
+  background:#0a0705;
+  color:#c8b89a;
+  font-family:ui-monospace,SFMono-Regular,'Cascadia Code','Courier New',monospace;
+  overflow:hidden;
+}
 
-/* ── 主菜单 ──────────────────────────────────────────────── */
-#wl-menu{display:flex;flex-direction:column;align-items:center;
-  justify-content:center;min-height:100vh;padding:2rem 1rem;}
+/* ── 噪点纹理覆盖层 ──────────────────────────────────────── */
+body::before{
+  content:'';
+  position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  opacity:.6;
+}
+
+/* ── 扫描线 ──────────────────────────────────────────────── */
+body::after{
+  content:'';
+  position:fixed;inset:0;pointer-events:none;z-index:9998;
+  background:repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,.07) 2px,
+    rgba(0,0,0,.07) 4px
+  );
+}
+
+/* ════════════════════════════════
+   主菜单
+   ════════════════════════════════ */
+#wl-menu{
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  min-height:100vh;padding:2rem 1rem;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 60%, rgba(120,60,10,.12) 0%, transparent 70%),
+    #0a0705;
+  position:relative;
+}
 #wl-menu.hidden{display:none;}
 
-.wl-logo{text-align:center;margin-bottom:2.5rem;}
-.wl-logo__icon{font-size:4rem;line-height:1;display:block;margin-bottom:.5rem;
-  filter:drop-shadow(0 0 24px rgba(255,183,92,.35));}
-.wl-logo__title{font-size:2rem;font-weight:900;letter-spacing:.05em;color:#e8d4a0;}
-.wl-logo__sub{font-size:.8rem;color:#5a4a32;margin-top:.3rem;
-  letter-spacing:.15em;text-transform:uppercase;}
+/* 标题区 */
+.wl-logo{text-align:center;margin-bottom:3rem;}
+.wl-logo__emblem{
+  width:96px;height:96px;margin:0 auto 1rem;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid rgba(200,160,80,.3);
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(80,40,10,.6) 0%, rgba(10,7,5,.9) 70%);
+  box-shadow:
+    0 0 0 4px rgba(200,160,80,.06),
+    0 0 40px rgba(200,120,20,.15),
+    inset 0 0 20px rgba(0,0,0,.5);
+  font-size:2.8rem;
+  position:relative;
+}
+.wl-logo__emblem::before{
+  content:'';
+  position:absolute;inset:-8px;border-radius:50%;
+  border:1px solid rgba(200,160,80,.1);
+}
+.wl-logo__title{
+  font-size:2.2rem;font-weight:900;letter-spacing:.06em;
+  color:#e8d4a0;
+  text-shadow:0 0 40px rgba(255,200,80,.25),0 2px 4px rgba(0,0,0,.8);
+}
+.wl-logo__sub{
+  font-size:.72rem;color:#5a4a32;margin-top:.4rem;
+  letter-spacing:.2em;text-transform:uppercase;
+}
+.wl-logo__lore{
+  font-size:.75rem;color:#6a5840;margin-top:.75rem;
+  max-width:280px;line-height:1.6;
+  font-style:italic;
+}
 
-.wl-menu__actions{display:flex;flex-direction:column;gap:.75rem;width:100%;max-width:320px;}
+/* 按钮 */
+.wl-menu__actions{
+  display:flex;flex-direction:column;gap:.6rem;
+  width:100%;max-width:300px;
+}
 .wl-menu__btn{
-  width:100%;padding:.85rem 1.4rem;border:1px solid #3a2e20;border-radius:8px;
-  background:#150f08;color:#c8b89a;font:inherit;font-size:.95rem;
-  cursor:pointer;text-align:left;display:flex;align-items:center;gap:.75rem;
-  transition:background .15s,border-color .15s,box-shadow .15s;}
-.wl-menu__btn:hover{background:#241a0e;border-color:#6a5030;
-  box-shadow:0 0 18px rgba(255,183,92,.12);}
-.wl-menu__btn--primary{background:#201608;border-color:#7a5a28;color:#f0dc90;}
-.wl-menu__btn--primary:hover{background:#2e1e0a;border-color:#b88040;
-  box-shadow:0 0 24px rgba(255,215,106,.18);}
-.wl-menu__btn__icon{font-size:1.3rem;flex-shrink:0;}
+  width:100%;padding:.8rem 1.2rem;
+  border:1px solid rgba(150,100,30,.4);border-radius:4px;
+  background:rgba(20,14,6,.8);
+  color:#b8a882;font:inherit;font-size:.9rem;
+  cursor:pointer;text-align:left;
+  display:flex;align-items:center;gap:.8rem;
+  transition:all .15s;
+  position:relative;overflow:hidden;
+}
+.wl-menu__btn::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:rgba(150,100,30,.5);
+  transition:width .15s,background .15s;
+}
+.wl-menu__btn:hover{
+  background:rgba(30,20,8,.9);
+  border-color:rgba(200,140,40,.6);
+  color:#e8d4a0;
+}
+.wl-menu__btn:hover::before{
+  width:4px;background:rgba(255,183,60,.8);
+}
+.wl-menu__btn--primary{
+  border-color:rgba(200,140,40,.5);
+  background:rgba(30,18,4,.9);
+  color:#e8d4a0;
+}
+.wl-menu__btn--primary::before{background:rgba(255,183,60,.7);}
+.wl-menu__btn--primary:hover{
+  border-color:rgba(255,200,60,.8);
+  box-shadow:0 0 24px rgba(200,120,20,.2),inset 0 0 12px rgba(200,100,10,.05);
+}
+.wl-menu__btn__icon{font-size:1.1rem;flex-shrink:0;opacity:.8;}
 .wl-menu__btn__text{flex:1;}
-.wl-menu__btn__title{display:block;font-weight:700;}
-.wl-menu__btn__desc{display:block;font-size:.72rem;color:#7a6a52;margin-top:.15rem;}
+.wl-menu__btn__title{display:block;font-weight:700;font-size:.88rem;}
+.wl-menu__btn__desc{display:block;font-size:.68rem;color:#6a5a42;margin-top:.1rem;}
 
-.wl-saves{width:100%;max-width:320px;margin-top:1.5rem;}
-.wl-saves__title{font-size:.7rem;text-transform:uppercase;letter-spacing:.12em;
-  color:#5a4a32;margin-bottom:.5rem;padding-left:.25rem;}
+/* 存档区 */
+.wl-saves{width:100%;max-width:300px;margin-top:1.5rem;}
+.wl-saves__title{
+  font-size:.65rem;text-transform:uppercase;letter-spacing:.15em;
+  color:#4a3a28;margin-bottom:.5rem;padding-left:.2rem;
+}
 .wl-save-slot{
-  width:100%;padding:.65rem 1rem;border:1px solid #2a2010;border-radius:6px;
-  background:#100d07;color:#a09070;font:inherit;font-size:.85rem;
-  cursor:pointer;text-align:left;display:flex;align-items:center;gap:.75rem;
-  margin-bottom:.5rem;transition:background .15s,border-color .15s;}
-.wl-save-slot:hover{background:#1c1409;border-color:#4a3820;}
-.wl-save-slot__icon{font-size:1.1rem;}
+  width:100%;padding:.55rem .9rem;
+  border:1px solid rgba(80,60,30,.4);border-radius:3px;
+  background:rgba(12,8,3,.8);color:#907860;
+  font:inherit;font-size:.8rem;
+  cursor:pointer;text-align:left;
+  display:flex;align-items:center;gap:.7rem;
+  margin-bottom:.4rem;
+  transition:all .15s;
+}
+.wl-save-slot:hover{background:rgba(22,14,6,.9);border-color:rgba(150,100,40,.5);color:#c8a870;}
+.wl-save-slot__icon{font-size:.95rem;opacity:.7;}
 .wl-save-slot__info{flex:1;}
-.wl-save-slot__day{font-weight:700;color:#c8b89a;}
-.wl-save-slot__meta{font-size:.7rem;color:#6a5a42;margin-top:.1rem;}
-.wl-save-slot__del{padding:.25rem .5rem;border:none;background:transparent;
-  color:#4a3a28;font-size:.8rem;cursor:pointer;border-radius:4px;}
-.wl-save-slot__del:hover{color:#e87060;background:#2a1208;}
+.wl-save-slot__day{font-weight:700;color:#b8a070;}
+.wl-save-slot__meta{font-size:.65rem;color:#5a4a32;margin-top:.08rem;}
+.wl-save-slot__del{
+  padding:.2rem .4rem;border:none;background:transparent;
+  color:#3a2a18;font-size:.75rem;cursor:pointer;border-radius:3px;
+}
+.wl-save-slot__del:hover{color:#e07050;background:rgba(120,30,10,.3);}
 
-.wl-version{position:fixed;bottom:.75rem;right:1rem;
-  font-size:.65rem;color:#2a2010;letter-spacing:.08em;}
+.wl-version{
+  position:fixed;bottom:.6rem;right:.8rem;
+  font-size:.6rem;color:#2a1e10;letter-spacing:.1em;
+}
 
-/* ── 游戏区切换 ──────────────────────────────────────────── */
-#wl-game{display:none;flex-direction:column;height:100vh;overflow:hidden;}
+/* 装饰线 */
+.wl-menu__divider{
+  width:100%;max-width:300px;
+  border:none;border-top:1px solid rgba(100,70,30,.25);
+  margin:1rem 0 .5rem;
+}
+
+/* ════════════════════════════════
+   游戏区
+   ════════════════════════════════ */
+#wl-game{
+  display:none;flex-direction:column;
+  height:100vh;overflow:hidden;
+  background:#090604;
+}
 #wl-game.active{display:flex;}
 
-/* ── 游戏顶栏 ────────────────────────────────────────────── */
-.wl-game-header{
-  display:flex;align-items:center;gap:1rem;padding:.55rem 1rem;
-  border-bottom:1px solid rgba(114,244,255,.13);background:#0d0905;
-  flex-shrink:0;z-index:20;}
-.wl-game-header__back{
-  padding:.35rem .75rem;border:1px solid #332816;border-radius:6px;
-  background:transparent;color:#9a8060;font:inherit;font-size:.78rem;
-  cursor:pointer;transition:background .15s,color .15s;}
-.wl-game-header__back:hover{background:#1c1208;color:#e8d4a0;}
-.wl-game-header__title{
-  font-size:.85rem;color:#a09070;font-weight:700;flex:1;
-  letter-spacing:.06em;}
-.wl-game-header__status{
-  font-size:.78rem;color:#5a7090;
-  font-family:ui-monospace,SFMono-Regular,monospace;}
+/* 顶栏 */
+.wl-topbar{
+  display:flex;align-items:center;gap:0;
+  height:42px;flex-shrink:0;
+  border-bottom:1px solid rgba(100,70,20,.3);
+  background:linear-gradient(180deg,rgba(20,12,4,.95),rgba(12,8,3,.95));
+  position:relative;z-index:20;
+}
+.wl-topbar::after{
+  content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(200,140,40,.15),transparent);
+}
+.wl-topbar__back{
+  height:100%;padding:0 14px;
+  border:none;border-right:1px solid rgba(80,50,15,.3);
+  background:transparent;color:#6a5038;
+  font:inherit;font-size:.75rem;cursor:pointer;
+  letter-spacing:.05em;
+  transition:color .15s,background .15s;
+}
+.wl-topbar__back:hover{color:#c8a060;background:rgba(80,50,10,.2);}
+.wl-topbar__title{
+  padding:0 14px;font-size:.78rem;font-weight:700;color:#8a7050;
+  letter-spacing:.1em;text-transform:uppercase;flex:1;
+}
+.wl-topbar__status{
+  padding:0 14px;font-size:.75rem;color:#5a7090;
+  font-family:inherit;
+}
 
-/* ── 挂载点 ──────────────────────────────────────────────── */
-#wastelandShopMount{
-  flex:1;min-height:0;display:flex;flex-direction:column;
-  padding-bottom:70px;/* 为固定底栏留出空间 */}
-
-/* ── 双栏布局 ────────────────────────────────────────────── */
+/* 主体双栏 */
 #wl-game-body{
   flex:1;min-height:0;
   display:grid;
-  grid-template-columns:1fr 350px;
-  overflow:hidden;}
+  grid-template-columns:1fr 320px;
+}
 
-/* ── 左栏：仓库 ──────────────────────────────────────────── */
+/* ── 左栏：格子仓库 ──────────────────────────────────────── */
 #wl-left-col{
   display:flex;flex-direction:column;
-  padding:12px 10px 12px 14px;gap:6px;
-  border-right:1px solid rgba(114,244,255,.09);
-  overflow:hidden;background:#0a0704;}
+  padding:10px 8px 80px 10px;
+  border-right:1px solid rgba(80,60,20,.2);
+  overflow:hidden;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent,transparent 39px,
+      rgba(80,50,10,.04) 39px,rgba(80,50,10,.04) 40px
+    ),
+    #090604;
+}
+.wl-grid-label{
+  font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;
+  color:rgba(200,150,50,.35);flex-shrink:0;margin-bottom:6px;
+  padding-left:2px;
+}
 
-.wl-col-label{
-  font:700 10px ui-monospace,SFMono-Regular,monospace;
-  letter-spacing:.14em;text-transform:uppercase;
-  color:rgba(114,244,255,.45);flex-shrink:0;}
-
+/* 格子包裹——保证格子是正方形 */
 #wl-grid-wrap{
   flex:1;min-height:0;
-  display:flex;align-items:flex-start;justify-content:stretch;}
-
-/* 让格子不超出左栏高度 */
-#wl-grid-wrap .wl-grid{
-  width:100%;max-height:100%;}
+  display:flex;
+  align-items:flex-start;
+  justify-content:flex-start;
+}
+#wl-grid-wrap #wl-grid{
+  /* 10列×8行，每格固定36px正方形 */
+  --cell:36px;
+  --cols:10;
+  --rows:8;
+  width:  calc(var(--cell)*var(--cols) + 3px*(var(--cols)-1) + 12px);
+  height: calc(var(--cell)*var(--rows) + 3px*(var(--rows)-1) + 12px);
+  flex-shrink:0;
+}
 
 /* ── 右栏：信息面板 ──────────────────────────────────────── */
 #wl-right-col{
-  display:flex;flex-direction:column;overflow:hidden;
-  background:#0c0906;
-  border-left:1px solid rgba(255,255,255,.03);}
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  background:#0b0806;
+}
 
-/* 状态栏 */
+/* 资金/状态块 */
 #wl-status-bar{
-  padding:11px 14px 10px;flex-shrink:0;
-  border-bottom:1px solid rgba(255,255,255,.06);
-  background:linear-gradient(180deg,rgba(255,215,106,.04),transparent);}
+  padding:10px 12px 9px;flex-shrink:0;
+  border-bottom:1px solid rgba(80,60,20,.25);
+  background:linear-gradient(180deg,rgba(80,40,5,.08),transparent);
+}
 #wl-stat-day{
-  font:700 10px ui-monospace,SFMono-Regular,monospace;
-  letter-spacing:.12em;color:#72f4ff;margin-bottom:2px;}
+  font-size:.65rem;letter-spacing:.12em;color:#72f4ff;
+  text-transform:uppercase;margin-bottom:1px;
+}
 #wl-stat-cash{
-  font:900 22px ui-monospace,SFMono-Regular,monospace;
-  color:#ffd76a;letter-spacing:-.01em;line-height:1.25;
-  text-shadow:0 0 20px rgba(255,215,106,.4);}
+  font-size:1.6rem;font-weight:900;color:#ffd76a;
+  letter-spacing:-.02em;line-height:1.2;
+  text-shadow:0 0 20px rgba(255,215,106,.35);
+}
 #wl-stat-rep{
-  font:600 10px ui-monospace,SFMono-Regular,monospace;
-  color:#4a6080;margin-top:3px;letter-spacing:.06em;}
+  font-size:.62rem;color:#3a5068;margin-top:2px;letter-spacing:.06em;
+}
 
-/* 右栏可滚动区域 */
+/* 右栏滚动区 */
 #wl-right-scroll{
-  flex:1;overflow-y:auto;padding:12px;
+  flex:1;overflow-y:auto;padding:8px 10px 8px;
   display:flex;flex-direction:column;gap:0;
   scrollbar-width:thin;
-  scrollbar-color:rgba(255,255,255,.07) transparent;}
-#wl-right-scroll::-webkit-scrollbar{width:4px;}
-#wl-right-scroll::-webkit-scrollbar-track{background:transparent;}
+  scrollbar-color:rgba(255,255,255,.05) transparent;
+}
+#wl-right-scroll::-webkit-scrollbar{width:3px;}
 #wl-right-scroll::-webkit-scrollbar-thumb{
-  background:rgba(255,255,255,.08);border-radius:2px;}
+  background:rgba(255,255,255,.06);border-radius:2px;
+}
 
-.wl-right-section{
-  padding-bottom:12px;margin-bottom:12px;
-  border-bottom:1px solid rgba(255,255,255,.055);}
-.wl-right-section:last-child{
-  border-bottom:none;margin-bottom:0;padding-bottom:0;}
-.wl-right-section > .wl-section-title{margin-bottom:8px;}
+.wl-panel-section{
+  padding-bottom:10px;margin-bottom:10px;
+  border-bottom:1px solid rgba(255,255,255,.04);
+}
+.wl-panel-section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.wl-panel-title{
+  font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(114,244,255,.4);margin-bottom:6px;
+}
 
 /* ── 固定底栏 ────────────────────────────────────────────── */
-#wl-end-footer{
-  position:fixed;bottom:0;left:0;right:0;height:70px;
-  background:linear-gradient(to top,#0a0705 60%,rgba(10,7,5,.85));
-  border-top:1px solid rgba(114,244,255,.18);
+#wl-footer{
+  position:fixed;bottom:0;left:0;right:0;height:62px;
+  background:linear-gradient(to top,rgba(6,4,2,.98) 55%,rgba(6,4,2,.7));
+  border-top:1px solid rgba(100,70,20,.35);
   display:flex;align-items:center;justify-content:space-between;
-  padding:0 20px;z-index:100;
-  box-shadow:0 -16px 48px rgba(0,0,0,.7);}
+  padding:0 16px;z-index:100;
+}
+#wl-footer::before{
+  content:'';position:absolute;top:-1px;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(200,140,40,.2),transparent);
+}
 #wl-rent-countdown{
-  font:700 10px ui-monospace,SFMono-Regular,monospace;
-  letter-spacing:.07em;color:#3a5068;}
+  font-size:.65rem;letter-spacing:.07em;color:#3a5068;
+}
 #wl-end-day-btn{
-  min-height:44px;min-width:170px;font-size:14px;
-  letter-spacing:.08em;font-weight:900;font-family:inherit;
-  box-shadow:0 0 20px rgba(114,244,255,.25);
-  transition:box-shadow .2s,filter .15s;}
+  min-height:38px;min-width:150px;
+  font-size:.82rem;letter-spacing:.12em;font-weight:900;
+  font-family:inherit;text-transform:uppercase;
+  background:linear-gradient(135deg,#1a4a6a,#0e2e42);
+  border:1px solid rgba(114,244,255,.4);
+  border-radius:3px;color:#72f4ff;cursor:pointer;
+  box-shadow:0 0 16px rgba(114,244,255,.15);
+  transition:all .2s;
+}
 #wl-end-day-btn:hover{
-  box-shadow:0 0 32px rgba(114,244,255,.45);filter:brightness(1.08);}
+  background:linear-gradient(135deg,#1e5a7e,#12384e);
+  box-shadow:0 0 28px rgba(114,244,255,.3);
+  border-color:rgba(114,244,255,.7);
+}
 
-/* ── 响应式：小屏堆叠 ────────────────────────────────────── */
-@media(max-width:680px){
+/* ── 响应式 ──────────────────────────────────────────────── */
+@media(max-width:700px){
   #wl-game-body{
     grid-template-columns:1fr;
     grid-template-rows:auto 1fr;
-    overflow-y:auto;}
+    overflow-y:auto;
+  }
   #wl-left-col{
     border-right:none;
-    border-bottom:1px solid rgba(114,244,255,.09);
-    padding-bottom:10px;}
-  #wl-grid-wrap{height:56vw;}
+    border-bottom:1px solid rgba(80,60,20,.2);
+    padding-bottom:10px;overflow:visible;
+  }
+  #wl-grid-wrap{height:auto;}
   #wl-right-col{overflow:visible;}
-  #wl-right-scroll{overflow:visible;max-height:none;padding-bottom:80px;}
-  #wastelandShopMount{padding-bottom:0;}
-  #wl-end-footer{position:sticky;bottom:0;}
+  #wl-right-scroll{overflow:visible;max-height:none;padding-bottom:72px;}
+  #wl-footer{position:sticky;bottom:0;}
 }
 </style>
 </head>
 <body>
 
-<!-- ══ 主菜单 ═══════════════════════════════════════════════ -->
+<!-- ════════════════════════════
+     主菜单
+     ════════════════════════════ -->
 <div id="wl-menu">
   <div class="wl-logo">
-    <span class="wl-logo__icon">🏚</span>
+    <div class="wl-logo__emblem">🏚</div>
     <div class="wl-logo__title">废土杂货铺</div>
-    <div class="wl-logo__sub">Wasteland Shop · 早期版本</div>
+    <div class="wl-logo__sub">Wasteland Shop</div>
+    <div class="wl-logo__lore">水贵如血，信任比货更稀缺。<br>在废土的夹缝里，你开了家店。</div>
   </div>
 
   <div class="wl-menu__actions">
     <button class="wl-menu__btn wl-menu__btn--primary" id="btn-new">
-      <span class="wl-menu__btn__icon">✦</span>
+      <span class="wl-menu__btn__icon">▸</span>
       <span class="wl-menu__btn__text">
         <span class="wl-menu__btn__title">开始新游戏</span>
-        <span class="wl-menu__btn__desc">第1天，资金200元，3件初始物品</span>
+        <span class="wl-menu__btn__desc">第1天 · 资金200元 · 空仓库（含3件初始物资）</span>
       </span>
     </button>
     <button class="wl-menu__btn" id="btn-continue" style="display:none">
-      <span class="wl-menu__btn__icon">▶</span>
+      <span class="wl-menu__btn__icon">◎</span>
       <span class="wl-menu__btn__text">
         <span class="wl-menu__btn__title">继续游戏</span>
-        <span class="wl-menu__btn__desc" id="continue-desc">加载存档</span>
+        <span class="wl-menu__btn__desc" id="continue-desc">读取存档…</span>
       </span>
     </button>
   </div>
 
   <div class="wl-saves" id="saves-section" style="display:none">
-    <div class="wl-saves__title">存档</div>
+    <hr class="wl-menu__divider" />
+    <div class="wl-saves__title">本地存档</div>
     <div id="saves-list"></div>
   </div>
 
-  <div class="wl-version">V58 · 废土杂货铺</div>
+  <div class="wl-version">V58-ALPHA</div>
 </div>
 
-<!-- ══ 游戏区 ═══════════════════════════════════════════════ -->
+<!-- ════════════════════════════
+     游戏区
+     ════════════════════════════ -->
 <div id="wl-game">
 
   <!-- 顶栏 -->
-  <header class="wl-game-header">
-    <button class="wl-game-header__back" id="btn-back">← 主菜单</button>
-    <span class="wl-game-header__title">废土杂货铺</span>
-    <span class="wl-game-header__status" id="game-header-status"></span>
+  <header class="wl-topbar">
+    <button class="wl-topbar__back" id="btn-back">← 退出</button>
+    <span class="wl-topbar__title">废土杂货铺</span>
+    <span class="wl-topbar__status" id="game-header-status"></span>
   </header>
 
-  <!-- 挂载点（含静态双栏布局） -->
+  <!-- 挂载点 -->
   <div id="wastelandShopMount">
-
     <div id="wl-game-body">
 
       <!-- 左栏：仓库格子 -->
       <div id="wl-left-col">
-        <div class="wl-col-label">仓库 · 10 × 8</div>
+        <div class="wl-grid-label">▦ 仓库 10×8</div>
         <div id="wl-grid-wrap">
           <div id="wl-grid"></div>
         </div>
@@ -252,48 +419,42 @@ html,body{height:100%;background:#0a0705;color:#c8b89a;
       <!-- 右栏：信息面板 -->
       <div id="wl-right-col">
 
-        <!-- 状态栏 -->
         <div id="wl-status-bar">
-          <div id="wl-stat-day">—</div>
-          <div id="wl-stat-cash">—</div>
-          <div id="wl-stat-rep">—</div>
+          <div id="wl-stat-day">第 — 天</div>
+          <div id="wl-stat-cash">¥ —</div>
+          <div id="wl-stat-rep">声誉 —</div>
         </div>
 
-        <!-- 可滚动内容 -->
         <div id="wl-right-scroll">
 
-          <div class="wl-right-section">
-            <div class="wl-section-title">今日事件</div>
+          <div class="wl-panel-section">
+            <div class="wl-panel-title">▸ 今日事件</div>
             <div id="wl-events"><p class="wl-empty">载入中…</p></div>
           </div>
 
-          <div class="wl-right-section">
-            <div class="wl-section-title">物品详情</div>
+          <div class="wl-panel-section">
+            <div class="wl-panel-title">▸ 物品详情</div>
             <div id="wl-detail">
               <p class="wl-empty">点击仓库中的物品查看详情。</p>
             </div>
           </div>
 
-          <div class="wl-right-section" id="wl-auction-wrap" style="display:none">
-            <div class="wl-section-title">集装箱拍卖</div>
+          <div class="wl-panel-section" id="wl-auction-wrap" style="display:none">
+            <div class="wl-panel-title">▸ 集装箱拍卖</div>
             <div id="wl-auction"></div>
           </div>
 
-        </div><!-- /wl-right-scroll -->
-      </div><!-- /wl-right-col -->
-    </div><!-- /wl-game-body -->
+        </div>
+      </div>
+    </div>
 
-    <!-- 固定底栏 -->
-    <footer id="wl-end-footer">
+    <footer id="wl-footer">
       <span id="wl-rent-countdown"></span>
-      <button type="button" id="wl-end-day-btn"
-        class="wl-btn wl-btn--primary wl-btn--end-day">
-        结束今天 →
-      </button>
+      <button type="button" id="wl-end-day-btn">结束今天 →</button>
     </footer>
+  </div>
 
-  </div><!-- /wastelandShopMount -->
-</div><!-- /wl-game -->
+</div>
 
 <script src="src/wasteland-core.js"></script>
 <script src="src/wasteland-npc.js"></script>
@@ -302,98 +463,74 @@ html,body{height:100%;background:#0a0705;color:#c8b89a;
 <script>
 (function(){
   'use strict';
+  var SAVE_KEY='xxsxWastelandShopV1';
+  var menuEl=document.getElementById('wl-menu');
+  var gameEl=document.getElementById('wl-game');
 
-  var SAVE_KEY = 'xxsxWastelandShopV1';
-  var menuEl   = document.getElementById('wl-menu');
-  var gameEl   = document.getElementById('wl-game');
-
-  /* ── 存档探测 ─────────────────────────────────────────────── */
   function getSave(){
-    try{ return JSON.parse(localStorage.getItem(SAVE_KEY)); }
-    catch(e){ return null; }
+    try{return JSON.parse(localStorage.getItem(SAVE_KEY));}
+    catch(e){return null;}
   }
+  function deleteSave(){localStorage.removeItem(SAVE_KEY);refreshMenu();}
 
-  function deleteSave(){
-    localStorage.removeItem(SAVE_KEY);
-    refreshMenu();
-  }
-
-  /* ── 菜单刷新 ─────────────────────────────────────────────── */
   function refreshMenu(){
-    var save = getSave();
-    var continueBtn  = document.getElementById('btn-continue');
-    var savesSection = document.getElementById('saves-section');
-    var savesList    = document.getElementById('saves-list');
-
-    if(save && save.day){
-      continueBtn.style.display = '';
-      document.getElementById('continue-desc').textContent =
-        '第' + save.day + '天 · ¥' + (save.gold||0) + ' · 第' + (save.week||1) + '周';
-
-      savesSection.style.display = '';
-      savesList.innerHTML = '';
-      var slot = document.createElement('div');
-      slot.className = 'wl-save-slot';
-      slot.innerHTML =
-        '<span class="wl-save-slot__icon">💾</span>' +
-        '<span class="wl-save-slot__info">' +
-          '<span class="wl-save-slot__day">第' + save.day +
-            '天 · 第' + (save.week||1) + '周</span>' +
-          '<span class="wl-save-slot__meta">余额 ¥' + (save.gold||0) +
-            ' · 声誉 ' + ((save.reputation&&save.reputation.overall)||0) + '</span>' +
-        '</span>' +
+    var save=getSave();
+    var continueBtn=document.getElementById('btn-continue');
+    var savesSection=document.getElementById('saves-section');
+    var savesList=document.getElementById('saves-list');
+    if(save&&save.day){
+      continueBtn.style.display='';
+      document.getElementById('continue-desc').textContent=
+        '第'+save.day+'天 · 第'+(save.week||1)+'周 · ¥'+(save.gold||0);
+      savesSection.style.display='';
+      savesList.innerHTML='';
+      var slot=document.createElement('div');
+      slot.className='wl-save-slot';
+      slot.innerHTML=
+        '<span class="wl-save-slot__icon">◉</span>'+
+        '<span class="wl-save-slot__info">'+
+          '<span class="wl-save-slot__day">第'+save.day+'天 · 第'+(save.week||1)+'周</span>'+
+          '<span class="wl-save-slot__meta">¥'+(save.gold||0)+
+            ' · 声誉 '+((save.reputation&&save.reputation.overall)||0)+'</span>'+
+        '</span>'+
         '<button class="wl-save-slot__del" title="删除存档">✕</button>';
-      slot.querySelector('.wl-save-slot__del').addEventListener('click', function(e){
+      slot.querySelector('.wl-save-slot__del').addEventListener('click',function(e){
         e.stopPropagation();
-        if(confirm('确定删除存档？此操作不可撤销。')) deleteSave();
+        if(confirm('删除存档？'))deleteSave();
       });
-      slot.addEventListener('click', function(e){
-        if(e.target.classList.contains('wl-save-slot__del')) return;
+      slot.addEventListener('click',function(e){
+        if(e.target.classList.contains('wl-save-slot__del'))return;
         startGame(false);
       });
       savesList.appendChild(slot);
-    } else {
-      continueBtn.style.display = 'none';
-      savesSection.style.display = 'none';
+    }else{
+      continueBtn.style.display='none';
+      savesSection.style.display='none';
     }
   }
 
-  /* ── 进入 / 离开游戏 ──────────────────────────────────────── */
   function startGame(isNew){
-    if(isNew) localStorage.removeItem(SAVE_KEY);
+    if(isNew)localStorage.removeItem(SAVE_KEY);
     menuEl.classList.add('hidden');
     gameEl.classList.add('active');
-    if(window.WastelandShop && typeof window.WastelandShop.enter === 'function'){
+    if(window.WastelandShop&&typeof window.WastelandShop.enter==='function')
       window.WastelandShop.enter();
-    }
   }
-
   function exitGame(){
-    if(window.WastelandShop && typeof window.WastelandShop.leave === 'function'){
+    if(window.WastelandShop&&typeof window.WastelandShop.leave==='function')
       window.WastelandShop.leave();
-    }
     gameEl.classList.remove('active');
     menuEl.classList.remove('hidden');
     refreshMenu();
   }
 
-  /* ── 事件绑定 ─────────────────────────────────────────────── */
-  document.getElementById('btn-new').addEventListener('click', function(){
-    if(getSave()){
-      if(!confirm('开始新游戏将覆盖当前存档，确认吗？')) return;
-    }
+  document.getElementById('btn-new').addEventListener('click',function(){
+    if(getSave()&&!confirm('覆盖当前存档？'))return;
     startGame(true);
   });
-
-  document.getElementById('btn-continue').addEventListener('click', function(){
-    startGame(false);
-  });
-
-  document.getElementById('btn-back').addEventListener('click', exitGame);
-
-  /* ── 初始化 ───────────────────────────────────────────────── */
+  document.getElementById('btn-continue').addEventListener('click',function(){startGame(false);});
+  document.getElementById('btn-back').addEventListener('click',exitGame);
   refreshMenu();
-
 }());
 </script>
 </body>
