@@ -25,5 +25,5 @@
     }
     if(!window.NeonGameBooted)throw new Error('game initialization');
     loading.remove();
-  }).catch(function(){loading.innerHTML='<h1>游戏暂时未能载入</h1><p>请刷新重试，已有本机存档仍会保留。</p><a href="./">返回所有游戏</a>';});
+  }).catch(function(err){loading.innerHTML='<h1>游戏暂时未能载入</h1><p>错误：'+(err&&err.message||err)+'</p><p>请刷新重试，已有本机存档仍会保留。</p><a href="./">返回所有游戏</a>';});
 })();
