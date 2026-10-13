@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>废土杂货铺</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23120d08'/%3E%3Ctext x='16' y='23' font-size='18' text-anchor='middle'%3E🏚%3C/text%3E%3C/svg%3E" />
+<link rel="stylesheet" href="src/wasteland-shop.css" />
+<style>
+/* ── 独立入口页样式 ──────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;background:#0a0705;color:#c8b89a;font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden;}
+
+/* 主菜单 */
+#wl-menu{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem 1rem;gap:0;}
+.wl-logo{text-align:center;margin-bottom:2.5rem;}
+.wl-logo__icon{font-size:4rem;line-height:1;display:block;margin-bottom:.5rem;}
+.wl-logo__title{font-size:2rem;font-weight:700;letter-spacing:.05em;color:#e8d4a0;}
+.wl-logo__sub{font-size:.85rem;color:#7a6a52;margin-top:.25rem;letter-spacing:.1em;text-transform:uppercase;}
+
+.wl-menu__actions{display:flex;flex-direction:column;gap:.75rem;width:100%;max-width:320px;}
+.wl-menu__btn{width:100%;padding:.85rem 1.5rem;border:1px solid #3a2e20;border-radius:8px;background:#1a1208;color:#c8b89a;font-size:1rem;cursor:pointer;text-align:left;display:flex;align-items:center;gap:.75rem;transition:background .15s,border-color .15s;}
+.wl-menu__btn:hover{background:#241a0e;border-color:#6a5030;}
+.wl-menu__btn--primary{background:#2a1e0e;border-color:#6a5030;color:#e8d4a0;}
+.wl-menu__btn--primary:hover{background:#3a2a12;border-color:#9a7840;}
+.wl-menu__btn__icon{font-size:1.25rem;flex-shrink:0;}
+.wl-menu__btn__text{flex:1;}
+.wl-menu__btn__title{display:block;font-weight:600;}
+.wl-menu__btn__desc{display:block;font-size:.75rem;color:#7a6a52;margin-top:.1rem;}
+
+.wl-saves{width:100%;max-width:320px;margin-top:1.25rem;}
+.wl-saves__title{font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:#7a6a52;margin-bottom:.5rem;padding-left:.25rem;}
+.wl-save-slot{width:100%;padding:.65rem 1rem;border:1px solid #2a2010;border-radius:6px;background:#120e08;color:#a09070;font-size:.85rem;cursor:pointer;text-align:left;display:flex;align-items:center;gap:.75rem;margin-bottom:.5rem;transition:background .15s,border-color .15s;}
+.wl-save-slot:hover{background:#1e160a;border-color:#4a3820;}
+.wl-save-slot__icon{font-size:1.1rem;}
+.wl-save-slot__info{flex:1;}
+.wl-save-slot__day{font-weight:600;color:#c8b89a;}
+.wl-save-slot__meta{font-size:.7rem;color:#6a5a42;margin-top:.1rem;}
+.wl-save-slot__del{padding:.25rem .5rem;border:none;background:transparent;color:#5a4a32;font-size:.8rem;cursor:pointer;border-radius:4px;}
+.wl-save-slot__del:hover{color:#e87060;background:#2a1208;}
+
+.wl-version{position:fixed;bottom:.75rem;right:1rem;font-size:.7rem;color:#3a2e20;}
+
+/* 游戏容器 */
+#wl-game{display:none;min-height:100vh;}
+#wl-game.active{display:block;}
+#wl-menu.hidden{display:none;}
+
+.wl-game-header{display:flex;align-items:center;gap:1rem;padding:.75rem 1rem;border-bottom:1px solid #2a2010;background:#0e0a06;position:sticky;top:0;z-index:10;}
+.wl-game-header__back{padding:.4rem .8rem;border:1px solid #3a2e20;border-radius:6px;background:transparent;color:#a09070;font-size:.8rem;cursor:pointer;}
+.wl-game-header__back:hover{background:#1e160a;color:#e8d4a0;}
+.wl-game-header__title{font-size:.9rem;color:#c8b89a;font-weight:600;flex:1;}
+.wl-game-header__status{font-size:.8rem;color:#7a6a52;}
+
+#wastelandShopMount{padding:1rem;}
+</style>
+</head>
+<body>
+
+<!-- 主菜单 -->
+<div id="wl-menu">
+  <div class="wl-logo">
+    <span class="wl-logo__icon">🏚</span>
+    <div class="wl-logo__title">废土杂货铺</div>
+    <div class="wl-logo__sub">Wasteland Shop · 早期版本</div>
+  </div>
+
+  <div class="wl-menu__actions">
+    <button class="wl-menu__btn wl-menu__btn--primary" id="btn-new">
+      <span class="wl-menu__btn__icon">✦</span>
+      <span class="wl-menu__btn__text">
+        <span class="wl-menu__btn__title">开始新游戏</span>
+        <span class="wl-menu__btn__desc">第1天，资金200元，空仓库</span>
+      </span>
+    </button>
+    <button class="wl-menu__btn" id="btn-continue" style="display:none">
+      <span class="wl-menu__btn__icon">▶</span>
+      <span class="wl-menu__btn__text">
+        <span class="wl-menu__btn__title">继续游戏</span>
+        <span class="wl-menu__btn__desc" id="continue-desc">加载存档</span>
+      </span>
+    </button>
+  </div>
+
+  <div class="wl-saves" id="saves-section" style="display:none">
+    <div class="wl-saves__title">存档记录</div>
+    <div id="saves-list"></div>
+  </div>
+
+  <div class="wl-version">V58 · 废土杂货铺</div>
+</div>
+
+<!-- 游戏区 -->
+<div id="wl-game">
+  <header class="wl-game-header">
+    <button class="wl-game-header__back" id="btn-back">← 主菜单</button>
+    <span class="wl-game-header__title" id="game-header-title">废土杂货铺</span>
+    <span class="wl-game-header__status" id="game-header-status"></span>
+  </header>
+  <div id="wastelandShopMount"></div>
+</div>
+
+<script src="src/wasteland-core.js"></script>
+<script src="src/wasteland-npc.js"></script>
+<script src="src/wasteland-ui.js"></script>
+<script src="src/wasteland-shop.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  var SAVE_KEY = 'xxsxWastelandShopV1';
+  var menuEl   = document.getElementById('wl-menu');
+  var gameEl   = document.getElementById('wl-game');
+
+  // ── 存档探测 ──────────────────────────────────────────────
+  function getSave(){
+    try{ return JSON.parse(localStorage.getItem(SAVE_KEY)); }
+    catch(e){ return null; }
+  }
+
+  function deleteSave(){
+    localStorage.removeItem(SAVE_KEY);
+    refreshMenu();
+  }
+
+  // ── 菜单刷新 ──────────────────────────────────────────────
+  function refreshMenu(){
+    var save = getSave();
+    var continueBtn = document.getElementById('btn-continue');
+    var savesSection = document.getElementById('saves-section');
+    var savesList = document.getElementById('saves-list');
+
+    if(save && save.day){
+      continueBtn.style.display = '';
+      document.getElementById('continue-desc').textContent =
+        '第' + save.day + '天 · 余额' + (save.gold||0) + '元 · 第' + (save.week||1) + '周';
+
+      savesSection.style.display = '';
+      savesList.innerHTML = '';
+      var slot = document.createElement('div');
+      slot.className = 'wl-save-slot';
+      slot.innerHTML =
+        '<span class="wl-save-slot__icon">💾</span>' +
+        '<span class="wl-save-slot__info">' +
+          '<span class="wl-save-slot__day">第' + save.day + '天 · 第' + (save.week||1) + '周</span>' +
+          '<span class="wl-save-slot__meta">余额 ' + (save.gold||0) + ' 元 · 声誉 ' + ((save.reputation&&save.reputation.overall)||0) + '</span>' +
+        '</span>' +
+        '<button class="wl-save-slot__del" title="删除存档">✕</button>';
+      slot.querySelector('.wl-save-slot__del').addEventListener('click', function(e){
+        e.stopPropagation();
+        if(confirm('确定删除存档？此操作不可撤销。')) deleteSave();
+      });
+      slot.addEventListener('click', function(e){
+        if(e.target.classList.contains('wl-save-slot__del')) return;
+        startGame(false);
+      });
+      savesList.appendChild(slot);
+    } else {
+      continueBtn.style.display = 'none';
+      savesSection.style.display = 'none';
+    }
+  }
+
+  // ── 进入/离开游戏 ─────────────────────────────────────────
+  function startGame(isNew){
+    if(isNew) localStorage.removeItem(SAVE_KEY);
+    menuEl.classList.add('hidden');
+    gameEl.classList.add('active');
+    if(window.WastelandShop && typeof window.WastelandShop.enter === 'function'){
+      window.WastelandShop.enter();
+    }
+    updateHeader();
+  }
+
+  function exitGame(){
+    // 保存并返回菜单
+    if(window.WastelandShop && typeof window.WastelandShop.leave === 'function'){
+      window.WastelandShop.leave();
+    }
+    gameEl.classList.remove('active');
+    menuEl.classList.remove('hidden');
+    refreshMenu();
+  }
+
+  function updateHeader(){
+    var save = getSave();
+    if(save && save.day){
+      document.getElementById('game-header-title').textContent = '废土杂货铺';
+      document.getElementById('game-header-status').textContent =
+        '第' + save.day + '天 · ' + (save.gold||0) + '元';
+    }
+  }
+
+  // ── 事件绑定 ──────────────────────────────────────────────
+  document.getElementById('btn-new').addEventListener('click', function(){
+    if(getSave()){
+      if(!confirm('开始新游戏将覆盖当前存档，确认吗？')) return;
+    }
+    startGame(true);
+  });
+
+  document.getElementById('btn-continue').addEventListener('click', function(){
+    startGame(false);
+  });
+
+  document.getElementById('btn-back').addEventListener('click', exitGame);
+
+  // ── 初始化 ────────────────────────────────────────────────
+  refreshMenu();
+
+}());
+</script>
+</body>
+</html>

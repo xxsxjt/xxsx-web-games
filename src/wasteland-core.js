@@ -82,11 +82,13 @@
   function _cellIdx(grid,x,y){return y*grid.cols+x;}
 
   function _itemDims(item){
+    if(!item)return{w:1,h:1};
     return item.rotated?{w:item.h,h:item.w}:{w:item.w,h:item.h};
   }
 
   // canPlace(grid, item, x, y) → bool
   function canPlace(grid,item,x,y){
+    if(!grid||!item)return false;
     var d=_itemDims(item);
     if(x<0||y<0||x+d.w>grid.cols||y+d.h>grid.rows)return false;
     for(var dy=0;dy<d.h;dy++){
