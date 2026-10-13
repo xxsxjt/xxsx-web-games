@@ -6,9 +6,30 @@
   'use strict';
 
   var Core, NPC, UI;
-  var state  = null;
-  var host   = null;
-  var prices = {};   // itemId → {retail, purchase}
+  var state          = null;
+  var host           = null;
+  var prices         = {};   // itemId → {retail, purchase}
+  var selectedItemId = null; // 当前选中物品 id
+
+  // ── 格子适配器（Core.grid → UI.renderGrid 期待的格式）────────
+  function adaptGrid(coreGrid, selId) {
+    var cells = Object.values(coreGrid.items).map(function (entry) {
+      var item = entry.item;
+      return {
+        id:      item.id,
+        type:    item.type,
+        w:       item.w,
+        h:       item.h,
+        x:       entry.x,
+        y:       entry.y,
+        name:    item.name,
+        genuine: item.genuine,
+        quality: item.quality,
+        fake:    !item.genuine
+      };
+    });
+    return { cols: coreGrid.cols, rows: coreGrid.rows, cells: cells, selectedId: selId || null };
+  }
 
   // ── 初始游戏状态 ───────────────────────────────────────────
   function createInitialState() {
@@ -271,37 +292,153 @@
     render();
   }
 
+  // ── 事件列表渲染 ─────────────────────────────────────────────
+  function renderEventsList(container, events) {
+    container.innerHTML = '';
+    if (!events || events.length === 0) {
+      var p = document.createElement('p');
+      p.className = 'wl-empty';
+      p.textContent = '今日暂无事件，静待时机。';
+      container.appendChild(p);
+      return;
+    }
+    events.forEach(function (ev) {
+      var card = document.createElement('div');
+      card.className = 'wl-event-card' + (ev.resolved ? ' wl-event-card--resolved' : '');
+      card.dataset.type = ev.type || 'default';
+
+      var head = document.createElement('div');
+      head.className = 'wl-event-card__head';
+
+      var hourSpan = document.createElement('span');
+      hourSpan.className = 'wl-event-card__hour';
+      hourSpan.textContent = ev.hour != null ? ev.hour + ':00' : '—';
+
+      var labelSpan = document.createElement('span');
+      labelSpan.className = 'wl-event-card__label';
+      labelSpan.textContent = ev.label || ev.type;
+
+      head.appendChild(hourSpan);
+      head.appendChild(labelSpan);
+
+      if (ev.resolved) {
+        var doneSpan = document.createElement('span');
+        doneSpan.className = 'wl-event-card__done';
+        doneSpan.textContent = '✔';
+        head.appendChild(doneSpan);
+      }
+      card.appendChild(head);
+
+      if (ev.desc) {
+        var descP = document.createElement('p');
+        descP.className = 'wl-event-card__desc';
+        descP.textContent = ev.desc;
+        card.appendChild(descP);
+      }
+
+      if (!ev.resolved && ev.type === 'npc_visit') {
+        var btn = document.createElement('button');
+        btn.className = 'wl-btn wl-btn--sm';
+        btn.type = 'button';
+        btn.textContent = '处理';
+        btn.addEventListener('click', (function (capturedId) {
+          return function () { resolveEvent(capturedId); };
+        }(ev.id)));
+        card.appendChild(btn);
+      }
+      container.appendChild(card);
+    });
+  }
+
   // ── 渲染 ────────────────────────────────────────────────────
   function render() {
     if (!host || !state) return;
 
-    var auc = state.auction;
-    var cb  = {
-      onEndDay:      endDay,
-      onBid:         playerBid,
+    // 更新状态栏
+    var statDay = document.getElementById('wl-stat-day');
+    if (statDay) statDay.textContent = '第 ' + state.day + ' 天 · 第 ' + state.week + ' 周';
+
+    var statCash = document.getElementById('wl-stat-cash');
+    if (statCash) statCash.textContent = '¥ ' + state.gold.toLocaleString();
+
+    var statRep = document.getElementById('wl-stat-rep');
+    if (statRep) statRep.textContent = '声誉 ' + ((state.reputation && state.reputation.overall) || 0);
+
+    var rentEl = document.getElementById('wl-rent-countdown');
+    if (rentEl) {
+      var daysLeft = 7 - ((state.day - 1) % 7);
+      rentEl.textContent = daysLeft + ' 天后结算租金 ¥' + state.rent;
+    }
+
+    var hdrStatus = document.getElementById('game-header-status');
+    if (hdrStatus) hdrStatus.textContent = '第 ' + state.day + ' 天 · ¥' + state.gold;
+
+    // 构建回调
+    var cb = {
+      onEndDay:       endDay,
+      onBid:          playerBid,
       onResolveEvent: resolveEvent,
-      onSetPrice:    setPrice
+      onSetPrice:     setPrice,
+      onSelect: function (itemId) {
+        selectedItemId = itemId;
+        var entry = state.grid.items[itemId];
+        var detailEl = document.getElementById('wl-detail');
+        if (detailEl && entry) {
+          UI.renderItemDetail(detailEl, entry.item, [], state.playerSkill.identify);
+          detailEl.dataset.hasItem = '1';
+        }
+        // 重绘格子以更新选中高亮
+        var gEl = document.getElementById('wl-grid');
+        if (gEl) UI.renderGrid(gEl, adaptGrid(state.grid, selectedItemId), cb);
+      },
+      onDrop: function (payload) {
+        var itemId = payload.itemId;
+        var toX    = payload.toX;
+        var toY    = payload.toY;
+        var entry  = state.grid.items[itemId];
+        if (!entry) return;
+        var item  = entry.item;
+        var origX = entry.x;
+        var origY = entry.y;
+        Core.remove(state.grid, itemId);
+        if (Core.canPlace(state.grid, item, toX, toY)) {
+          Core.place(state.grid, item, toX, toY);
+        } else {
+          // 目标位置无法放置，还原
+          Core.place(state.grid, item, origX, origY);
+        }
+        render();
+      }
     };
 
-    // renderShopFloor 接管整个 host
-    UI.renderShopFloor(host, {
-      day:    state.day,
-      week:   state.week,
-      cash:   state.gold,       // UI 用 cash
-      rent:   state.rent,
-      events: state.todayEvents,
-      prices: buildPriceList(state.grid),
-      reputation: state.reputation
-    }, cb);
+    // 渲染格子仓库
+    var gridEl = document.getElementById('wl-grid');
+    if (gridEl) UI.renderGrid(gridEl, adaptGrid(state.grid, selectedItemId), cb);
 
-    // 格子仓库注入已由 renderShopFloor 建好的 #wl-grid 节点
-    var gridEl = host.querySelector('#wl-grid');
-    if (gridEl) UI.renderGrid(gridEl, state.grid, cb);
+    // 渲染事件列表
+    var eventsEl = document.getElementById('wl-events');
+    if (eventsEl) renderEventsList(eventsEl, state.todayEvents || []);
+
+    // 物品详情面板
+    var detailEl = document.getElementById('wl-detail');
+    if (detailEl) {
+      if (selectedItemId && state.grid.items[selectedItemId]) {
+        UI.renderItemDetail(detailEl, state.grid.items[selectedItemId].item, [], state.playerSkill.identify);
+        detailEl.dataset.hasItem = '1';
+      } else {
+        selectedItemId = null;
+        delete detailEl.dataset.hasItem;
+        detailEl.innerHTML = '<p class="wl-empty">点击仓库中的物品查看详情。</p>';
+      }
+    }
 
     // 拍卖面板
-    var aucEl = host.querySelector('#wl-auction');
+    var aucWrap = document.getElementById('wl-auction-wrap');
+    var aucEl   = document.getElementById('wl-auction');
+    var auc     = state.auction;
     if (aucEl) {
       if (auc && !auc.done) {
+        if (aucWrap) aucWrap.style.display = '';
         UI.renderAuction(aucEl, {
           containerName: auc.containerName,
           tier:          auc.tier,
@@ -314,6 +451,7 @@
           ended:         false
         }, cb);
       } else if (auc && auc.done) {
+        if (aucWrap) aucWrap.style.display = '';
         UI.renderAuction(aucEl, {
           containerName: auc.containerName,
           tier:          auc.tier,
@@ -323,14 +461,8 @@
           won:           auc.playerWon
         }, cb);
       } else {
-        aucEl.innerHTML = '<p class="wl-empty">集装箱拍卖每周一次，下次在第 ' + (7 - (state.day % 7 || 7) + 1) + ' 天后开启。</p>';
+        if (aucWrap) aucWrap.style.display = 'none';
       }
-    }
-
-    // 物品详情面板
-    var detailEl = host.querySelector('#wl-detail');
-    if (detailEl && !detailEl.dataset.hasItem) {
-      detailEl.innerHTML = '<p class="wl-empty">点击仓库中的物品查看详情。</p>';
     }
   }
 
@@ -365,17 +497,23 @@
       state.auction = createAuctionState();
     }
 
+    // 绑定结束今天按钮
+    var endDayBtn = document.getElementById('wl-end-day-btn');
+    if (endDayBtn) endDayBtn.onclick = endDay;
+
     root.NeonGameBooted = true;
     render();
-    return {
-      leave: function () {
-        Core.saveGame(state);
-        if (host) host.innerHTML = '';
-        host = null;
-      }
-    };
+    return {};
   }
 
-  root.WastelandShop = { enter: mount, leave: function () {}, VERSION: '1' };
+  root.WastelandShop = {
+    enter: mount,
+    leave: function () {
+      if (state && Core) Core.saveGame(state);
+      host           = null;
+      selectedItemId = null;
+    },
+    VERSION: '1'
+  };
 
 }(window));
