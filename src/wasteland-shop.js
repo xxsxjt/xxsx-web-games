@@ -1027,7 +1027,11 @@
 
   // ── mount：初始化并挂载 ───────────────────────────────────
   function mount() {
-    host = root.document && root.document.getElementById('wastelandShopMount');
+    // 新布局：shop.js 直接操作已有 DOM 节点，不需要专用挂载点
+    host = root.document && (
+      root.document.getElementById('wastelandShopMount') ||
+      root.document.getElementById('wl-game')
+    );
     if (!host) return null;
     Core = root.WastelandCore;
     NPC  = root.WastelandNPC;
