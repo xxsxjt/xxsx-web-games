@@ -247,11 +247,11 @@
       "gzipBytes": 38194
     },
     "src/wasteland-core.js": {
-      "path": "static/wasteland-core.c2722575fc88.js",
-      "sourceSha256": "c2722575fc8854e839ff481aa95da9e517b7c24395b2569bc6ee46419d3aa29b",
-      "sha256": "c2722575fc8854e839ff481aa95da9e517b7c24395b2569bc6ee46419d3aa29b",
-      "bytes": 16121,
-      "gzipBytes": 5128
+      "path": "static/wasteland-core.566bc8d6a877.js",
+      "sourceSha256": "566bc8d6a8775c04e1493df19d86302505c1677bc089d534edb957f240f08288",
+      "sha256": "566bc8d6a8775c04e1493df19d86302505c1677bc089d534edb957f240f08288",
+      "bytes": 45725,
+      "gzipBytes": 10472
     },
     "src/wasteland-npc.js": {
       "path": "static/wasteland-npc.320071cd8df8.js",
@@ -268,18 +268,18 @@
       "gzipBytes": 4087
     },
     "src/wasteland-shop.js": {
-      "path": "static/wasteland-shop.9caa166c9f6d.js",
-      "sourceSha256": "9caa166c9f6dcfa297c9b7fc2bd7089d8ed423c9fd1cbc91ef217e502f871321",
-      "sha256": "9caa166c9f6dcfa297c9b7fc2bd7089d8ed423c9fd1cbc91ef217e502f871321",
-      "bytes": 32095,
-      "gzipBytes": 8958
+      "path": "static/wasteland-shop.8c4301a012b1.js",
+      "sourceSha256": "8c4301a012b1d3d73294b32d35ddb30f7b0749ba469b5c2f9a89b0989da06c1a",
+      "sha256": "8c4301a012b1d3d73294b32d35ddb30f7b0749ba469b5c2f9a89b0989da06c1a",
+      "bytes": 44439,
+      "gzipBytes": 12528
     },
     "src/wasteland-ui.js": {
-      "path": "static/wasteland-ui.4e9a672f4ab9.js",
-      "sourceSha256": "4e9a672f4ab90f54d6f8dd392e0688c0c343e8bba1b34ae6195e12fbd46a79ca",
-      "sha256": "4e9a672f4ab90f54d6f8dd392e0688c0c343e8bba1b34ae6195e12fbd46a79ca",
-      "bytes": 39943,
-      "gzipBytes": 10045
+      "path": "static/wasteland-ui.d8f965c90447.js",
+      "sourceSha256": "d8f965c90447d58b279a8cb62ccb9b57d4e4f97cb079f1cbe3336f6b9e64700d",
+      "sha256": "d8f965c90447d58b279a8cb62ccb9b57d4e4f97cb079f1cbe3336f6b9e64700d",
+      "bytes": 41178,
+      "gzipBytes": 9475
     },
     "index.html": {
       "path": "index.html",
@@ -291,9 +291,9 @@
     "play.html": {
       "path": "play.html",
       "sourceSha256": "c4f28e7cc8d90b971c06f375bf3cf2d2755985a40b0cef45c1570f7efcad8a3e",
-      "sha256": "ef19852ee1e4f33e2196e32e3d0899d1009a833f1758d565fe753e5b057593c3",
+      "sha256": "9dc5fc03dccd482a193033a5d0d3bcd7ebaea9e26c3597232accd38d5062ac1c",
       "bytes": 54767,
-      "gzipBytes": 16876
+      "gzipBytes": 16874
     }
   },
   "aliases": {
