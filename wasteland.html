@@ -173,140 +173,179 @@ body::after{
 /* ════════════════
    游戏区
    ════════════════ */
-#wl-game{display:none;flex-direction:column;height:100vh;overflow:hidden;background:var(--panel-bg);}
+/* 背景：废土店铺场景感 */
+#wl-game{
+  display:none;flex-direction:column;height:100vh;overflow:hidden;
+  background:
+    /* 顶部管线阴影 */
+    linear-gradient(180deg,rgba(0,0,0,.6) 0%,transparent 80px),
+    /* 底部地面阴影 */
+    linear-gradient(0deg,rgba(0,0,0,.5) 0%,transparent 120px),
+    /* 左侧暗角 */
+    linear-gradient(90deg,rgba(0,0,0,.4) 0%,transparent 200px),
+    /* 右侧暗角 */
+    linear-gradient(270deg,rgba(0,0,0,.3) 0%,transparent 200px),
+    /* 基础色：暖褐绿 */
+    #0d1008;
+}
 #wl-game.active{display:flex;}
 /* 顶栏 */
 #wl-topbar{
   display:flex;align-items:center;
-  height:42px;flex-shrink:0;
-  border-bottom:1px solid var(--border-rust);
-  background:linear-gradient(180deg,rgba(8,14,4,.98),rgba(5,8,3,.98));
+  height:44px;flex-shrink:0;
+  border-bottom:2px solid rgba(57,255,20,.15);
+  background:
+    linear-gradient(180deg,rgba(4,8,2,.98) 0%,rgba(8,14,4,.96) 100%);
   position:relative;z-index:20;
-  box-shadow:inset 0 -1px 0 rgba(57,255,20,.06),inset 0 0 20px rgba(0,0,0,.4);
+  box-shadow:0 2px 20px rgba(0,0,0,.8);
+}
+/* 顶栏左侧装饰线 */
+#wl-topbar::before{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(57,255,20,.3),rgba(57,255,20,.5),rgba(57,255,20,.3),transparent);
 }
 #wl-switch-base{
-  height:100%;padding:0 14px;
-  border:none;border-right:1px solid var(--border-rust);
-  background:transparent;color:var(--text-dim);
-  font:inherit;font-size:.75rem;cursor:pointer;letter-spacing:.05em;
+  height:100%;padding:0 16px;
+  border:none;border-right:1px solid rgba(57,255,20,.12);
+  background:transparent;color:rgba(57,255,20,.45);
+  font:inherit;font-size:.72rem;cursor:pointer;letter-spacing:.08em;
   transition:color .15s,background .15s;
 }
-#wl-switch-base:hover{color:var(--phosphor);background:rgba(57,255,20,.05);}
+#wl-switch-base:hover{color:var(--phosphor);background:rgba(57,255,20,.06);}
 .wl-topbar__title{
-  padding:0 14px;font-size:.78rem;font-weight:700;
-  color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;
+  padding:0 16px;font-size:.72rem;font-weight:700;
+  color:rgba(57,255,20,.3);letter-spacing:.15em;text-transform:uppercase;
 }
-#wl-stat-day,#wl-stat-cash,#wl-stat-rep{
-  padding:0 10px;font-size:.72rem;
-  border-left:1px solid var(--border-rust);
-  color:var(--text-bright);white-space:nowrap;
+#wl-stat-day{
+  padding:0 12px;font-size:.68rem;
+  border-left:1px solid rgba(57,255,20,.1);
+  color:rgba(200,240,200,.6);white-space:nowrap;
 }
-#wl-stat-cash{color:var(--amber);}
+#wl-stat-cash{
+  padding:0 12px;font-size:.9rem;font-weight:900;
+  border-left:1px solid rgba(57,255,20,.1);
+  color:var(--amber);white-space:nowrap;
+  text-shadow:0 0 12px rgba(255,179,71,.4);
+}
+#wl-stat-rep{
+  padding:0 12px;font-size:.68rem;
+  border-left:1px solid rgba(57,255,20,.1);
+  color:rgba(200,240,200,.5);white-space:nowrap;
+}
 #wl-end-day-btn{
-  margin-left:auto;height:100%;padding:0 16px;
-  border:none;border-left:1px solid var(--border-rust);
-  background:transparent;color:var(--phosphor);
-  font:inherit;font-size:.75rem;font-weight:700;cursor:pointer;
-  letter-spacing:.1em;text-transform:uppercase;
+  margin-left:auto;height:100%;padding:0 20px;
+  border:none;
+  border-left:1px solid rgba(57,255,20,.2);
+  background:linear-gradient(90deg,transparent,rgba(57,255,20,.06));
+  color:var(--phosphor);
+  font:inherit;font-size:.72rem;font-weight:700;cursor:pointer;
+  letter-spacing:.12em;text-transform:uppercase;
   transition:all .15s;
+  text-shadow:0 0 8px rgba(57,255,20,.5);
 }
-#wl-end-day-btn:hover{background:rgba(57,255,20,.08);box-shadow:inset 0 0 12px rgba(57,255,20,.15);}
+#wl-end-day-btn:hover{
+  background:linear-gradient(90deg,transparent,rgba(57,255,20,.12));
+  text-shadow:0 0 16px rgba(57,255,20,.8);
+}
 /* 商店视图 */
 #wl-shop-view{flex:1;min-height:0;display:flex;flex-direction:row;}
 #wl-shop-view.hidden{display:none;}
-/* 左侧面板 */
+/* 左侧面板——仓库区 */
 #wl-left-pane{
   flex:1;min-width:0;
   display:flex;flex-direction:column;
-  padding:10px;
-  border-right:1px solid var(--border-rust);
-  background:var(--grid-bg);
-  box-shadow:inset 0 0 20px rgba(0,0,0,.5);
+  padding:12px 10px 10px 12px;
+  border-right:1px solid rgba(57,255,20,.08);
+  background:
+    /* 左上角光晕模拟灯光 */
+    radial-gradient(ellipse 60% 40% at 20% 10%, rgba(57,255,20,.04) 0%, transparent 60%),
+    #0a0c07;
+  position:relative;
 }
 .wl-grid-label{
-  font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;
-  color:var(--text-dim);flex-shrink:0;margin-bottom:6px;padding-left:2px;
+  font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;
+  color:rgba(57,255,20,.3);flex-shrink:0;margin-bottom:8px;padding-left:2px;
 }
 #wl-grid-wrap{
   flex-shrink:0;
   display:flex;align-items:flex-start;justify-content:flex-start;
 }
-#wl-grid{
-  display:grid;
-  grid-template-columns:repeat(10,40px);
-  grid-template-rows:repeat(8,40px);
-  gap:2px;
-  background:var(--grid-bg);
-  border:1px solid var(--border-rust);
-  padding:4px;
-  box-shadow:inset 0 0 16px rgba(0,0,0,.7);
-}
-.wl-cell{width:40px;height:40px;position:relative;}
-.wl-cell--item{
-  background:linear-gradient(135deg,rgba(57,255,20,.12),rgba(57,255,20,.04));
-  border:1px solid rgba(57,255,20,.4);
-  cursor:grab;
-}
-.wl-cell--item:hover{border-color:var(--phosphor);box-shadow:0 0 8px rgba(57,255,20,.5);}
+/* 格子现在由 JS 控制尺寸，不用 CSS grid 定义 */
+#wl-grid{box-shadow:0 4px 32px rgba(0,0,0,.8);}
 #wl-ticker{
-  flex-shrink:0;height:26px;overflow:hidden;
-  background:rgba(5,8,3,.95);
-  border:1px solid var(--border-rust);border-radius:2px;
-  margin-top:6px;position:relative;
+  flex-shrink:0;height:24px;overflow:hidden;
+  background:rgba(3,6,2,.9);
+  border-top:1px solid rgba(57,255,20,.08);
+  margin-top:8px;position:relative;
 }
 .wl-ticker__track{
   display:inline-flex;align-items:center;white-space:nowrap;
   height:100%;padding:0 8px;
-  font-size:.63rem;color:var(--text-dim);letter-spacing:.07em;
+  font-size:.6rem;color:rgba(57,255,20,.4);letter-spacing:.07em;
   animation:wl-ticker-scroll 22s linear infinite;
 }
-/* 右侧面板 */
+/* 右侧面板——信息区，三段不同色温 */
 #wl-right-pane{
-  width:320px;flex-shrink:0;
+  width:300px;flex-shrink:0;
   display:flex;flex-direction:column;
-  background:var(--panel-bg);
+  background:#0c0d09;
   overflow-y:auto;
   scrollbar-width:thin;
-  scrollbar-color:rgba(57,255,20,.1) transparent;
+  scrollbar-color:rgba(255,255,255,.04) transparent;
 }
-#wl-right-pane::-webkit-scrollbar{width:3px;}
-#wl-right-pane::-webkit-scrollbar-thumb{background:rgba(57,255,20,.1);border-radius:2px;}
-.wl-panel-title{
-  font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--text-dim);margin-bottom:6px;
-}
+#wl-right-pane::-webkit-scrollbar{width:2px;}
+#wl-right-pane::-webkit-scrollbar-thumb{background:rgba(255,255,255,.06);}
+
+/* NPC 队列——暖色调（琥珀系） */
 #wl-npc-queue{
-  padding:8px;flex-shrink:0;
-  border-bottom:1px solid var(--border-rust);
-  box-shadow:inset 0 0 8px rgba(0,0,0,.5);
+  flex-shrink:0;
+  border-bottom:1px solid rgba(255,179,71,.1);
+  background:linear-gradient(180deg,rgba(40,25,5,.6) 0%,rgba(20,14,4,.4) 100%);
 }
-.wl-npc-card{
-  border:1px solid var(--border-rust);
-  padding:8px;cursor:pointer;
-  background:var(--panel-bg);margin-bottom:4px;
-  box-shadow:inset 0 0 6px rgba(0,0,0,.5);
-}
-.wl-npc-card.active{border-color:var(--phosphor);box-shadow:0 0 12px rgba(57,255,20,.3);}
+/* 柜台——琥珀+磷绿混合 */
 #wl-counter{
-  padding:8px;flex-shrink:0;
-  border-bottom:1px solid var(--border-rust);
-  box-shadow:inset 0 0 8px rgba(0,0,0,.5);
+  flex-shrink:0;
+  border-bottom:1px solid rgba(57,255,20,.08);
+  background:rgba(12,14,8,.5);
 }
 .wl-counter-slot{
-  width:60px;height:60px;
-  border:1px dashed rgba(255,179,71,.4);
-  background:rgba(255,179,71,.04);
+  width:56px;height:56px;
+  border:1px dashed rgba(255,179,71,.3);
+  background:rgba(255,179,71,.03);
   display:inline-flex;align-items:center;justify-content:center;
+  transition:border-color .15s,background .15s;
 }
-.wl-counter-slot.filled{border-color:var(--amber);background:rgba(255,179,71,.1);}
+.wl-counter-slot:hover{border-color:rgba(255,179,71,.6);}
+.wl-counter-slot.filled{
+  border-color:var(--amber);
+  background:rgba(255,179,71,.08);
+  box-shadow:inset 0 0 8px rgba(255,179,71,.12);
+}
+/* 物品详情——冷蓝调 */
 #wl-detail{
-  padding:8px;flex:1;min-height:60px;
-  border-bottom:1px solid var(--border-rust);
-  box-shadow:inset 0 0 8px rgba(0,0,0,.5);
+  flex:1;min-height:80px;
+  border-bottom:1px solid rgba(57,255,20,.06);
+  background:rgba(8,10,14,.5);
 }
+/* 市场行情——深色紧凑 */
 #wl-market{
-  padding:8px;flex-shrink:0;
-  box-shadow:inset 0 0 8px rgba(0,0,0,.5);
+  flex-shrink:0;
+  background:rgba(4,6,4,.7);
+}
+.wl-panel-title{
+  font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;
+  color:rgba(200,230,200,.3);margin-bottom:5px;
+}
+.wl-npc-card{
+  border:1px solid rgba(255,179,71,.15);
+  padding:6px 8px;cursor:pointer;
+  background:rgba(20,12,2,.6);margin-bottom:3px;
+  transition:border-color .15s,background .15s;
+}
+.wl-npc-card.active{
+  border-color:var(--amber);
+  background:rgba(40,24,4,.7);
+  box-shadow:0 0 12px rgba(255,179,71,.15);
 }
 /* 基地视图 */
 #wl-base-view{
