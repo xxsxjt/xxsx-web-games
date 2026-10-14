@@ -268,18 +268,18 @@
       "gzipBytes": 4087
     },
     "src/wasteland-shop.js": {
-      "path": "static/wasteland-shop.8c4301a012b1.js",
-      "sourceSha256": "8c4301a012b1d3d73294b32d35ddb30f7b0749ba469b5c2f9a89b0989da06c1a",
-      "sha256": "8c4301a012b1d3d73294b32d35ddb30f7b0749ba469b5c2f9a89b0989da06c1a",
-      "bytes": 44439,
-      "gzipBytes": 12528
+      "path": "static/wasteland-shop.8d78404a935c.js",
+      "sourceSha256": "8d78404a935caf1d96c9b4c79d6f642625a650358d9967036890a4e5599aa0f0",
+      "sha256": "8d78404a935caf1d96c9b4c79d6f642625a650358d9967036890a4e5599aa0f0",
+      "bytes": 44900,
+      "gzipBytes": 12663
     },
     "src/wasteland-ui.js": {
-      "path": "static/wasteland-ui.d8f965c90447.js",
-      "sourceSha256": "d8f965c90447d58b279a8cb62ccb9b57d4e4f97cb079f1cbe3336f6b9e64700d",
-      "sha256": "d8f965c90447d58b279a8cb62ccb9b57d4e4f97cb079f1cbe3336f6b9e64700d",
-      "bytes": 41178,
-      "gzipBytes": 9475
+      "path": "static/wasteland-ui.097bbf59ca89.js",
+      "sourceSha256": "097bbf59ca89e223b2b0f9995eb02894ec8e06e5c9eb28fe2a59f598201e6d4d",
+      "sha256": "097bbf59ca89e223b2b0f9995eb02894ec8e06e5c9eb28fe2a59f598201e6d4d",
+      "bytes": 44534,
+      "gzipBytes": 10442
     },
     "index.html": {
       "path": "index.html",
@@ -291,9 +291,9 @@
     "play.html": {
       "path": "play.html",
       "sourceSha256": "c4f28e7cc8d90b971c06f375bf3cf2d2755985a40b0cef45c1570f7efcad8a3e",
-      "sha256": "9dc5fc03dccd482a193033a5d0d3bcd7ebaea9e26c3597232accd38d5062ac1c",
+      "sha256": "093293cc1e6d5cbd703927310c0396f71967f8dc9e77a7983d87960b1224a6a0",
       "bytes": 54767,
-      "gzipBytes": 16874
+      "gzipBytes": 16875
     }
   },
   "aliases": {

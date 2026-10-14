@@ -107,7 +107,7 @@
     var cells = (gridData && gridData.cells) || [];
     var cols = gridData.cols || 10;
     var rows = gridData.rows || 8;
-    var CELL = 40;
+    var CELL = 48;
     var cb = callbacks || {};
 
     var occupied = {};
@@ -122,8 +122,10 @@
     container.innerHTML = '';
     container.style.cssText = 'position:relative;background:' + GRID_BG + ';' +
       'display:grid;grid-template-columns:repeat(' + cols + ',' + CELL + 'px);' +
-      'grid-template-rows:repeat(' + rows + ',' + CELL + 'px);gap:0;' +
-      'border:1px solid ' + PHOSPHOR_DIM + ';width:' + cols * CELL + 'px;';
+      'grid-template-rows:repeat(' + rows + ',' + CELL + 'px);gap:1px;' +
+      'border:1px solid ' + PHOSPHOR_DIM + ';' +
+      'background-color:' + PHOSPHOR_DIM + ';' + // gap color
+      'box-shadow:inset 0 0 20px rgba(0,0,0,.6);';
 
     var rendered = {};
     for (var row = 0; row < rows; row++) {
@@ -135,9 +137,9 @@
           rendered[item.id] = true;
           var conf = typeConf(item.type);
           var qLvl = item.quality != null ? Math.min(5, Math.max(1, Math.round(item.quality))) : 0;
-          if (item.puritySystem && item.puritySystem.level != null) {
-            qLvl = Math.min(5, Math.max(1, Math.round(item.puritySystem.level)));
-          }
+          var itemColor = item.color || conf.color || PHOSPHOR;
+          var w = item.w || 1;
+          var h = item.h || 1;
 
           var cellDiv = el('div', {
             draggable: 'true',
@@ -147,47 +149,73 @@
             'aria-label': esc(item.name || conf.label),
             style: [
               'position:relative',
-              'grid-column:' + (col + 1) + '/span ' + (item.w || 1),
-              'grid-row:' + (row + 1) + '/span ' + (item.h || 1),
-              'border:1px solid ' + PHOSPHOR,
-              'background:' + PANEL_BG,
-              'display:flex;flex-direction:column;align-items:center;justify-content:center',
+              'grid-column:' + (col + 1) + '/span ' + w,
+              'grid-row:' + (row + 1) + '/span ' + h,
+              'background:linear-gradient(160deg,' + itemColor + '18 0%,' + GRID_BG + ' 60%)',
+              'border-left:3px solid ' + itemColor,
+              'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px',
               'cursor:pointer;overflow:hidden',
-              'box-shadow:0 0 4px ' + PHOSPHOR + '66',
-              'transition:box-shadow .15s',
-              'font-size:11px;color:' + PHOSPHOR,
+              'transition:background .1s,border-color .1s',
             ].join(';'),
           });
 
-          cellDiv.appendChild(el('span', { style: 'font-size:16px;line-height:1;', 'aria-hidden': 'true' }, item.icon || conf.icon));
+          // 图标
+          cellDiv.appendChild(el('span', {
+            style: 'font-size:' + (h > 1 ? '24' : '20') + 'px;line-height:1;display:block;',
+            'aria-hidden': 'true'
+          }, item.icon || conf.icon));
+
+          // 物品名（只在格子够大时显示）
+          var shortName = (item.name || conf.label || '').slice(0, w > 1 ? 8 : 5);
+          cellDiv.appendChild(el('span', {
+            style: 'font-size:9px;color:' + itemColor + ';line-height:1;' +
+                   'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;' +
+                   'max-width:' + (w * CELL - 8) + 'px;letter-spacing:.02em;'
+          }, shortName));
+
+          // 假货标记
           if (item.genuine === false) {
             cellDiv.appendChild(el('span', {
-              style: 'position:absolute;top:1px;left:2px;font-size:8px;color:#ff4a6a;font-style:normal;',
-            }, '!'));
+              style: 'position:absolute;top:2px;right:3px;font-size:8px;color:#ff4a6a;font-weight:900;',
+            }, '⚠'));
           }
-          if (qLvl) cellDiv.appendChild(qualityDots(qLvl, 4));
 
-          (function (captured) {
-            on(cellDiv, 'click', function (e) {
+          // 品质点
+          if (qLvl) {
+            var dots = el('span', {
+              style: 'position:absolute;bottom:2px;right:2px;display:flex;gap:1px;',
+              'aria-label': '品质 ' + qLvl + '/5',
+            });
+            for (var qi = 1; qi <= 5; qi++) {
+              dots.appendChild(el('i', {
+                style: 'display:inline-block;width:3px;height:3px;border-radius:50%;font-style:normal;' +
+                       'background:' + (qi <= qLvl ? itemColor : '#1c2a18') + ';',
+              }));
+            }
+            cellDiv.appendChild(dots);
+          }
+
+          (function (captured, cDiv, cColor) {
+            on(cDiv, 'click', function (e) {
               e.stopPropagation();
               if (cb.onSelect) cb.onSelect(captured.id);
             });
-            on(cellDiv, 'keydown', function (e) {
+            on(cDiv, 'keydown', function (e) {
               if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (cb.onSelect) cb.onSelect(captured.id); }
             });
-            on(cellDiv, 'mouseover', function () {
-              cellDiv.style.boxShadow = '0 0 10px ' + PHOSPHOR + ',inset 0 0 6px ' + PHOSPHOR + '33';
+            on(cDiv, 'mouseover', function () {
+              cDiv.style.background = 'linear-gradient(160deg,' + cColor + '30 0%,' + cColor + '10 60%)';
             });
-            on(cellDiv, 'mouseout', function () {
-              cellDiv.style.boxShadow = '0 0 4px ' + PHOSPHOR + '66';
+            on(cDiv, 'mouseout', function () {
+              cDiv.style.background = 'linear-gradient(160deg,' + cColor + '18 0%,' + GRID_BG + ' 60%)';
             });
-            on(cellDiv, 'dragstart', function (e) {
+            on(cDiv, 'dragstart', function (e) {
               e.dataTransfer.setData('text/plain', captured.id);
               e.dataTransfer.effectAllowed = 'move';
-              cellDiv.style.opacity = '.5';
+              cDiv.style.opacity = '.45';
             });
-            on(cellDiv, 'dragend', function () { cellDiv.style.opacity = '1'; });
-          }(item));
+            on(cDiv, 'dragend', function () { cDiv.style.opacity = '1'; });
+          }(item, cellDiv, itemColor));
 
           container.appendChild(cellDiv);
 
@@ -198,8 +226,10 @@
             style: [
               'grid-column:' + (col + 1),
               'grid-row:' + (row + 1),
-              'border:1px dashed ' + PHOSPHOR_DIM + '55',
-              'background:transparent',
+              'background:' + GRID_BG,
+              // subtle dot pattern
+              'background-image:radial-gradient(circle,' + PHOSPHOR_DIM + '20 1px,transparent 1px)',
+              'background-size:10px 10px',
             ].join(';'),
           });
 
@@ -207,12 +237,20 @@
             on(emptyDiv, 'dragover', function (e) {
               e.preventDefault();
               e.dataTransfer.dropEffect = 'move';
-              emptyDiv.style.background = PHOSPHOR + '18';
+              emptyDiv.style.background = PHOSPHOR + '14';
+              emptyDiv.style.backgroundImage = 'none';
+              emptyDiv.style.outline = '1px dashed ' + PHOSPHOR + '80';
             });
-            on(emptyDiv, 'dragleave', function () { emptyDiv.style.background = 'transparent'; });
+            on(emptyDiv, 'dragleave', function () {
+              emptyDiv.style.background = GRID_BG;
+              emptyDiv.style.backgroundImage = 'radial-gradient(circle,' + PHOSPHOR_DIM + '20 1px,transparent 1px)';
+              emptyDiv.style.backgroundSize = '10px 10px';
+              emptyDiv.style.outline = 'none';
+            });
             on(emptyDiv, 'drop', function (e) {
               e.preventDefault();
-              emptyDiv.style.background = 'transparent';
+              emptyDiv.style.background = GRID_BG;
+              emptyDiv.style.outline = 'none';
               var itemId = e.dataTransfer.getData('text/plain');
               if (cb.onDrop) cb.onDrop({ itemId: itemId, toX: cx, toY: cy });
             });
@@ -256,9 +294,12 @@
       bubble.appendChild(el('span', { style: 'font-size:11px;color:' + AMBER + ';display:block;' },
         '预算: ' + npc.budget.toLocaleString() + ' ¥'));
     }
-    if (npc.wants) {
+    if (npc.wants && npc.wants.length) {
+      var wantsText = Array.isArray(npc.wants)
+        ? npc.wants.map(function (w) { return typeof w === 'object' ? (w.category || w.type || '?') + (w.qty > 1 ? ' ×' + w.qty : '') : String(w); }).join('、')
+        : esc(npc.wants);
       bubble.appendChild(el('span', { style: 'font-size:11px;color:' + PHOSPHOR_DIM + ';display:block;' },
-        '需要: ' + esc(npc.wants)));
+        '需要: ' + wantsText));
     }
     container.appendChild(bubble);
 
@@ -341,57 +382,87 @@
     ensureStyles();
     var cb = callbacks || {};
     container.innerHTML = '';
-    container.style.cssText = crtPanel('display:flex;flex-direction:column;gap:6px;padding:8px;');
+    container.style.cssText = 'display:flex;flex-direction:column;gap:0;';
 
-    var header = el('div', { style: 'font-size:10px;color:' + PHOSPHOR_DIM + ';letter-spacing:.12em;margin-bottom:4px;' }, 'NPC 队列');
+    var header = el('div', {
+      style: 'font-size:9px;color:' + PHOSPHOR_DIM + ';letter-spacing:.16em;text-transform:uppercase;' +
+             'padding:6px 10px 4px;border-bottom:1px solid ' + PHOSPHOR_DIM + ';background:' + PANEL_BG + ';'
+    }, '▸ 今日访客 · ' + (npcs || []).length + ' 人');
     container.appendChild(header);
 
+    if (!(npcs || []).length) {
+      container.appendChild(el('p', { style: 'font-size:11px;color:' + PHOSPHOR_DIM + ';padding:10px;font-style:italic;' }, '今日暂无访客。'));
+      return;
+    }
+
     (npcs || []).forEach(function (npc) {
-      var isActive = npc.active;
+      var isActive = npc.activated || npc.active;
       var card = el('div', {
         'data-id': npc.id,
         tabindex: '0',
         role: 'button',
         'aria-label': esc(npc.name),
-        style: [
-          'display:flex;align-items:center;gap:8px',
-          'padding:6px 8px',
-          'border:1px solid ' + (isActive ? PHOSPHOR : PHOSPHOR_DIM),
-          'background:' + (isActive ? PHOSPHOR + '0f' : GRID_BG),
-          'cursor:pointer',
-          isActive ? 'box-shadow:0 0 8px ' + PHOSPHOR + '88;animation:wlPhosphorGlow 2s ease-in-out infinite;' : '',
-        ].join(';'),
+        style: 'display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;' +
+               'border-bottom:1px solid rgba(57,255,20,.08);' +
+               'background:' + (isActive ? 'rgba(57,255,20,.05)' : GRID_BG) + ';' +
+               'opacity:' + (isActive ? '0.5' : '1') + ';' +
+               'transition:background .15s;',
       });
 
-      card.appendChild(el('span', { style: 'font-size:22px;flex:0 0 auto;', 'aria-hidden': 'true' }, npc.emoji || '👤'));
+      // 角色 emoji（按类型）
+      var roleEmoji = { scavenger:'🧟', trader:'🤝', medic:'⚕️', informant:'🕵️', collector:'🍷', contractor:'👷' };
+      card.appendChild(el('span', {
+        style: 'font-size:20px;flex:0 0 auto;filter:grayscale(' + (isActive ? '80%' : '0') + ');',
+        'aria-hidden': 'true'
+      }, npc.emoji || roleEmoji[npc.role] || '👤'));
 
       var info = el('div', { style: 'flex:1;min-width:0;' });
-      info.appendChild(el('b', { style: 'display:block;font-size:12px;color:' + (isActive ? PHOSPHOR : AMBER) + ';' }, esc(npc.name || '??')));
-      if (npc.role || npc.identity) {
-        info.appendChild(el('span', {
-          style: 'font-size:9px;padding:1px 4px;border:1px solid ' + PHOSPHOR_DIM + ';color:' + PHOSPHOR_DIM + ';',
-        }, esc(npc.role || npc.identity)));
+      info.appendChild(el('b', {
+        style: 'display:block;font-size:12px;color:' + AMBER + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'
+      }, esc(npc.name || '??')));
+
+      var tags = el('div', { style: 'display:flex;gap:4px;margin-top:2px;flex-wrap:wrap;' });
+      if (npc.label || npc.role) {
+        tags.appendChild(el('span', {
+          style: 'font-size:9px;padding:1px 4px;border:1px solid ' + PHOSPHOR_DIM + ';color:' + PHOSPHOR_DIM + ';letter-spacing:.05em;'
+        }, esc(npc.label || npc.role)));
       }
-      if (npc.budget != null) {
-        var budgetStr = typeof npc.budget === 'object'
-          ? (npc.budget.min || 0) + '–' + (npc.budget.max || '?')
-          : String(npc.budget);
-        info.appendChild(el('span', {
-          style: 'display:block;font-size:10px;color:' + AMBER + ';margin-top:2px;',
-        }, '¥' + budgetStr));
+      if (npc.intel) {
+        tags.appendChild(el('span', {
+          style: 'font-size:9px;padding:1px 4px;border:1px solid ' + AMBER + ';color:' + AMBER + ';'
+        }, '情报'));
       }
-      if (npc.wants) {
+      info.appendChild(tags);
+
+      if (!isActive && npc.budget != null && npc.budget > 0) {
         info.appendChild(el('span', {
-          style: 'display:block;font-size:10px;color:' + PHOSPHOR_DIM + ';',
-        }, esc(npc.wants)));
+          style: 'display:block;font-size:10px;color:' + PHOSPHOR_DIM + ';margin-top:2px;'
+        }, '预算 ¥' + npc.budget + (npc.wants && npc.wants.length
+          ? ' · 需要 ' + npc.wants.map(function (w) { return w.category || w; }).join('/')
+          : '')));
       }
       card.appendChild(info);
 
+      if (!isActive) {
+        var btn = el('button', {
+          style: 'flex:0 0 auto;padding:3px 8px;border:1px solid ' + PHOSPHOR_DIM + ';' +
+                 'background:transparent;color:' + PHOSPHOR + ';font-size:10px;cursor:pointer;' +
+                 'font-family:inherit;letter-spacing:.05em;',
+          type: 'button'
+        }, npc.intel ? '问情报' : '接待');
+        (function (captured) {
+          on(btn, 'click', function (e) {
+            e.stopPropagation();
+            if (cb.onActivate) cb.onActivate(captured.id);
+          });
+        }(npc));
+        card.appendChild(btn);
+      } else {
+        card.appendChild(el('span', { style: 'font-size:10px;color:' + PHOSPHOR_DIM + ';flex:0 0 auto;' }, '已处理'));
+      }
+
       (function (captured) {
-        on(card, 'click', function () { if (cb.onActivate) cb.onActivate(captured.id); });
-        on(card, 'keydown', function (e) {
-          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (cb.onActivate) cb.onActivate(captured.id); }
-        });
+        on(card, 'click', function () { if (!captured.activated && cb.onActivate) cb.onActivate(captured.id); });
       }(npc));
 
       container.appendChild(card);

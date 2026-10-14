@@ -119,6 +119,7 @@
       prices: {},
       counterState: {
         npcId:    null,
+        npc:      null,
         slots:    [null, null, null, null, null, null],
         phase:    'idle',
         offer:    null,
@@ -435,6 +436,7 @@
     }
 
     state.counterState.npcId    = npcId;
+    state.counterState.npc      = npc;
     state.counterState.phase    = 'active';
     state.counterState.offer    = null;
     state.counterState.attitude = 0.9 + Math.random() * 0.2; // 0.9–1.1
@@ -757,10 +759,12 @@
     var counterEl = document.getElementById('wl-counter');
     if (counterEl) {
       var counterCb = {
-        onSlotDrop:   handleCounterDrop,
-        onSlotReturn: handleCounterReturn,
-        onConfirm:    confirmCounterSale,
-        onCancel:     function () { _returnCounterItems(); render(); }
+        onSlotDrop:    function (payload) { handleCounterDrop(payload.itemId, payload.slotIdx); },
+        onRemoveFromSlot: function (slotIdx) { handleCounterReturn(state.counterState.slots[slotIdx]); },
+        onSlotReturn:  handleCounterReturn,
+        onConfirm:     confirmCounterSale,
+        onReject:      function () { _returnCounterItems(); render(); },
+        onCancel:      function () { _returnCounterItems(); render(); }
       };
       if (UI.renderCounter) {
         UI.renderCounter(counterEl, state.counterState, counterCb);
@@ -1027,7 +1031,11 @@
 
   // ── mount：初始化并挂载 ───────────────────────────────────
   function mount() {
-    host = root.document && root.document.getElementById('wastelandShopMount');
+    // 新布局：shop.js 直接操作已有 DOM 节点，不需要专用挂载点
+    host = root.document && (
+      root.document.getElementById('wastelandShopMount') ||
+      root.document.getElementById('wl-game')
+    );
     if (!host) return null;
     Core = root.WastelandCore;
     NPC  = root.WastelandNPC;
@@ -1050,7 +1058,7 @@
     if (!state.prices)          state.prices          = {};
     if (!state.counterState || !Array.isArray(state.counterState.slots)) {
       state.counterState = {
-        npcId: null, slots: [null, null, null, null, null, null],
+        npcId: null, npc: null, slots: [null, null, null, null, null, null],
         phase: 'idle', offer: null, attitude: 1.0
       };
     }

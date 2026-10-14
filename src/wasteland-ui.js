@@ -294,9 +294,12 @@
       bubble.appendChild(el('span', { style: 'font-size:11px;color:' + AMBER + ';display:block;' },
         '预算: ' + npc.budget.toLocaleString() + ' ¥'));
     }
-    if (npc.wants) {
+    if (npc.wants && npc.wants.length) {
+      var wantsText = Array.isArray(npc.wants)
+        ? npc.wants.map(function (w) { return typeof w === 'object' ? (w.category || w.type || '?') + (w.qty > 1 ? ' ×' + w.qty : '') : String(w); }).join('、')
+        : esc(npc.wants);
       bubble.appendChild(el('span', { style: 'font-size:11px;color:' + PHOSPHOR_DIM + ';display:block;' },
-        '需要: ' + esc(npc.wants)));
+        '需要: ' + wantsText));
     }
     container.appendChild(bubble);
 
