@@ -120,7 +120,7 @@
       counterState: {
         npcId:    null,
         npc:      null,
-        slots:    [null, null, null, null, null, null],
+        slots:    new Array(32).fill(null),
         phase:    'idle',
         offer:    null,
         attitude: 1.0
@@ -408,7 +408,7 @@
     });
 
     // 清空柜台
-    cs.slots    = [null, null, null, null, null, null];
+    cs.slots    = new Array(32).fill(null);
     cs.phase    = 'idle';
     cs.offer    = null;
     cs.npcId    = null;
@@ -641,8 +641,9 @@
       state.todayEvents.push(_makeEvent('auction_open', '集装箱拍卖开启',
         '本周拍卖已开启，共 ' + (state.auction.competitors.length + 1) + ' 名竞拍者。', 9));
     }
-    // 5. 生成新 todayNPCs
+    // 5. 生成新 todayNPCs，并记录所属天数防止退出重进刷客户
     state.todayNPCs   = generateDailyNPCs();
+    state._savedDay   = state.day;
     state.todayEvents = state.todayEvents.concat(
       state.todayNPCs.map(function (npc) {
         return _makeEvent('npc_visit', npc.name + '（' + npc.label + '）来访',
@@ -1107,7 +1108,7 @@
     if (!state.prices)          state.prices          = {};
     if (!state.counterState || !Array.isArray(state.counterState.slots)) {
       state.counterState = {
-        npcId: null, npc: null, slots: [null, null, null, null, null, null],
+        npcId: null, npc: null, slots: new Array(32).fill(null),
         phase: 'idle', offer: null, attitude: 1.0
       };
     }
@@ -1135,8 +1136,13 @@
       state.fbQueue = NPC.createFeedbackQueue();
     }
 
-    // 重置当日状态
-    state.todayNPCs   = generateDailyNPCs();
+    // 重置当日状态——但如果存档里有同一天的NPC列表则不刷新（防止退出重进刷客户）
+    var savedDay = state._savedDay || 0;
+    if (!state.todayNPCs || !state.todayNPCs.length || savedDay !== state.day) {
+      state.todayNPCs = generateDailyNPCs();
+      state._savedDay = state.day;
+      Core.saveGame(state);
+    }
     state.todayEvents = [
       _makeEvent('welcome', '开始新的一天',
         '第 ' + state.day + ' 天，余额 ¥' + state.gold +

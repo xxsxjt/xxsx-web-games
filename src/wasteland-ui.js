@@ -263,119 +263,175 @@
   }
 
   // ── 2. renderCounter ─────────────────────────────────────
+  // 交易台：8×4 弹出格子区域。NPC说需求，玩家拖物品进去，NPC评估后出价。
   function renderCounter(container, counterState, callbacks) {
     ensureStyles();
-    var s = counterState || {};
+    var s   = counterState || {};
     var npc = s.npc || {};
-    var slots = s.slots || [null, null, null, null, null, null];
-    var cb = callbacks || {};
+    var slots = s.slots || [];
+    var cb  = callbacks || {};
+    var COLS = 8, ROWS = 4, CELL = 42;
 
     container.innerHTML = '';
-    container.style.cssText = crtPanel('padding:10px;display:flex;flex-direction:column;gap:8px;');
 
-    // NPC dialog bubble
-    var bubble = el('div', {
-      style: 'border:1px solid ' + PHOSPHOR + ';padding:8px 10px;border-radius:2px;' +
-        'background:' + GRID_BG + ';position:relative;min-height:60px;',
-    });
-    var npcHeader = el('div', {
-      style: 'display:flex;align-items:center;gap:8px;margin-bottom:4px;',
-    });
-    npcHeader.appendChild(el('b', { style: 'color:' + PHOSPHOR + ';font-size:13px;' }, esc(npc.name || '???')));
-    if (npc.attitude) {
-      var attColor = npc.attitude === 'hostile' ? '#ff4a6a' : npc.attitude === 'friendly' ? PHOSPHOR : AMBER;
-      npcHeader.appendChild(el('span', {
-        style: 'font-size:10px;padding:1px 6px;border:1px solid ' + attColor + ';color:' + attColor + ';',
-      }, esc(npc.attitude)));
+    // 空闲状态：简单提示
+    if (!s.npcId || s.phase === 'idle') {
+      container.style.cssText = 'padding:8px 10px;';
+      container.appendChild(el('p', {
+        style: 'font-size:.68rem;color:' + PHOSPHOR_DIM + ';font-style:italic;'
+      }, '点击访客「接待」后，将仓库物品拖到交易台。'));
+      return;
     }
-    bubble.appendChild(npcHeader);
 
-    if (npc.budget != null) {
-      bubble.appendChild(el('span', { style: 'font-size:11px;color:' + AMBER + ';display:block;' },
-        '预算: ' + npc.budget.toLocaleString() + ' ¥'));
-    }
+    container.style.cssText = 'display:flex;flex-direction:column;gap:6px;padding:8px;';
+
+    // NPC 信息条
+    var infoBar = el('div', {
+      style: 'display:flex;align-items:baseline;gap:8px;padding:4px 6px;' +
+             'background:rgba(255,179,71,.06);border-left:2px solid ' + AMBER + ';'
+    });
+    infoBar.appendChild(el('b', { style: 'font-size:12px;color:' + AMBER + ';' }, esc(npc.name || '??')));
+    var budgetSpan = el('span', { style: 'font-size:11px;color:rgba(255,179,71,.7);' },
+      '预算 ¥' + (npc.budget || '?'));
+    infoBar.appendChild(budgetSpan);
     if (npc.wants && npc.wants.length) {
-      var wantsText = Array.isArray(npc.wants)
-        ? npc.wants.map(function (w) { return typeof w === 'object' ? (w.category || w.type || '?') + (w.qty > 1 ? ' ×' + w.qty : '') : String(w); }).join('、')
-        : esc(npc.wants);
-      bubble.appendChild(el('span', { style: 'font-size:11px;color:' + PHOSPHOR_DIM + ';display:block;' },
-        '需要: ' + wantsText));
+      var wText = npc.wants.map(function(w){
+        return typeof w === 'object' ? (w.category || '?') + (w.qty > 1 ? '×' + w.qty : '') : String(w);
+      }).join(' / ');
+      infoBar.appendChild(el('span', { style: 'font-size:10px;color:rgba(57,255,20,.5);margin-left:4px;' },
+        '需要：' + wText));
     }
-    container.appendChild(bubble);
+    container.appendChild(infoBar);
 
-    // 6 counter slots
-    var slotsRow = el('div', {
-      style: 'display:flex;gap:6px;flex-wrap:wrap;',
+    // 交易台格子 8×4
+    var gridEl = el('div', {
+      style: 'display:grid;' +
+             'grid-template-columns:repeat(' + COLS + ',' + CELL + 'px);' +
+             'grid-template-rows:repeat(' + ROWS + ',' + CELL + 'px);' +
+             'gap:1px;background:' + PHOSPHOR_DIM + ';' +
+             'border:1px solid ' + AMBER + '44;' +
+             'box-shadow:0 0 12px rgba(255,179,71,.08);'
     });
-    for (var i = 0; i < 6; i++) {
-      (function (idx) {
-        var slotItem = slots[idx] || null;
-        var slotDiv = el('div', {
-          'data-slot': idx,
-          style: [
-            'width:60px;height:60px;border:1px solid ' + AMBER,
-            'background:' + GRID_BG,
-            'display:flex;flex-direction:column;align-items:center;justify-content:center',
-            'cursor:pointer;position:relative',
-            'box-shadow:0 0 4px ' + AMBER + '44',
-            'font-size:10px;color:' + AMBER,
-          ].join(';'),
-        });
 
-        if (slotItem) {
-          var conf = typeConf(slotItem.type);
-          slotDiv.appendChild(el('span', { style: 'font-size:20px;', 'aria-hidden': 'true' }, slotItem.icon || conf.icon));
-          slotDiv.appendChild(el('span', { style: 'font-size:9px;color:' + AMBER + ';text-align:center;line-height:1.2;max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' },
-            esc(slotItem.name || conf.label)));
-          on(slotDiv, 'click', function () { if (cb.onRemoveFromSlot) cb.onRemoveFromSlot(idx); });
-        } else {
-          slotDiv.appendChild(el('span', { style: 'font-size:18px;color:' + AMBER + '44;' }, '+'));
-        }
+    for (var row = 0; row < ROWS; row++) {
+      for (var col = 0; col < COLS; col++) {
+        var idx = row * COLS + col;
+        (function(slotIdx) {
+          var slotItem = slots[slotIdx] || null;
+          var slotDiv  = el('div', {
+            'data-slot': slotIdx,
+            style: 'position:relative;background:' + GRID_BG + ';' +
+                   'display:flex;flex-direction:column;align-items:center;justify-content:center;' +
+                   'cursor:pointer;overflow:hidden;transition:background .1s;'
+          });
 
-        on(slotDiv, 'dragover', function (e) {
-          e.preventDefault();
-          slotDiv.style.background = AMBER + '18';
-        });
-        on(slotDiv, 'dragleave', function () { slotDiv.style.background = GRID_BG; });
-        on(slotDiv, 'drop', function (e) {
-          e.preventDefault();
-          slotDiv.style.background = GRID_BG;
-          var itemId = e.dataTransfer.getData('text/plain');
-          if (cb.onSlotDrop) cb.onSlotDrop({ itemId: itemId, slotIdx: idx });
-        });
+          if (slotItem) {
+            var conf = typeConf(slotItem.type);
+            var iColor = slotItem.color || conf.color || AMBER;
+            slotDiv.style.background = 'linear-gradient(160deg,' + iColor + '18 0%,' + GRID_BG + ' 60%)';
+            slotDiv.style.borderLeft = '2px solid ' + iColor;
+            slotDiv.appendChild(el('span', {
+              style: 'font-size:18px;line-height:1;display:block;',
+              'aria-hidden': 'true'
+            }, slotItem.icon || conf.icon));
+            slotDiv.appendChild(el('span', {
+              style: 'font-size:8px;color:' + iColor + ';line-height:1;' +
+                     'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:38px;'
+            }, (slotItem.name || conf.label || '').slice(0, 5)));
+            on(slotDiv, 'click', function () {
+              if (cb.onRemoveFromSlot) cb.onRemoveFromSlot(slotIdx);
+            });
+          } else {
+            slotDiv.appendChild(el('span', {
+              style: 'font-size:14px;color:rgba(255,179,71,.2);'
+            }, '+'));
+          }
 
-        slotsRow.appendChild(slotDiv);
-      }(i));
+          // drag-enter 计数器防止子元素触发 false dragleave
+          var enterCount = 0;
+          on(slotDiv, 'dragenter', function(e) {
+            e.preventDefault(); enterCount++;
+            slotDiv.style.background = AMBER + '1a';
+            slotDiv.style.outline = '1px dashed ' + AMBER + '80';
+          });
+          on(slotDiv, 'dragover', function(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+          on(slotDiv, 'dragleave', function() {
+            enterCount--;
+            if (enterCount <= 0) {
+              enterCount = 0;
+              slotDiv.style.background = slotItem
+                ? 'linear-gradient(160deg,' + (slotItem.color || AMBER) + '18 0%,' + GRID_BG + ' 60%)'
+                : GRID_BG;
+              slotDiv.style.outline = 'none';
+            }
+          });
+          on(slotDiv, 'drop', function(e) {
+            e.preventDefault(); enterCount = 0;
+            slotDiv.style.background = GRID_BG;
+            slotDiv.style.outline = 'none';
+            var itemId = e.dataTransfer.getData('text/plain');
+            if (cb.onSlotDrop) cb.onSlotDrop({ itemId: itemId, slotIdx: slotIdx });
+          });
+
+          gridEl.appendChild(slotDiv);
+        }(idx));
+      }
     }
-    container.appendChild(slotsRow);
+    container.appendChild(gridEl);
 
-    // Offer + buttons
-    var footer = el('div', { style: 'display:flex;align-items:center;gap:10px;margin-top:4px;' });
+    // 出价 + 操作按钮
+    var footer = el('div', { style: 'display:flex;align-items:center;gap:8px;' });
+
     if (s.offer != null) {
       footer.appendChild(el('span', {
-        style: 'flex:1;font-size:15px;color:' + AMBER + ';font-weight:bold;',
-      }, '报价: ' + s.offer.toLocaleString() + ' ¥'));
-    }
-    if (s.phase === 'offer' || s.offer != null) {
+        style: 'flex:1;font-size:14px;color:' + AMBER + ';font-weight:900;' +
+               'text-shadow:0 0 8px rgba(255,179,71,.4);'
+      }, '报价 ¥' + s.offer.toLocaleString()));
+
       var confirmBtn = el('button', {
         type: 'button',
-        style: 'padding:5px 14px;border:1px solid ' + PHOSPHOR + ';background:' + PHOSPHOR + '18;' +
-          'color:' + PHOSPHOR + ';cursor:pointer;font-family:inherit;font-size:12px;font-weight:bold;',
+        style: 'padding:5px 14px;border:1px solid ' + PHOSPHOR + ';' +
+               'background:rgba(57,255,20,.1);color:' + PHOSPHOR + ';' +
+               'cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;' +
+               'letter-spacing:.06em;transition:background .15s;',
       }, '确认成交');
       on(confirmBtn, 'click', function () { if (cb.onConfirm) cb.onConfirm(); });
+      on(confirmBtn, 'mouseover', function() { confirmBtn.style.background = 'rgba(57,255,20,.2)'; });
+      on(confirmBtn, 'mouseout',  function() { confirmBtn.style.background = 'rgba(57,255,20,.1)'; });
 
       var rejectBtn = el('button', {
         type: 'button',
-        style: 'padding:5px 14px;border:1px solid #ff4a6a;background:rgba(255,74,106,.1);' +
-          'color:#ff4a6a;cursor:pointer;font-family:inherit;font-size:12px;font-weight:bold;',
+        style: 'padding:5px 12px;border:1px solid rgba(255,74,106,.4);' +
+               'background:transparent;color:rgba(255,74,106,.7);' +
+               'cursor:pointer;font-family:inherit;font-size:11px;letter-spacing:.06em;',
       }, '拒绝');
       on(rejectBtn, 'click', function () { if (cb.onReject) cb.onReject(); });
 
       footer.appendChild(confirmBtn);
       footer.appendChild(rejectBtn);
+    } else if (slots.some(Boolean)) {
+      // 有物品但还没出价——等待状态
+      footer.appendChild(el('span', {
+        style: 'font-size:11px;color:rgba(255,179,71,.4);font-style:italic;'
+      }, '等待 ' + esc(npc.name || 'NPC') + ' 评估…'));
+    } else {
+      footer.appendChild(el('span', {
+        style: 'font-size:11px;color:rgba(57,255,20,.3);font-style:italic;'
+      }, '从仓库拖入物品放上台面'));
     }
+
+    var cancelBtn = el('button', {
+      type: 'button',
+      style: 'margin-left:auto;padding:4px 10px;border:1px solid rgba(255,255,255,.1);' +
+             'background:transparent;color:rgba(200,200,200,.3);' +
+             'cursor:pointer;font-family:inherit;font-size:10px;',
+    }, '取消');
+    on(cancelBtn, 'click', function () { if (cb.onCancel) cb.onCancel(); });
+    footer.appendChild(cancelBtn);
     container.appendChild(footer);
   }
+
+  // ── 3. renderNpcQueue ────────────────────────────────────
 
   // ── 3. renderNpcQueue ────────────────────────────────────
   function renderNpcQueue(container, npcs, callbacks) {
