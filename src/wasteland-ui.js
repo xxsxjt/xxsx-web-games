@@ -341,57 +341,87 @@
     ensureStyles();
     var cb = callbacks || {};
     container.innerHTML = '';
-    container.style.cssText = crtPanel('display:flex;flex-direction:column;gap:6px;padding:8px;');
+    container.style.cssText = 'display:flex;flex-direction:column;gap:0;';
 
-    var header = el('div', { style: 'font-size:10px;color:' + PHOSPHOR_DIM + ';letter-spacing:.12em;margin-bottom:4px;' }, 'NPC 队列');
+    var header = el('div', {
+      style: 'font-size:9px;color:' + PHOSPHOR_DIM + ';letter-spacing:.16em;text-transform:uppercase;' +
+             'padding:6px 10px 4px;border-bottom:1px solid ' + PHOSPHOR_DIM + ';background:' + PANEL_BG + ';'
+    }, '▸ 今日访客 · ' + (npcs || []).length + ' 人');
     container.appendChild(header);
 
+    if (!(npcs || []).length) {
+      container.appendChild(el('p', { style: 'font-size:11px;color:' + PHOSPHOR_DIM + ';padding:10px;font-style:italic;' }, '今日暂无访客。'));
+      return;
+    }
+
     (npcs || []).forEach(function (npc) {
-      var isActive = npc.active;
+      var isActive = npc.activated || npc.active;
       var card = el('div', {
         'data-id': npc.id,
         tabindex: '0',
         role: 'button',
         'aria-label': esc(npc.name),
-        style: [
-          'display:flex;align-items:center;gap:8px',
-          'padding:6px 8px',
-          'border:1px solid ' + (isActive ? PHOSPHOR : PHOSPHOR_DIM),
-          'background:' + (isActive ? PHOSPHOR + '0f' : GRID_BG),
-          'cursor:pointer',
-          isActive ? 'box-shadow:0 0 8px ' + PHOSPHOR + '88;animation:wlPhosphorGlow 2s ease-in-out infinite;' : '',
-        ].join(';'),
+        style: 'display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;' +
+               'border-bottom:1px solid rgba(57,255,20,.08);' +
+               'background:' + (isActive ? 'rgba(57,255,20,.05)' : GRID_BG) + ';' +
+               'opacity:' + (isActive ? '0.5' : '1') + ';' +
+               'transition:background .15s;',
       });
 
-      card.appendChild(el('span', { style: 'font-size:22px;flex:0 0 auto;', 'aria-hidden': 'true' }, npc.emoji || '👤'));
+      // 角色 emoji（按类型）
+      var roleEmoji = { scavenger:'🧟', trader:'🤝', medic:'⚕️', informant:'🕵️', collector:'🍷', contractor:'👷' };
+      card.appendChild(el('span', {
+        style: 'font-size:20px;flex:0 0 auto;filter:grayscale(' + (isActive ? '80%' : '0') + ');',
+        'aria-hidden': 'true'
+      }, npc.emoji || roleEmoji[npc.role] || '👤'));
 
       var info = el('div', { style: 'flex:1;min-width:0;' });
-      info.appendChild(el('b', { style: 'display:block;font-size:12px;color:' + (isActive ? PHOSPHOR : AMBER) + ';' }, esc(npc.name || '??')));
-      if (npc.role || npc.identity) {
-        info.appendChild(el('span', {
-          style: 'font-size:9px;padding:1px 4px;border:1px solid ' + PHOSPHOR_DIM + ';color:' + PHOSPHOR_DIM + ';',
-        }, esc(npc.role || npc.identity)));
+      info.appendChild(el('b', {
+        style: 'display:block;font-size:12px;color:' + AMBER + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'
+      }, esc(npc.name || '??')));
+
+      var tags = el('div', { style: 'display:flex;gap:4px;margin-top:2px;flex-wrap:wrap;' });
+      if (npc.label || npc.role) {
+        tags.appendChild(el('span', {
+          style: 'font-size:9px;padding:1px 4px;border:1px solid ' + PHOSPHOR_DIM + ';color:' + PHOSPHOR_DIM + ';letter-spacing:.05em;'
+        }, esc(npc.label || npc.role)));
       }
-      if (npc.budget != null) {
-        var budgetStr = typeof npc.budget === 'object'
-          ? (npc.budget.min || 0) + '–' + (npc.budget.max || '?')
-          : String(npc.budget);
-        info.appendChild(el('span', {
-          style: 'display:block;font-size:10px;color:' + AMBER + ';margin-top:2px;',
-        }, '¥' + budgetStr));
+      if (npc.intel) {
+        tags.appendChild(el('span', {
+          style: 'font-size:9px;padding:1px 4px;border:1px solid ' + AMBER + ';color:' + AMBER + ';'
+        }, '情报'));
       }
-      if (npc.wants) {
+      info.appendChild(tags);
+
+      if (!isActive && npc.budget != null && npc.budget > 0) {
         info.appendChild(el('span', {
-          style: 'display:block;font-size:10px;color:' + PHOSPHOR_DIM + ';',
-        }, esc(npc.wants)));
+          style: 'display:block;font-size:10px;color:' + PHOSPHOR_DIM + ';margin-top:2px;'
+        }, '预算 ¥' + npc.budget + (npc.wants && npc.wants.length
+          ? ' · 需要 ' + npc.wants.map(function (w) { return w.category || w; }).join('/')
+          : '')));
       }
       card.appendChild(info);
 
+      if (!isActive) {
+        var btn = el('button', {
+          style: 'flex:0 0 auto;padding:3px 8px;border:1px solid ' + PHOSPHOR_DIM + ';' +
+                 'background:transparent;color:' + PHOSPHOR + ';font-size:10px;cursor:pointer;' +
+                 'font-family:inherit;letter-spacing:.05em;',
+          type: 'button'
+        }, npc.intel ? '问情报' : '接待');
+        (function (captured) {
+          on(btn, 'click', function (e) {
+            e.stopPropagation();
+            if (cb.onActivate) cb.onActivate(captured.id);
+          });
+        }(npc));
+        card.appendChild(btn);
+      } else {
+        card.appendChild(el('span', { style: 'font-size:10px;color:' + PHOSPHOR_DIM + ';flex:0 0 auto;' }, '已处理'));
+      }
+
       (function (captured) {
-        on(card, 'click', function () { if (cb.onActivate) cb.onActivate(captured.id); });
-        on(card, 'keydown', function (e) {
-          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (cb.onActivate) cb.onActivate(captured.id); }
-        });
+        on(card, 'click', function () { if (!captured.activated && cb.onActivate) cb.onActivate(captured.id); });
       }(npc));
 
       container.appendChild(card);
