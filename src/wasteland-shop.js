@@ -831,6 +831,10 @@
       }
     }
 
+    // 价格面板（格子下方空白区）
+    var pricePanelEl = document.getElementById('wl-price-panel');
+    if (pricePanelEl) _renderPricePanel(pricePanelEl);
+
     // 行情 ticker
     var tickerEl   = document.getElementById('wl-ticker');
     if (tickerEl) {
@@ -842,6 +846,51 @@
         tickerEl.innerHTML = '';
       }
     }
+  }
+
+  // ── 价格快捷面板 ─────────────────────────────────────────
+  function _renderPricePanel(container) {
+    var items = Object.values(state.grid.items || {});
+    if (!items.length) {
+      container.innerHTML = '<p style="font-size:.65rem;color:rgba(57,255,20,.3);padding:4px;font-style:italic;">仓库为空</p>';
+      return;
+    }
+    var catalog = Core.ITEM_CATALOG || {};
+    var PURITY  = ['','污染','低质','普通','净化','蒸馏'];
+    var QUALITY = Core.QUALITY_NAMES || {1:'损坏',2:'劣质',3:'普通',4:'良好',5:'优质'};
+
+    var html = '<div style="display:grid;grid-template-columns:1fr auto auto auto;gap:2px 8px;font-size:.65rem;align-items:center;">';
+    html += '<span style="color:rgba(57,255,20,.35);letter-spacing:.1em;padding-bottom:3px;">物品</span>';
+    html += '<span style="color:rgba(57,255,20,.35);letter-spacing:.1em;text-align:right;">均价</span>';
+    html += '<span style="color:rgba(255,179,71,.4);letter-spacing:.1em;text-align:right;">零售</span>';
+    html += '<span style="color:rgba(57,255,20,.3);letter-spacing:.1em;text-align:right;">收购</span>';
+
+    items.forEach(function(entry) {
+      var item = entry.item;
+      var sku  = catalog[item.skuId || item.type] || {};
+      var mktP = Core.computePrice(state.market, item);
+      var defR = state.prices[item.id] && state.prices[item.id].retail   != null ? state.prices[item.id].retail   : Math.round(mktP * 1.3);
+      var defB = state.prices[item.id] && state.prices[item.id].purchase != null ? state.prices[item.id].purchase : Math.round(mktP * 0.65);
+      var qual = item.puritySystem
+        ? (PURITY[item.quality] || '普通')
+        : (QUALITY[item.quality] || '普通');
+      var icon = sku.icon || item.icon || '📦';
+      var name = (item.name || '物品').slice(0, 8);
+      var color = item.category === 'water' ? '#3abfff'
+                : item.category === 'food'  ? '#3dcc7a'
+                : item.category === 'medicine' ? '#c29aff'
+                : item.category === 'tech'  ? '#00d8e6'
+                : item.category === 'material' ? '#e6b820'
+                : item.category === 'alcohol' ? '#ff8c20'
+                : '#7a8fa8';
+
+      html += '<span style="color:' + color + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + name + ' · ' + qual + '">' + icon + ' ' + name + '<span style="color:rgba(200,200,200,.3);font-size:.6rem;margin-left:4px;">' + qual + '</span></span>';
+      html += '<span style="color:rgba(200,220,200,.5);text-align:right;">¥' + mktP + '</span>';
+      html += '<span style="color:rgba(255,179,71,.8);text-align:right;cursor:pointer;" title="点击调整">' + defR + '</span>';
+      html += '<span style="color:rgba(57,255,20,.6);text-align:right;cursor:pointer;" title="点击调整">' + defB + '</span>';
+    });
+    html += '</div>';
+    container.innerHTML = html;
   }
 
   // ── base 视图渲染 ─────────────────────────────────────────
