@@ -427,9 +427,174 @@ body::after{
     <div id="saves-list"></div>
   </div>
 
-  <div class="wl-version">V58-ALPHA</div>
+  <div class="wl-version">V59-ALPHA</div>
   <div class="wl-early-access">早期测试版 · 内容随时变动</div>
 </div>
+
+<!-- ════════════════════════════
+     游戏区
+     ════════════════════════════ -->
+<div id="wl-game">
+
+  <!-- 顶栏 -->
+  <header id="wl-topbar">
+    <button id="wl-switch-base">⌂ 基地</button>
+    <span class="wl-topbar__title">废土杂货铺</span>
+    <span id="wl-stat-day">第 — 天</span>
+    <span id="wl-stat-cash">¥ —</span>
+    <span id="wl-stat-rep">声誉 —</span>
+    <button id="wl-end-day-btn">结束今天 ›</button>
+  </header>
+
+  <!-- 商店视图 -->
+  <div id="wl-shop-view">
+
+    <!-- 左侧：仓库格子 -->
+    <div id="wl-left-pane">
+      <div class="wl-grid-label">▦ 仓库 · 10×8</div>
+      <div id="wl-grid-wrap">
+        <div id="wl-grid"></div>
+      </div>
+      <div id="wl-ticker"></div>
+    </div>
+
+    <!-- 右侧：信息面板 -->
+    <div id="wl-right-pane">
+      <div id="wl-npc-queue">
+        <div class="wl-panel-title">▸ 今日访客</div>
+        <p class="wl-empty">今日暂无访客。</p>
+      </div>
+      <div id="wl-counter">
+        <div class="wl-panel-title">▸ 柜台</div>
+        <p class="wl-empty">等待客户…</p>
+      </div>
+      <div id="wl-detail">
+        <div class="wl-panel-title">▸ 物品详情</div>
+        <p class="wl-empty">点击仓库中的物品查看。</p>
+      </div>
+      <div id="wl-market">
+        <div class="wl-panel-title">▸ 市场行情</div>
+        <p class="wl-empty">行情载入中…</p>
+      </div>
+    </div>
+
+  </div><!-- /wl-shop-view -->
+
+  <!-- 基地视图 -->
+  <div id="wl-base-view">
+    <div class="wl-base-header">
+      <div id="wl-power-status" class="off"></div>
+      <span class="wl-base-header__title">⌂ 基地设施</span>
+      <button id="wl-switch-shop">← 返回商店</button>
+    </div>
+    <div id="wl-base">
+      <p class="wl-empty">基地系统初始化中…</p>
+    </div>
+    <div id="wl-loot">
+      <div class="wl-panel-title">▸ 返回战利品</div>
+    </div>
+  </div><!-- /wl-base-view -->
+
+</div><!-- /wl-game -->
+
+<script src="src/wasteland-core.js"></script>
+<script src="src/wasteland-npc.js"></script>
+<script src="src/wasteland-ui.js"></script>
+<script src="src/wasteland-shop.js"></script>
+<script>
+(function(){
+  'use strict';
+  var SAVE_KEY='xxsxWastelandShopV1';
+  var menuEl=document.getElementById('wl-menu');
+  var gameEl=document.getElementById('wl-game');
+  var shopView=document.getElementById('wl-shop-view');
+  var baseView=document.getElementById('wl-base-view');
+
+  function getSave(){
+    try{return JSON.parse(localStorage.getItem(SAVE_KEY));}
+    catch(e){return null;}
+  }
+  function deleteSave(){localStorage.removeItem(SAVE_KEY);refreshMenu();}
+
+  function refreshMenu(){
+    var save=getSave();
+    var continueBtn=document.getElementById('btn-continue');
+    var savesSection=document.getElementById('saves-section');
+    var savesList=document.getElementById('saves-list');
+    if(save&&save.day){
+      continueBtn.style.display='';
+      document.getElementById('continue-desc').textContent=
+        '第'+save.day+'天 · 第'+(save.week||1)+'周 · ¥'+(save.gold||0);
+      savesSection.style.display='';
+      savesList.innerHTML='';
+      var slot=document.createElement('div');
+      slot.className='wl-save-slot';
+      slot.innerHTML=
+        '<span class="wl-save-slot__icon">◉</span>'+
+        '<span class="wl-save-slot__info">'+
+          '<span class="wl-save-slot__day">第'+save.day+'天 · 第'+(save.week||1)+'周</span>'+
+          '<span class="wl-save-slot__meta">¥'+(save.gold||0)+
+            ' · 声誉 '+((save.reputation&&save.reputation.overall)||0)+'</span>'+
+        '</span>'+
+        '<button class="wl-save-slot__del" title="删除存档">✕</button>';
+      slot.querySelector('.wl-save-slot__del').addEventListener('click',function(e){
+        e.stopPropagation();
+        if(confirm('删除存档？此操作不可撤销。'))deleteSave();
+      });
+      slot.addEventListener('click',function(e){
+        if(e.target.classList.contains('wl-save-slot__del'))return;
+        startGame(false);
+      });
+      savesList.appendChild(slot);
+    }else{
+      continueBtn.style.display='none';
+      savesSection.style.display='none';
+    }
+  }
+
+  function startGame(isNew){
+    if(isNew)localStorage.removeItem(SAVE_KEY);
+    menuEl.classList.add('hidden');
+    gameEl.classList.add('active');
+    if(window.WastelandShop&&typeof window.WastelandShop.enter==='function')
+      window.WastelandShop.enter();
+  }
+
+  function exitGame(){
+    if(window.WastelandShop&&typeof window.WastelandShop.leave==='function')
+      window.WastelandShop.leave();
+    gameEl.classList.remove('active');
+    menuEl.classList.remove('hidden');
+    refreshMenu();
+  }
+
+  function switchToBase(){
+    shopView.classList.add('hidden');
+    baseView.classList.add('active');
+    if(window.WastelandShop&&typeof window.WastelandShop.switchView==='function')
+      window.WastelandShop.switchView('base');
+  }
+
+  function switchToShop(){
+    baseView.classList.remove('active');
+    shopView.classList.remove('hidden');
+    if(window.WastelandShop&&typeof window.WastelandShop.switchView==='function')
+      window.WastelandShop.switchView('shop');
+  }
+
+  document.getElementById('btn-new').addEventListener('click',function(){
+    if(getSave()&&!confirm('覆盖当前存档？'))return;
+    startGame(true);
+  });
+  document.getElementById('btn-continue').addEventListener('click',function(){startGame(false);});
+  document.getElementById('wl-switch-base').addEventListener('click',switchToBase);
+  document.getElementById('wl-switch-shop').addEventListener('click',switchToShop);
+
+  refreshMenu();
+}());
+</script>
+</body>
+</html>
 
 <!-- ════════════════════════════
      游戏区
