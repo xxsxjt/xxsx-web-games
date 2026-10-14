@@ -68,107 +68,198 @@ body::after{
    主菜单
    ════════════════ */
 #wl-menu{
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  min-height:100vh;padding:3rem 1rem 2rem;
-  background:
-    radial-gradient(ellipse 60% 40% at 50% 40%, rgba(57,255,20,.07) 0%, transparent 60%),
-    radial-gradient(ellipse 30% 20% at 20% 80%, rgba(57,255,20,.03) 0%, transparent 50%),
-    #050805;
+  display:grid;
+  grid-template-columns:1fr 420px;
+  min-height:100vh;
   position:relative;
+  overflow:hidden;
+  background:#060906;
 }
 #wl-menu.hidden{display:none;}
+
+/* ── 左侧：废土场景背景 ── */
+#wl-menu-scene{
+  position:relative;
+  overflow:hidden;
+  background:
+    /* 天花板暗区 */
+    linear-gradient(180deg,rgba(0,0,0,.7) 0%,transparent 20%),
+    /* 地面暗区 */
+    linear-gradient(0deg,rgba(0,0,0,.6) 0%,transparent 30%),
+    /* 环境主色：深绿褐 */
+    #0c1009;
+}
+
+/* 场景SVG：废土店铺内景 */
+#wl-scene-svg{
+  position:absolute;
+  inset:0;
+  width:100%;height:100%;
+}
+
+/* 场景上的光晕效果 */
+#wl-menu-scene::after{
+  content:'';
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 40% 30% at 30% 35%, rgba(255,183,60,.08) 0%, transparent 60%),
+    radial-gradient(ellipse 20% 20% at 70% 20%, rgba(57,255,20,.04) 0%, transparent 50%);
+  pointer-events:none;
+}
+
+/* ── 右侧：菜单面板 ── */
+#wl-menu-panel{
+  display:flex;flex-direction:column;
+  justify-content:center;
+  padding:3rem 2.5rem;
+  background:
+    linear-gradient(90deg,rgba(6,9,6,.0) 0%,rgba(6,9,6,.85) 15%,rgba(6,9,6,.97) 40%),
+    transparent;
+  border-left:1px solid rgba(57,255,20,.06);
+  position:relative;
+}
+
+/* 顶部滚动公告 */
 .wl-marquee{
   position:absolute;top:0;left:0;right:0;height:28px;
-  background:rgba(4,10,2,.92);
-  border-bottom:1px solid var(--border-rust);
-  overflow:hidden;
-  display:flex;align-items:center;
+  background:rgba(4,8,2,.95);
+  border-bottom:1px solid rgba(57,255,20,.15);
+  overflow:hidden;display:flex;align-items:center;
+  z-index:10;
 }
 .wl-marquee__track{
   display:inline-flex;align-items:center;white-space:nowrap;
-  font-size:.62rem;color:var(--phosphor-dim);letter-spacing:.1em;
-  animation:marquee-scroll 35s linear infinite;
+  font-size:.6rem;color:rgba(57,255,20,.55);letter-spacing:.08em;
+  animation:marquee-scroll 40s linear infinite;
+  padding-top:2px;
 }
-.wl-logo{text-align:center;margin-bottom:2rem;}
-.wl-logo__svg{animation:flicker 4s infinite;display:block;margin:0 auto 1rem;}
+.wl-marquee__track span.ev-urgent{color:var(--amber);}
+.wl-marquee__track span.ev-warn{color:var(--red-alert);}
+
+/* 标题区 */
+.wl-logo{margin-bottom:2.5rem;}
+.wl-logo__eyebrow{
+  font-size:.6rem;letter-spacing:.25em;text-transform:uppercase;
+  color:rgba(57,255,20,.45);margin-bottom:.75rem;
+  display:flex;align-items:center;gap:.5rem;
+}
+.wl-logo__eyebrow::before{
+  content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(57,255,20,.3));
+}
+.wl-logo__eyebrow::after{
+  content:'';width:24px;height:1px;
+  background:rgba(57,255,20,.3);
+}
 .wl-logo__title{
-  font-size:2rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--phosphor);
-  text-shadow:0 0 20px rgba(57,255,20,.6),0 0 40px rgba(57,255,20,.3),0 0 80px rgba(57,255,20,.15);
+  font-size:3.2rem;font-weight:900;letter-spacing:.04em;
+  color:var(--phosphor);line-height:.95;
+  text-shadow:
+    0 0 30px rgba(57,255,20,.5),
+    0 0 60px rgba(57,255,20,.2),
+    0 0 120px rgba(57,255,20,.08);
 }
-.wl-logo__sub{
-  font-size:.7rem;color:var(--text-dim);margin-top:.4rem;
-  letter-spacing:.2em;text-transform:uppercase;
+.wl-logo__title-en{
+  display:block;
+  font-size:.9rem;font-weight:400;letter-spacing:.15em;
+  color:rgba(57,255,20,.35);margin-top:.4rem;
+  text-shadow:none;
 }
 .wl-logo__lore{
-  font-size:.75rem;color:var(--text-dim);margin-top:.75rem;
-  max-width:280px;line-height:1.6;font-style:italic;
+  font-size:.78rem;color:rgba(200,230,180,.5);margin-top:1rem;
+  line-height:1.7;max-width:320px;
+  border-left:2px solid rgba(57,255,20,.2);
+  padding-left:.8rem;
+  font-style:italic;
 }
+
+/* 菜单按钮 */
 .wl-menu__actions{
-  display:flex;flex-direction:column;gap:.6rem;
-  width:100%;max-width:300px;
+  display:flex;flex-direction:column;gap:.5rem;
+  margin-bottom:1.5rem;
 }
 .wl-menu__btn{
-  width:100%;padding:.8rem 1.2rem;
-  border:1px solid var(--border-rust);border-radius:4px;
-  background:var(--panel-bg);
-  color:var(--text-bright);font:inherit;font-size:.9rem;
+  width:100%;padding:.85rem 1.2rem;
+  border:1px solid rgba(57,255,20,.15);
+  border-radius:2px;
+  background:rgba(8,14,6,.6);
+  color:rgba(200,240,180,.8);
+  font:inherit;font-size:.88rem;
   cursor:pointer;text-align:left;
   display:flex;align-items:center;gap:.8rem;
-  transition:all .15s;
+  transition:all .2s;
   position:relative;overflow:hidden;
-  box-shadow:inset 0 0 12px rgba(0,0,0,.5);
+  backdrop-filter:blur(4px);
 }
 .wl-menu__btn::before{
-  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
-  background:var(--phosphor-dim);
-  transition:width .15s,background .15s;
+  content:'';position:absolute;left:0;top:0;bottom:0;width:2px;
+  background:rgba(57,255,20,.35);
+  transition:width .2s,background .2s,box-shadow .2s;
 }
 .wl-menu__btn:hover{
-  border-color:var(--phosphor);
-  box-shadow:0 0 16px rgba(57,255,20,.25),inset 0 0 12px rgba(0,0,0,.5);
+  border-color:rgba(57,255,20,.45);
+  background:rgba(12,22,8,.7);
   color:var(--phosphor);
 }
-.wl-menu__btn:hover::before{width:4px;background:var(--phosphor);}
-.wl-menu__btn--primary{border-color:rgba(57,255,20,.5);color:var(--phosphor);}
-.wl-menu__btn--primary::before{background:var(--phosphor);}
-.wl-menu__btn--primary:hover{
-  box-shadow:0 0 24px rgba(57,255,20,.35),inset 0 0 12px rgba(0,0,0,.5);
+.wl-menu__btn:hover::before{
+  width:3px;background:var(--phosphor);
+  box-shadow:0 0 8px rgba(57,255,20,.6);
 }
-.wl-menu__btn__icon{font-size:1.1rem;flex-shrink:0;opacity:.8;}
+.wl-menu__btn--primary{
+  border-color:rgba(57,255,20,.3);
+  background:rgba(10,20,6,.7);
+  color:var(--phosphor);
+}
+.wl-menu__btn--primary::before{
+  background:var(--phosphor);
+  box-shadow:0 0 6px rgba(57,255,20,.4);
+}
+.wl-menu__btn--primary:hover{
+  border-color:rgba(57,255,20,.6);
+  background:rgba(15,30,8,.8);
+  box-shadow:0 0 20px rgba(57,255,20,.12),inset 0 0 20px rgba(57,255,20,.04);
+}
+.wl-menu__btn__icon{font-size:1rem;flex-shrink:0;opacity:.7;}
 .wl-menu__btn__text{flex:1;}
-.wl-menu__btn__title{display:block;font-weight:700;font-size:.88rem;}
-.wl-menu__btn__desc{display:block;font-size:.68rem;color:var(--text-dim);margin-top:.1rem;}
-.wl-menu__btn__arrow{font-size:.82rem;opacity:.35;margin-left:auto;flex-shrink:0;transition:transform .2s,opacity .2s;}
-.wl-menu__btn:hover .wl-menu__btn__arrow{transform:translateX(6px);opacity:.75;}
-.wl-saves{width:100%;max-width:300px;margin-top:1.5rem;}
+.wl-menu__btn__title{display:block;font-weight:700;font-size:.86rem;letter-spacing:.02em;}
+.wl-menu__btn__desc{display:block;font-size:.65rem;color:rgba(150,200,130,.45);margin-top:.1rem;letter-spacing:.01em;}
+.wl-menu__btn__arrow{
+  font-size:.75rem;opacity:.25;margin-left:auto;flex-shrink:0;
+  transition:transform .2s,opacity .2s;
+}
+.wl-menu__btn:hover .wl-menu__btn__arrow{transform:translateX(5px);opacity:.6;}
+
+/* 存档区 */
+.wl-saves{margin-top:0;}
 .wl-saves__title{
-  font-size:.65rem;text-transform:uppercase;letter-spacing:.15em;
-  color:var(--text-dim);margin-bottom:.5rem;padding-left:.2rem;
+  font-size:.58rem;text-transform:uppercase;letter-spacing:.15em;
+  color:rgba(100,150,80,.4);margin-bottom:.4rem;
 }
 .wl-save-slot{
-  width:100%;padding:.55rem .9rem;
-  border:1px solid var(--border-rust);border-radius:3px;
-  background:var(--panel-bg);color:var(--text-dim);
-  font:inherit;font-size:.8rem;cursor:pointer;text-align:left;
-  display:flex;align-items:center;gap:.7rem;margin-bottom:.4rem;
-  transition:all .15s;box-shadow:inset 0 0 8px rgba(0,0,0,.5);
+  width:100%;padding:.5rem .9rem;
+  border:1px solid rgba(57,255,20,.1);border-radius:2px;
+  background:rgba(6,10,4,.5);color:rgba(150,200,130,.6);
+  font:inherit;font-size:.78rem;cursor:pointer;text-align:left;
+  display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem;
+  transition:all .15s;
 }
-.wl-save-slot:hover{border-color:var(--phosphor);color:var(--text-bright);box-shadow:0 0 8px rgba(57,255,20,.2),inset 0 0 8px rgba(0,0,0,.5);}
-.wl-save-slot__icon{font-size:.95rem;opacity:.7;}
+.wl-save-slot:hover{border-color:rgba(57,255,20,.3);color:rgba(200,240,180,.8);}
+.wl-save-slot__icon{font-size:.9rem;opacity:.6;}
 .wl-save-slot__info{flex:1;}
-.wl-save-slot__day{font-weight:700;color:var(--text-bright);}
-.wl-save-slot__meta{font-size:.65rem;color:var(--text-dim);margin-top:.08rem;}
-.wl-save-slot__del{padding:.2rem .4rem;border:none;background:transparent;color:var(--text-dim);font-size:.75rem;cursor:pointer;border-radius:3px;}
-.wl-save-slot__del:hover{color:var(--red-alert);background:rgba(255,51,51,.15);}
-.wl-menu__divider{width:100%;max-width:300px;border:none;border-top:1px solid var(--border-rust);margin:1rem 0 .5rem;}
-.wl-version{position:fixed;bottom:.6rem;right:.8rem;font-size:.6rem;color:var(--text-dim);letter-spacing:.1em;}
+.wl-save-slot__day{font-weight:700;font-size:.78rem;}
+.wl-save-slot__meta{font-size:.62rem;color:rgba(100,150,80,.5);margin-top:.05rem;}
+.wl-save-slot__del{padding:.15rem .35rem;border:none;background:transparent;color:rgba(80,100,60,.4);font-size:.7rem;cursor:pointer;}
+.wl-save-slot__del:hover{color:var(--red-alert);}
+.wl-menu__divider{border:none;border-top:1px solid rgba(57,255,20,.08);margin:.8rem 0 .6rem;}
+
+/* 底部版本 */
+.wl-version{
+  position:absolute;bottom:.7rem;right:.8rem;
+  font-size:.58rem;color:rgba(57,255,20,.2);letter-spacing:.08em;
+}
 .wl-early-access{
-  position:fixed;bottom:.6rem;left:.8rem;
-  font-size:.58rem;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase;
-  border:1px solid var(--border-rust);padding:.2rem .5rem;border-radius:2px;
-  background:rgba(8,12,6,.8);pointer-events:none;
+  position:absolute;bottom:.7rem;left:.8rem;
+  font-size:.58rem;color:rgba(57,255,20,.2);letter-spacing:.06em;text-transform:uppercase;
 }
 /* ════════════════
    游戏区
@@ -408,69 +499,171 @@ body::after{
      主菜单
      ════════════════════════════ -->
 <div id="wl-menu">
-  <div class="wl-marquee">
-    <span class="wl-marquee__track">◈ 今日公告：北区水源价格上涨30% &nbsp;·&nbsp; 东检查站封路，绕行南门 &nbsp;·&nbsp; 废金属收购价调整 &nbsp;·&nbsp; 新批医疗包到货 &nbsp;·&nbsp; 警告：流寇活动频繁 &nbsp;·&nbsp; 以物易物协议更新 &nbsp;·&nbsp; 辐射风暴预警 D+3 &nbsp;·&nbsp; 南市集今日开放 &nbsp;◈&nbsp;</span>
+  <!-- 公告条贯穿整个顶部 -->
+  <div class="wl-marquee" style="position:fixed;top:0;left:0;right:0;z-index:100;">
+    <span class="wl-marquee__track">◈ 北区水源价格上涨 30% &nbsp;·&nbsp; 东检查站封路，绕行南门 &nbsp;·&nbsp; <span class="ev-warn">辐射风暴预警 D+3</span> &nbsp;·&nbsp; 废金属收购价调整 &nbsp;·&nbsp; 新批医疗包到货 &nbsp;·&nbsp; <span class="ev-urgent">警告：流寇活动频繁</span> &nbsp;·&nbsp; 以物易物协议更新 &nbsp;·&nbsp; 南市集今日开放 &nbsp;◈&nbsp;</span>
   </div>
 
-  <div class="wl-logo">
-    <svg class="wl-logo__svg" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg" width="160" height="107" aria-hidden="true">
-      <!-- 招牌主体 -->
-      <rect x="6" y="18" width="108" height="44" rx="2" stroke="#39ff14" stroke-width="1.5" fill="none"/>
-      <!-- 破损右上角 -->
-      <polyline points="95,18 104,10 114,18" stroke="#39ff14" stroke-width="1.2" opacity=".6" stroke-linecap="round" fill="none"/>
-      <!-- 招牌裂缝 -->
-      <polyline points="108,20 112,26 109,33 113,40" stroke="#39ff14" stroke-width="1" opacity=".45" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-      <!-- 支柱 -->
-      <line x1="20" y1="62" x2="20" y2="76" stroke="#39ff14" stroke-width="1.5" stroke-linecap="round"/>
-      <line x1="100" y1="62" x2="100" y2="76" stroke="#39ff14" stroke-width="1.5" stroke-linecap="round"/>
-      <!-- 左窗（有裂缝） -->
-      <rect x="12" y="26" width="18" height="12" stroke="#39ff14" stroke-width="1" fill="none"/>
-      <line x1="12" y1="26" x2="30" y2="38" stroke="#39ff14" stroke-width=".7" opacity=".5" stroke-linecap="round"/>
-      <!-- 右窗（完好） -->
-      <rect x="90" y="26" width="18" height="12" stroke="#39ff14" stroke-width="1" fill="none"/>
-      <!-- 招牌文字横线 -->
-      <line x1="38" y1="30" x2="82" y2="30" stroke="#39ff14" stroke-width="2" stroke-linecap="round" opacity=".9"/>
-      <line x1="38" y1="38" x2="76" y2="38" stroke="#39ff14" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>
-      <line x1="38" y1="46" x2="65" y2="46" stroke="#39ff14" stroke-width="1" stroke-linecap="round" opacity=".45"/>
-      <!-- 螺栓 -->
-      <circle cx="8" cy="18" r="2.5" fill="none" stroke="#39ff14" stroke-width="1" opacity=".55"/>
-      <circle cx="112" cy="18" r="2.5" fill="none" stroke="#39ff14" stroke-width="1" opacity=".55"/>
-      <circle cx="8" cy="62" r="2.5" fill="none" stroke="#39ff14" stroke-width="1" opacity=".55"/>
+  <!-- 左侧：场景 SVG -->
+  <div id="wl-menu-scene">
+    <svg id="wl-scene-svg" viewBox="0 0 700 900" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+      <!-- 天花板横梁 -->
+      <rect x="0" y="0" width="700" height="80" fill="#06090406"/>
+      <rect x="0" y="55" width="700" height="8" fill="#0e1a0a" opacity=".9"/>
+      <rect x="80" y="40" width="12" height="55" fill="#0c1608" opacity=".7"/>
+      <rect x="300" y="35" width="12" height="60" fill="#0c1608" opacity=".7"/>
+      <rect x="520" y="42" width="12" height="53" fill="#0c1608" opacity=".7"/>
+
+      <!-- 背景墙（砖纹） -->
+      <rect x="0" y="63" width="700" height="837" fill="#0a0d07"/>
+      <!-- 砖块纹理（横线） -->
+      <g opacity=".18" stroke="#1a2812" stroke-width="1">
+        <line x1="0" y1="100" x2="700" y2="100"/><line x1="0" y1="120" x2="700" y2="120"/>
+        <line x1="0" y1="140" x2="700" y2="140"/><line x1="0" y1="160" x2="700" y2="160"/>
+        <line x1="0" y1="180" x2="700" y2="180"/><line x1="0" y1="200" x2="700" y2="200"/>
+        <line x1="0" y1="220" x2="700" y2="220"/><line x1="0" y1="240" x2="700" y2="240"/>
+        <line x1="0" y1="260" x2="700" y2="260"/><line x1="0" y1="280" x2="700" y2="280"/>
+        <line x1="0" y1="300" x2="700" y2="300"/><line x1="0" y1="320" x2="700" y2="320"/>
+        <line x1="0" y1="340" x2="700" y2="340"/>
+      </g>
+      <!-- 砖缝竖线（交错） -->
+      <g opacity=".12" stroke="#1a2812" stroke-width=".8">
+        <line x1="50" y1="100" x2="50" y2="120"/><line x1="110" y1="100" x2="110" y2="120"/><line x1="170" y1="100" x2="170" y2="120"/><line x1="230" y1="100" x2="230" y2="120"/><line x1="290" y1="100" x2="290" y2="120"/><line x1="350" y1="100" x2="350" y2="120"/><line x1="410" y1="100" x2="410" y2="120"/><line x1="470" y1="100" x2="470" y2="120"/><line x1="530" y1="100" x2="530" y2="120"/><line x1="590" y1="100" x2="590" y2="120"/><line x1="650" y1="100" x2="650" y2="120"/>
+        <line x1="20" y1="120" x2="20" y2="140"/><line x1="80" y1="120" x2="80" y2="140"/><line x1="140" y1="120" x2="140" y2="140"/><line x1="200" y1="120" x2="200" y2="140"/><line x1="260" y1="120" x2="260" y2="140"/><line x1="320" y1="120" x2="320" y2="140"/><line x1="380" y1="120" x2="380" y2="140"/><line x1="440" y1="120" x2="440" y2="140"/><line x1="500" y1="120" x2="500" y2="140"/><line x1="560" y1="120" x2="560" y2="140"/><line x1="620" y1="120" x2="620" y2="140"/><line x1="680" y1="120" x2="680" y2="140"/>
+      </g>
+
+      <!-- 左侧大货架 -->
+      <rect x="20" y="90" width="180" height="400" fill="none" stroke="#1e2e14" stroke-width="1.5" opacity=".8"/>
+      <rect x="20" y="90" width="180" height="6" fill="#1e3010" opacity=".9"/>
+      <rect x="20" y="170" width="180" height="5" fill="#1a2c0e" opacity=".7"/>
+      <rect x="20" y="250" width="180" height="5" fill="#1a2c0e" opacity=".7"/>
+      <rect x="20" y="330" width="180" height="5" fill="#1a2c0e" opacity=".7"/>
+      <rect x="20" y="410" width="180" height="5" fill="#1a2c0e" opacity=".7"/>
+      <!-- 货架上的物品轮廓 -->
+      <rect x="30" y="95" width="22" height="70" rx="2" fill="#0e1c08" stroke="#2a4018" stroke-width=".8" opacity=".9"/>
+      <rect x="58" y="105" width="18" height="60" rx="2" fill="#0c1806" stroke="#243814" stroke-width=".8" opacity=".9"/>
+      <rect x="82" y="100" width="28" height="65" rx="1" fill="#101e0a" stroke="#2e4a1a" stroke-width=".8" opacity=".9"/>
+      <rect x="116" y="108" width="16" height="57" rx="2" fill="#0e1c08" stroke="#2a4018" stroke-width=".8" opacity=".9"/>
+      <rect x="138" y="95" width="24" height="70" rx="1" fill="#0c1806" stroke="#243814" stroke-width=".8" opacity=".9"/>
+      <rect x="30" y="178" width="20" height="67" rx="2" fill="#12200c" stroke="#30481c" stroke-width=".8" opacity=".9"/>
+      <rect x="56" y="182" width="30" height="63" rx="1" fill="#0e1c08" stroke="#2a4018" stroke-width=".8" opacity=".9"/>
+      <rect x="92" y="175" width="16" height="70" rx="2" fill="#101e0a" stroke="#2e4a1a" stroke-width=".8" opacity=".9"/>
+      <rect x="114" y="180" width="22" height="65" rx="2" fill="#0c1806" stroke="#243814" stroke-width=".8" opacity=".9"/>
+      <rect x="142" y="178" width="14" height="67" rx="2" fill="#0e1c08" stroke="#2a4018" stroke-width=".8" opacity=".9"/>
+
+      <!-- 中间区域：破损招牌 -->
+      <g transform="translate(230,100)">
+        <!-- 招牌框 -->
+        <rect x="0" y="0" width="220" height="90" rx="3" fill="#0c1508" stroke="#2da010" stroke-width="1.5" opacity=".85"/>
+        <!-- 破损角 -->
+        <polygon points="185,0 205,-15 220,0" fill="#0a0d07" opacity=".9"/>
+        <line x1="185" y1="0" x2="205" y2="-15" stroke="#2da010" stroke-width="1" opacity=".6"/>
+        <line x1="205" y1="-15" x2="220" y2="0" stroke="#2da010" stroke-width="1" opacity=".6"/>
+        <!-- 招牌文字区 -->
+        <rect x="12" y="12" width="196" height="20" rx="1" fill="#0e1c08" opacity=".5"/>
+        <rect x="12" y="38" width="160" height="14" rx="1" fill="#0e1c08" opacity=".4"/>
+        <rect x="12" y="58" width="120" height="10" rx="1" fill="#0e1c08" opacity=".3"/>
+        <!-- 磷光竖线装饰 -->
+        <line x1="8" y1="8" x2="8" y2="82" stroke="#39ff14" stroke-width="1.5" opacity=".7"/>
+        <!-- 螺栓 -->
+        <circle cx="4" cy="4" r="3" fill="none" stroke="#2da010" stroke-width="1" opacity=".6"/>
+        <circle cx="216" cy="4" r="3" fill="none" stroke="#2da010" stroke-width="1" opacity=".6"/>
+        <circle cx="4" cy="86" r="3" fill="none" stroke="#2da010" stroke-width="1" opacity=".6"/>
+        <circle cx="216" cy="86" r="3" fill="none" stroke="#2da010" stroke-width="1" opacity=".6"/>
+      </g>
+
+      <!-- 右侧电子设备 / 控制台 -->
+      <rect x="500" y="150" width="180" height="220" rx="4" fill="#080e06" stroke="#1e2e14" stroke-width="1.5" opacity=".9"/>
+      <rect x="510" y="160" width="160" height="90" rx="2" fill="#04080302" stroke="#243814" stroke-width="1" opacity=".8"/>
+      <!-- 控制台屏幕扫描线 -->
+      <g opacity=".3">
+        <line x1="515" y1="175" x2="665" y2="175" stroke="#39ff14" stroke-width=".5"/>
+        <line x1="515" y1="182" x2="665" y2="182" stroke="#39ff14" stroke-width=".5"/>
+        <line x1="515" y1="189" x2="665" y2="189" stroke="#39ff14" stroke-width=".5"/>
+        <line x1="515" y1="196" x2="665" y2="196" stroke="#39ff14" stroke-width=".5"/>
+        <line x1="515" y1="203" x2="665" y2="203" stroke="#39ff14" stroke-width=".5"/>
+        <line x1="515" y1="210" x2="665" y2="210" stroke="#39ff14" stroke-width=".5"/>
+        <line x1="515" y1="217" x2="665" y2="217" stroke="#39ff14" stroke-width=".5"/>
+        <line x1="515" y1="224" x2="665" y2="224" stroke="#39ff14" stroke-width=".5"/>
+        <line x1="515" y1="231" x2="665" y2="231" stroke="#39ff14" stroke-width=".5"/>
+        <line x1="515" y1="238" x2="665" y2="238" stroke="#39ff14" stroke-width=".5"/>
+        <line x1="515" y1="245" x2="665" y2="245" stroke="#39ff14" stroke-width=".5"/>
+      </g>
+      <!-- 控制台按钮 -->
+      <circle cx="530" cy="275" r="7" fill="#0e1c08" stroke="#2da010" stroke-width="1" opacity=".8"/>
+      <circle cx="555" cy="275" r="7" fill="#0e1c08" stroke="#2da010" stroke-width="1" opacity=".8"/>
+      <circle cx="580" cy="275" r="5" fill="#1a0808" stroke="#ff3333" stroke-width="1" opacity=".7"/>
+      <rect x="510" y="295" width="160" height="60" rx="2" fill="#060c04" stroke="#1e2e14" stroke-width=".8" opacity=".6"/>
+
+      <!-- 管线 / 电缆 -->
+      <path d="M0,200 Q100,190 180,210 Q280,230 400,220 Q500,210 600,225 Q650,230 700,220" fill="none" stroke="#1a2810" stroke-width="4" opacity=".7"/>
+      <path d="M0,220 Q120,212 250,228 Q380,242 500,232 Q600,224 700,238" fill="none" stroke="#12200a" stroke-width="2.5" opacity=".5"/>
       <!-- 垂落电线 -->
-      <line x1="112" y1="62" x2="112" y2="72" stroke="#39ff14" stroke-width=".8" stroke-dasharray="2,2" opacity=".35" stroke-linecap="round"/>
+      <path d="M340,63 C340,100 330,130 345,160" fill="none" stroke="#1e2e14" stroke-width="1.5" stroke-dasharray="4,3" opacity=".6"/>
+      <path d="M460,63 C455,95 465,120 458,155" fill="none" stroke="#1e2e14" stroke-width="1" stroke-dasharray="3,4" opacity=".5"/>
+
+      <!-- 地面暗区渐变 -->
+      <defs>
+        <linearGradient id="floorGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#060906" stop-opacity="0"/>
+          <stop offset="100%" stop-color="#020402" stop-opacity=".9"/>
+        </linearGradient>
+        <linearGradient id="leftFade" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#060906" stop-opacity=".0"/>
+          <stop offset="100%" stop-color="#040604" stop-opacity=".95"/>
+        </linearGradient>
+      </defs>
+      <rect x="0" y="500" width="700" height="400" fill="url(#floorGrad)"/>
+      <!-- 右侧渐变遮罩（和菜单面板衔接） -->
+      <rect x="400" y="0" width="300" height="900" fill="url(#leftFade)"/>
+
+      <!-- 地面装饰：散落物品轮廓 -->
+      <rect x="60" y="720" width="40" height="28" rx="2" fill="#0c1408" stroke="#1a2810" stroke-width="1" opacity=".6"/>
+      <rect x="110" y="730" width="22" height="35" rx="1" fill="#0a1206" stroke="#162210" stroke-width="1" opacity=".5"/>
+      <ellipse cx="180" cy="745" rx="28" ry="12" fill="#0e1608" stroke="#1e2e12" stroke-width="1" opacity=".55"/>
+
+      <!-- 灯光高光 -->
+      <ellipse cx="150" cy="400" rx="60" ry="200" fill="#39ff14" opacity=".012"/>
+      <ellipse cx="400" cy="250" rx="80" ry="120" fill="#ffb347" opacity=".018"/>
     </svg>
-    <div class="wl-logo__title">废土杂货铺</div>
-    <div class="wl-logo__sub">Wasteland Shop · Est. Year Zero</div>
-    <div class="wl-logo__lore">水贵如血，信任比货更稀缺。<br>在废土的夹缝里，你开了家店。</div>
   </div>
 
-  <div class="wl-menu__actions">
-    <button class="wl-menu__btn wl-menu__btn--primary" id="btn-new">
-      <span class="wl-menu__btn__icon">▸</span>
-      <span class="wl-menu__btn__text">
-        <span class="wl-menu__btn__title">开始新游戏</span>
-        <span class="wl-menu__btn__desc">第1天 · 资金200元 · 空仓库（含3件初始物资）</span>
-      </span>
-      <span class="wl-menu__btn__arrow">→</span>
-    </button>
-    <button class="wl-menu__btn" id="btn-continue" style="display:none">
-      <span class="wl-menu__btn__icon">◎</span>
-      <span class="wl-menu__btn__text">
-        <span class="wl-menu__btn__title">继续游戏</span>
-        <span class="wl-menu__btn__desc" id="continue-desc">读取存档…</span>
-      </span>
-      <span class="wl-menu__btn__arrow">→</span>
-    </button>
-  </div>
+  <!-- 右侧：菜单面板 -->
+  <div id="wl-menu-panel">
+    <div class="wl-logo">
+      <div class="wl-logo__eyebrow">WASTELAND SHOP</div>
+      <div class="wl-logo__title">废土<br>杂货铺<span class="wl-logo__title-en">Est. Year Zero</span></div>
+      <div class="wl-logo__lore">水贵如血，信任比货更稀缺。<br>在废土的夹缝里，你开了家店。</div>
+    </div>
 
-  <div class="wl-saves" id="saves-section" style="display:none">
-    <hr class="wl-menu__divider" />
-    <div class="wl-saves__title">本地存档</div>
-    <div id="saves-list"></div>
-  </div>
+    <div class="wl-menu__actions">
+      <button class="wl-menu__btn wl-menu__btn--primary" id="btn-new">
+        <span class="wl-menu__btn__icon">▸</span>
+        <span class="wl-menu__btn__text">
+          <span class="wl-menu__btn__title">开始新游戏</span>
+          <span class="wl-menu__btn__desc">第1天 · 资金200元 · 空仓库</span>
+        </span>
+        <span class="wl-menu__btn__arrow">→</span>
+      </button>
+      <button class="wl-menu__btn" id="btn-continue" style="display:none">
+        <span class="wl-menu__btn__icon">◎</span>
+        <span class="wl-menu__btn__text">
+          <span class="wl-menu__btn__title">继续游戏</span>
+          <span class="wl-menu__btn__desc" id="continue-desc">读取存档…</span>
+        </span>
+        <span class="wl-menu__btn__arrow">→</span>
+      </button>
+    </div>
 
-  <div class="wl-version">V59-ALPHA</div>
-  <div class="wl-early-access">早期测试版 · 内容随时变动</div>
+    <div class="wl-saves" id="saves-section" style="display:none">
+      <hr class="wl-menu__divider" />
+      <div class="wl-saves__title">本地存档</div>
+      <div id="saves-list"></div>
+    </div>
+
+    <div class="wl-version">V59-ALPHA</div>
+    <div class="wl-early-access">早期测试版</div>
+  </div>
 </div>
 
 <!-- ════════════════════════════
