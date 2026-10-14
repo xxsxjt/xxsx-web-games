@@ -4,30 +4,39 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>废土杂货铺</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23120d08'/%3E%3Ctext x='16' y='23' font-size='18' text-anchor='middle'%3E%F0%9F%8F%9A%3C/text%3E%3C/svg%3E" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23050805'/%3E%3Crect x='4' y='10' width='24' height='16' rx='1' stroke='%2339ff14' stroke-width='1.5' fill='none'/%3E%3Cline x1='10' y1='26' x2='10' y2='30' stroke='%2339ff14' stroke-width='1.5'/%3E%3Cline x1='22' y1='26' x2='22' y2='30' stroke='%2339ff14' stroke-width='1.5'/%3E%3C/svg%3E" />
 <link rel="stylesheet" href="src/wasteland-shop.css" />
 <style>
 /* ════════════════════════════════════════════════════════════════
-   废土杂货铺 — 独立页面样式
+   废土杂货铺 — CRT 磷光界面
    ════════════════════════════════════════════════════════════════ */
+:root{
+  --phosphor:#39ff14;
+  --phosphor-dim:#1a7a08;
+  --amber:#ffb347;
+  --red-alert:#ff3333;
+  --panel-bg:#080c06;
+  --grid-bg:#050805;
+  --border-rust:rgba(80,120,40,0.4);
+  --text-dim:#4a7040;
+  --text-bright:#c8f0c0;
+}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body{
   height:100%;
-  background:#0a0705;
-  color:#c8b89a;
+  background:#050805;
+  color:var(--text-bright);
   font-family:ui-monospace,SFMono-Regular,'Cascadia Code','Courier New',monospace;
   overflow:hidden;
 }
-
-/* ── 噪点纹理覆盖层 ──────────────────────────────────────── */
+/* 噪点 */
 body::before{
   content:'';
   position:fixed;inset:0;pointer-events:none;z-index:9999;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
-  opacity:.6;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity:.04;
 }
-
-/* ── 扫描线 ──────────────────────────────────────────────── */
+/* 扫描线 */
 body::after{
   content:'';
   position:fixed;inset:0;pointer-events:none;z-index:9998;
@@ -35,466 +44,319 @@ body::after{
     0deg,
     transparent,
     transparent 2px,
-    rgba(0,0,0,.07) 2px,
-    rgba(0,0,0,.07) 4px
+    rgba(0,0,0,.06) 2px,
+    rgba(0,0,0,.06) 4px
   );
 }
-
-/* ════════════════════════════════
+@keyframes flicker{
+  0%,19%,21%,23%,25%,54%,56%,100%{opacity:1;filter:drop-shadow(0 0 8px rgba(57,255,20,.7));}
+  20%,24%,55%{opacity:.35;filter:drop-shadow(0 0 2px rgba(57,255,20,.2));}
+  22%{opacity:.7;filter:drop-shadow(0 0 5px rgba(57,255,20,.5));}
+}
+@keyframes marquee-scroll{
+  0%{transform:translateX(100vw);}
+  100%{transform:translateX(-100%);}
+}
+@keyframes wl-ticker-scroll{
+  0%{transform:translateX(100vw);}
+  100%{transform:translateX(-100%);}
+}
+/* ════════════════
    主菜单
-   ════════════════════════════════ */
+   ════════════════ */
 #wl-menu{
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
-  min-height:100vh;padding:2rem 1rem;
+  min-height:100vh;padding:3rem 1rem 2rem;
   background:
-    radial-gradient(ellipse 55% 35% at 50% 42%, rgba(200,120,20,.07) 0%, transparent 55%),
-    radial-gradient(ellipse 80% 50% at 50% 60%, rgba(120,60,10,.12) 0%, transparent 70%),
-    radial-gradient(ellipse 35% 25% at 15% 85%, rgba(80,40,10,.06) 0%, transparent 50%),
-    radial-gradient(ellipse 35% 25% at 85% 15%, rgba(60,30,5,.05) 0%, transparent 50%),
-    #0a0705;
+    radial-gradient(ellipse 60% 40% at 50% 40%, rgba(57,255,20,.07) 0%, transparent 60%),
+    radial-gradient(ellipse 30% 20% at 20% 80%, rgba(57,255,20,.03) 0%, transparent 50%),
+    #050805;
   position:relative;
 }
 #wl-menu.hidden{display:none;}
-
-/* 标题区 */
-.wl-logo{text-align:center;margin-bottom:3rem;}
-.wl-logo__emblem{
-  width:96px;height:96px;margin:0 auto 1rem;
-  display:flex;align-items:center;justify-content:center;
-  border:2px solid rgba(200,160,80,.3);
-  border-radius:50%;
-  background:radial-gradient(circle, rgba(80,40,10,.6) 0%, rgba(10,7,5,.9) 70%);
-  box-shadow:
-    0 0 0 4px rgba(200,160,80,.06),
-    0 0 40px rgba(200,120,20,.15),
-    inset 0 0 20px rgba(0,0,0,.5);
-  font-size:2.8rem;
-  position:relative;
+.wl-marquee{
+  position:absolute;top:0;left:0;right:0;height:28px;
+  background:rgba(4,10,2,.92);
+  border-bottom:1px solid var(--border-rust);
+  overflow:hidden;
+  display:flex;align-items:center;
 }
-.wl-logo__emblem::before{
-  content:'';
-  position:absolute;inset:-8px;border-radius:50%;
-  border:1px solid rgba(200,160,80,.1);
+.wl-marquee__track{
+  display:inline-flex;align-items:center;white-space:nowrap;
+  font-size:.62rem;color:var(--phosphor-dim);letter-spacing:.1em;
+  animation:marquee-scroll 35s linear infinite;
 }
+.wl-logo{text-align:center;margin-bottom:2rem;}
+.wl-logo__svg{animation:flicker 4s infinite;display:block;margin:0 auto 1rem;}
 .wl-logo__title{
-  font-size:2.2rem;font-weight:900;letter-spacing:.06em;
-  color:#e8d4a0;
-  text-shadow:0 0 40px rgba(255,200,80,.25),0 2px 4px rgba(0,0,0,.8);
+  font-size:2rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--phosphor);
+  text-shadow:0 0 20px rgba(57,255,20,.6),0 0 40px rgba(57,255,20,.3),0 0 80px rgba(57,255,20,.15);
 }
 .wl-logo__sub{
-  font-size:.72rem;color:#5a4a32;margin-top:.4rem;
+  font-size:.7rem;color:var(--text-dim);margin-top:.4rem;
   letter-spacing:.2em;text-transform:uppercase;
 }
 .wl-logo__lore{
-  font-size:.75rem;color:#6a5840;margin-top:.75rem;
-  max-width:280px;line-height:1.6;
-  font-style:italic;
+  font-size:.75rem;color:var(--text-dim);margin-top:.75rem;
+  max-width:280px;line-height:1.6;font-style:italic;
 }
-
-/* 按钮 */
 .wl-menu__actions{
   display:flex;flex-direction:column;gap:.6rem;
   width:100%;max-width:300px;
 }
 .wl-menu__btn{
   width:100%;padding:.8rem 1.2rem;
-  border:1px solid rgba(150,100,30,.4);border-radius:4px;
-  background:rgba(20,14,6,.8);
-  color:#b8a882;font:inherit;font-size:.9rem;
+  border:1px solid var(--border-rust);border-radius:4px;
+  background:var(--panel-bg);
+  color:var(--text-bright);font:inherit;font-size:.9rem;
   cursor:pointer;text-align:left;
   display:flex;align-items:center;gap:.8rem;
   transition:all .15s;
   position:relative;overflow:hidden;
+  box-shadow:inset 0 0 12px rgba(0,0,0,.5);
 }
 .wl-menu__btn::before{
   content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
-  background:rgba(150,100,30,.5);
+  background:var(--phosphor-dim);
   transition:width .15s,background .15s;
 }
 .wl-menu__btn:hover{
-  background:rgba(30,20,8,.9);
-  border-color:rgba(200,140,40,.6);
-  color:#e8d4a0;
+  border-color:var(--phosphor);
+  box-shadow:0 0 16px rgba(57,255,20,.25),inset 0 0 12px rgba(0,0,0,.5);
+  color:var(--phosphor);
 }
-.wl-menu__btn:hover::before{
-  width:4px;background:rgba(255,183,60,.8);
-}
-.wl-menu__btn--primary{
-  border-color:rgba(200,140,40,.5);
-  background:rgba(30,18,4,.9);
-  color:#e8d4a0;
-}
-.wl-menu__btn--primary::before{background:rgba(255,183,60,.7);}
+.wl-menu__btn:hover::before{width:4px;background:var(--phosphor);}
+.wl-menu__btn--primary{border-color:rgba(57,255,20,.5);color:var(--phosphor);}
+.wl-menu__btn--primary::before{background:var(--phosphor);}
 .wl-menu__btn--primary:hover{
-  border-color:rgba(255,200,60,.8);
-  box-shadow:0 0 24px rgba(200,120,20,.2),inset 0 0 12px rgba(200,100,10,.05);
+  box-shadow:0 0 24px rgba(57,255,20,.35),inset 0 0 12px rgba(0,0,0,.5);
 }
 .wl-menu__btn__icon{font-size:1.1rem;flex-shrink:0;opacity:.8;}
 .wl-menu__btn__text{flex:1;}
 .wl-menu__btn__title{display:block;font-weight:700;font-size:.88rem;}
-.wl-menu__btn__desc{display:block;font-size:.68rem;color:#6a5a42;margin-top:.1rem;}
-
-/* 存档区 */
+.wl-menu__btn__desc{display:block;font-size:.68rem;color:var(--text-dim);margin-top:.1rem;}
+.wl-menu__btn__arrow{font-size:.82rem;opacity:.35;margin-left:auto;flex-shrink:0;transition:transform .2s,opacity .2s;}
+.wl-menu__btn:hover .wl-menu__btn__arrow{transform:translateX(6px);opacity:.75;}
 .wl-saves{width:100%;max-width:300px;margin-top:1.5rem;}
 .wl-saves__title{
   font-size:.65rem;text-transform:uppercase;letter-spacing:.15em;
-  color:#4a3a28;margin-bottom:.5rem;padding-left:.2rem;
+  color:var(--text-dim);margin-bottom:.5rem;padding-left:.2rem;
 }
 .wl-save-slot{
   width:100%;padding:.55rem .9rem;
-  border:1px solid rgba(80,60,30,.4);border-radius:3px;
-  background:rgba(12,8,3,.8);color:#907860;
-  font:inherit;font-size:.8rem;
-  cursor:pointer;text-align:left;
-  display:flex;align-items:center;gap:.7rem;
-  margin-bottom:.4rem;
-  transition:all .15s;
+  border:1px solid var(--border-rust);border-radius:3px;
+  background:var(--panel-bg);color:var(--text-dim);
+  font:inherit;font-size:.8rem;cursor:pointer;text-align:left;
+  display:flex;align-items:center;gap:.7rem;margin-bottom:.4rem;
+  transition:all .15s;box-shadow:inset 0 0 8px rgba(0,0,0,.5);
 }
-.wl-save-slot:hover{background:rgba(22,14,6,.9);border-color:rgba(150,100,40,.5);color:#c8a870;}
+.wl-save-slot:hover{border-color:var(--phosphor);color:var(--text-bright);box-shadow:0 0 8px rgba(57,255,20,.2),inset 0 0 8px rgba(0,0,0,.5);}
 .wl-save-slot__icon{font-size:.95rem;opacity:.7;}
 .wl-save-slot__info{flex:1;}
-.wl-save-slot__day{font-weight:700;color:#b8a070;}
-.wl-save-slot__meta{font-size:.65rem;color:#5a4a32;margin-top:.08rem;}
-.wl-save-slot__del{
-  padding:.2rem .4rem;border:none;background:transparent;
-  color:#3a2a18;font-size:.75rem;cursor:pointer;border-radius:3px;
+.wl-save-slot__day{font-weight:700;color:var(--text-bright);}
+.wl-save-slot__meta{font-size:.65rem;color:var(--text-dim);margin-top:.08rem;}
+.wl-save-slot__del{padding:.2rem .4rem;border:none;background:transparent;color:var(--text-dim);font-size:.75rem;cursor:pointer;border-radius:3px;}
+.wl-save-slot__del:hover{color:var(--red-alert);background:rgba(255,51,51,.15);}
+.wl-menu__divider{width:100%;max-width:300px;border:none;border-top:1px solid var(--border-rust);margin:1rem 0 .5rem;}
+.wl-version{position:fixed;bottom:.6rem;right:.8rem;font-size:.6rem;color:var(--text-dim);letter-spacing:.1em;}
+.wl-early-access{
+  position:fixed;bottom:.6rem;left:.8rem;
+  font-size:.58rem;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase;
+  border:1px solid var(--border-rust);padding:.2rem .5rem;border-radius:2px;
+  background:rgba(8,12,6,.8);pointer-events:none;
 }
-.wl-save-slot__del:hover{color:#e07050;background:rgba(120,30,10,.3);}
-
-.wl-version{
-  position:fixed;bottom:.6rem;right:.8rem;
-  font-size:.6rem;color:#2a1e10;letter-spacing:.1em;
-}
-
-/* 装饰线 */
-.wl-menu__divider{
-  width:100%;max-width:300px;
-  border:none;border-top:1px solid rgba(100,70,30,.25);
-  margin:1rem 0 .5rem;
-}
-
-/* ════════════════════════════════
+/* ════════════════
    游戏区
-   ════════════════════════════════ */
-#wl-game{
-  display:none;flex-direction:column;
-  height:100vh;overflow:hidden;
-  background:#090604;
-}
+   ════════════════ */
+#wl-game{display:none;flex-direction:column;height:100vh;overflow:hidden;background:var(--panel-bg);}
 #wl-game.active{display:flex;}
-
 /* 顶栏 */
-.wl-topbar{
-  display:flex;align-items:center;gap:0;
+#wl-topbar{
+  display:flex;align-items:center;
   height:42px;flex-shrink:0;
-  border-bottom:1px solid rgba(100,70,20,.3);
-  background:linear-gradient(180deg,rgba(20,12,4,.95),rgba(12,8,3,.95));
+  border-bottom:1px solid var(--border-rust);
+  background:linear-gradient(180deg,rgba(8,14,4,.98),rgba(5,8,3,.98));
   position:relative;z-index:20;
+  box-shadow:inset 0 -1px 0 rgba(57,255,20,.06),inset 0 0 20px rgba(0,0,0,.4);
 }
-.wl-topbar::after{
-  content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(200,140,40,.15),transparent);
-}
-.wl-topbar__back{
+#wl-switch-base{
   height:100%;padding:0 14px;
-  border:none;border-right:1px solid rgba(80,50,15,.3);
-  background:transparent;color:#6a5038;
-  font:inherit;font-size:.75rem;cursor:pointer;
-  letter-spacing:.05em;
+  border:none;border-right:1px solid var(--border-rust);
+  background:transparent;color:var(--text-dim);
+  font:inherit;font-size:.75rem;cursor:pointer;letter-spacing:.05em;
   transition:color .15s,background .15s;
 }
-.wl-topbar__back:hover{color:#c8a060;background:rgba(80,50,10,.2);}
+#wl-switch-base:hover{color:var(--phosphor);background:rgba(57,255,20,.05);}
 .wl-topbar__title{
-  padding:0 14px;font-size:.78rem;font-weight:700;color:#8a7050;
-  letter-spacing:.1em;text-transform:uppercase;flex:1;
+  padding:0 14px;font-size:.78rem;font-weight:700;
+  color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;
 }
-.wl-topbar__status{
-  padding:0 14px;font-size:.75rem;color:#5a7090;
-  font-family:inherit;
+#wl-stat-day,#wl-stat-cash,#wl-stat-rep{
+  padding:0 10px;font-size:.72rem;
+  border-left:1px solid var(--border-rust);
+  color:var(--text-bright);white-space:nowrap;
 }
-
-/* 主体双栏 */
-#wl-game-body{
-  flex:1;min-height:0;
-  display:grid;
-  grid-template-columns:1fr 320px;
+#wl-stat-cash{color:var(--amber);}
+#wl-end-day-btn{
+  margin-left:auto;height:100%;padding:0 16px;
+  border:none;border-left:1px solid var(--border-rust);
+  background:transparent;color:var(--phosphor);
+  font:inherit;font-size:.75rem;font-weight:700;cursor:pointer;
+  letter-spacing:.1em;text-transform:uppercase;
+  transition:all .15s;
 }
-
-/* ── 左栏：格子仓库 ──────────────────────────────────────── */
-#wl-left-col{
+#wl-end-day-btn:hover{background:rgba(57,255,20,.08);box-shadow:inset 0 0 12px rgba(57,255,20,.15);}
+/* 商店视图 */
+#wl-shop-view{flex:1;min-height:0;display:flex;flex-direction:row;}
+#wl-shop-view.hidden{display:none;}
+/* 左侧面板 */
+#wl-left-pane{
+  flex:1;min-width:0;
   display:flex;flex-direction:column;
-  padding:10px 8px 80px 10px;
-  border-right:1px solid rgba(80,60,20,.2);
-  overflow:hidden;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      transparent,transparent 39px,
-      rgba(80,50,10,.04) 39px,rgba(80,50,10,.04) 40px
-    ),
-    #090604;
+  padding:10px;
+  border-right:1px solid var(--border-rust);
+  background:var(--grid-bg);
+  box-shadow:inset 0 0 20px rgba(0,0,0,.5);
 }
 .wl-grid-label{
   font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;
-  color:rgba(200,150,50,.35);flex-shrink:0;margin-bottom:6px;
-  padding-left:2px;
+  color:var(--text-dim);flex-shrink:0;margin-bottom:6px;padding-left:2px;
 }
-
-/* 格子包裹——保证格子是正方形 */
 #wl-grid-wrap{
-  flex:1;min-height:0;
-  display:flex;
-  align-items:flex-start;
-  justify-content:flex-start;
-}
-#wl-grid-wrap #wl-grid{
-  /* 10列×8行，每格固定36px正方形 */
-  --cell:36px;
-  --cols:10;
-  --rows:8;
-  width:  calc(var(--cell)*var(--cols) + 3px*(var(--cols)-1) + 12px);
-  height: calc(var(--cell)*var(--rows) + 3px*(var(--rows)-1) + 12px);
   flex-shrink:0;
+  display:flex;align-items:flex-start;justify-content:flex-start;
 }
-
-/* ── 右栏：信息面板 ──────────────────────────────────────── */
-#wl-right-col{
-  display:flex;flex-direction:column;
-  overflow:hidden;
-  background:#0b0806;
+#wl-grid{
+  display:grid;
+  grid-template-columns:repeat(10,40px);
+  grid-template-rows:repeat(8,40px);
+  gap:2px;
+  background:var(--grid-bg);
+  border:1px solid var(--border-rust);
+  padding:4px;
+  box-shadow:inset 0 0 16px rgba(0,0,0,.7);
 }
-
-/* 资金/状态块 */
-#wl-status-bar{
-  padding:10px 12px 9px;flex-shrink:0;
-  border-bottom:1px solid rgba(80,60,20,.25);
-  background:linear-gradient(180deg,rgba(80,40,5,.08),transparent);
+.wl-cell{width:40px;height:40px;position:relative;}
+.wl-cell--item{
+  background:linear-gradient(135deg,rgba(57,255,20,.12),rgba(57,255,20,.04));
+  border:1px solid rgba(57,255,20,.4);
+  cursor:grab;
 }
-#wl-stat-day{
-  font-size:.65rem;letter-spacing:.12em;color:#72f4ff;
-  text-transform:uppercase;margin-bottom:1px;
-}
-#wl-stat-cash{
-  font-size:1.6rem;font-weight:900;color:#ffd76a;
-  letter-spacing:-.02em;line-height:1.2;
-  text-shadow:0 0 20px rgba(255,215,106,.35);
-}
-#wl-stat-rep{
-  font-size:.62rem;color:#3a5068;margin-top:2px;letter-spacing:.06em;
-}
-
-/* 右栏滚动区 */
-#wl-right-scroll{
-  flex:1;overflow-y:auto;padding:8px 10px 8px;
-  display:flex;flex-direction:column;gap:0;
-  scrollbar-width:thin;
-  scrollbar-color:rgba(255,255,255,.05) transparent;
-}
-#wl-right-scroll::-webkit-scrollbar{width:3px;}
-#wl-right-scroll::-webkit-scrollbar-thumb{
-  background:rgba(255,255,255,.06);border-radius:2px;
-}
-
-.wl-panel-section{
-  padding-bottom:10px;margin-bottom:10px;
-  border-bottom:1px solid rgba(255,255,255,.04);
-}
-.wl-panel-section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
-.wl-panel-title{
-  font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;
-  color:rgba(114,244,255,.4);margin-bottom:6px;
-}
-
-/* ── 固定底栏 ────────────────────────────────────────────── */
-#wl-footer{
-  position:fixed;bottom:0;left:0;right:0;height:62px;
-  background:linear-gradient(to top,rgba(6,4,2,.98) 55%,rgba(6,4,2,.7));
-  border-top:1px solid rgba(100,70,20,.35);
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 16px;z-index:100;
-}
-#wl-footer::before{
-  content:'';position:absolute;top:-1px;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(200,140,40,.2),transparent);
-}
-#wl-rent-countdown{
-  font-size:.65rem;letter-spacing:.07em;color:#3a5068;
-}
-#wl-end-day-btn{
-  min-height:38px;min-width:150px;
-  font-size:.82rem;letter-spacing:.12em;font-weight:900;
-  font-family:inherit;text-transform:uppercase;
-  background:linear-gradient(135deg,#1a4a6a,#0e2e42);
-  border:1px solid rgba(114,244,255,.4);
-  border-radius:3px;color:#72f4ff;cursor:pointer;
-  box-shadow:0 0 16px rgba(114,244,255,.15);
-  transition:all .2s;
-}
-#wl-end-day-btn:hover{
-  background:linear-gradient(135deg,#1e5a7e,#12384e);
-  box-shadow:0 0 28px rgba(114,244,255,.3);
-  border-color:rgba(114,244,255,.7);
-}
-
-/* ════════════════════════════════
-   按钮箭头动画
-   ════════════════════════════════ */
-.wl-menu__btn__arrow{
-  font-size:.82rem;opacity:.35;margin-left:auto;flex-shrink:0;
-  transition:transform .2s,opacity .2s;
-}
-.wl-menu__btn:hover .wl-menu__btn__arrow{
-  transform:translateX(6px);opacity:.75;
-}
-
-/* ════════════════════════════════
-   早期测试版警告
-   ════════════════════════════════ */
-.wl-early-access{
-  position:fixed;bottom:.6rem;left:.8rem;
-  font-size:.58rem;color:#4a2a10;letter-spacing:.08em;text-transform:uppercase;
-  border:1px solid rgba(120,60,10,.2);padding:.2rem .5rem;border-radius:2px;
-  background:rgba(10,7,5,.8);pointer-events:none;
-}
-
-/* ════════════════════════════════
-   格子坐标标注
-   ════════════════════════════════ */
-.wl-grid-coords-outer{flex:1;min-height:0;display:flex;flex-direction:column;}
-.wl-grid-col-labels{
-  display:flex;flex-shrink:0;
-  margin-left:18px;  /* row-label width + gap */
-  padding-left:6px;  /* grid internal left padding */
-  margin-bottom:2px;
-}
-.wl-grid-col-labels span{
-  width:39px;text-align:center;  /* cell(36)+gap(3) */
-  font-size:.48rem;color:rgba(200,150,50,.28);flex-shrink:0;
-}
-.wl-grid-col-labels span:last-child{width:36px;}
-.wl-grid-row-outer{display:flex;flex:1;min-height:0;}
-.wl-grid-row-labels{
-  display:flex;flex-direction:column;width:15px;margin-right:3px;
-  padding-top:6px;  /* grid internal top padding */
-  flex-shrink:0;
-}
-.wl-grid-row-labels span{
-  height:39px;  /* cell(36)+gap(3) */
-  display:flex;align-items:center;justify-content:flex-end;
-  font-size:.48rem;color:rgba(200,150,50,.28);flex-shrink:0;padding-right:2px;
-}
-.wl-grid-row-labels span:last-child{height:36px;}
-
-/* ════════════════════════════════
-   行情通知条 #wl-ticker
-   ════════════════════════════════ */
+.wl-cell--item:hover{border-color:var(--phosphor);box-shadow:0 0 8px rgba(57,255,20,.5);}
 #wl-ticker{
-  display:none;flex-shrink:0;
-  height:26px;overflow:hidden;
-  background:rgba(6,4,2,.95);
-  border:1px solid rgba(114,244,255,.12);border-radius:2px;
-  margin-bottom:6px;position:relative;
+  flex-shrink:0;height:26px;overflow:hidden;
+  background:rgba(5,8,3,.95);
+  border:1px solid var(--border-rust);border-radius:2px;
+  margin-top:6px;position:relative;
 }
-#wl-ticker.active{display:block;}
 .wl-ticker__track{
   display:inline-flex;align-items:center;white-space:nowrap;
   height:100%;padding:0 8px;
-  font-size:.63rem;color:#3a5a70;letter-spacing:.07em;
+  font-size:.63rem;color:var(--text-dim);letter-spacing:.07em;
   animation:wl-ticker-scroll 22s linear infinite;
 }
-@keyframes wl-ticker-scroll{
-  0%{transform:translateX(100vw);}
-  100%{transform:translateX(-100%);}
+/* 右侧面板 */
+#wl-right-pane{
+  width:320px;flex-shrink:0;
+  display:flex;flex-direction:column;
+  background:var(--panel-bg);
+  overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(57,255,20,.1) transparent;
 }
-
-/* ════════════════════════════════
-   战利品面板
-   ════════════════════════════════ */
-#wl-loot-section{display:none;}
-#wl-loot-section.active{display:block;}
-
-/* ════════════════════════════════
-   品质圆点 .wl-quality-dots
-   ════════════════════════════════ */
-.wl-quality-dots{display:flex;gap:3px;margin-top:4px;}
-.wl-quality-dots__dot{
-  width:6px;height:6px;border-radius:50%;
-  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);
-  transition:background .15s;
+#wl-right-pane::-webkit-scrollbar{width:3px;}
+#wl-right-pane::-webkit-scrollbar-thumb{background:rgba(57,255,20,.1);border-radius:2px;}
+.wl-panel-title{
+  font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--text-dim);margin-bottom:6px;
 }
-.wl-quality-dots__dot.lit{
-  background:#c8a050;border-color:#e8c060;
-  box-shadow:0 0 4px rgba(200,160,80,.5);
+#wl-npc-queue{
+  padding:8px;flex-shrink:0;
+  border-bottom:1px solid var(--border-rust);
+  box-shadow:inset 0 0 8px rgba(0,0,0,.5);
 }
-.wl-quality-dots__dot.lit-rare{
-  background:#72f4ff;border-color:#a0f8ff;
-  box-shadow:0 0 4px rgba(114,244,255,.5);
+.wl-npc-card{
+  border:1px solid var(--border-rust);
+  padding:8px;cursor:pointer;
+  background:var(--panel-bg);margin-bottom:4px;
+  box-shadow:inset 0 0 6px rgba(0,0,0,.5);
 }
-.wl-quality-dots__dot.lit-epic{
-  background:#c070e0;border-color:#d898f0;
-  box-shadow:0 0 4px rgba(180,80,220,.5);
+.wl-npc-card.active{border-color:var(--phosphor);box-shadow:0 0 12px rgba(57,255,20,.3);}
+#wl-counter{
+  padding:8px;flex-shrink:0;
+  border-bottom:1px solid var(--border-rust);
+  box-shadow:inset 0 0 8px rgba(0,0,0,.5);
 }
-
-/* ════════════════════════════════
-   价格块 .wl-price-block
-   ════════════════════════════════ */
-.wl-price-block{
-  margin-top:8px;border:1px solid rgba(80,60,20,.3);border-radius:3px;
-  overflow:hidden;font-size:.7rem;
+.wl-counter-slot{
+  width:60px;height:60px;
+  border:1px dashed rgba(255,179,71,.4);
+  background:rgba(255,179,71,.04);
+  display:inline-flex;align-items:center;justify-content:center;
 }
-.wl-price-block__row{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:4px 8px;border-bottom:1px solid rgba(80,60,20,.12);
+.wl-counter-slot.filled{border-color:var(--amber);background:rgba(255,179,71,.1);}
+#wl-detail{
+  padding:8px;flex:1;min-height:60px;
+  border-bottom:1px solid var(--border-rust);
+  box-shadow:inset 0 0 8px rgba(0,0,0,.5);
 }
-.wl-price-block__row:last-child{border-bottom:none;}
-.wl-price-block__row--market{background:rgba(20,14,6,.55);}
-.wl-price-block__row--retail{background:rgba(18,12,4,.65);}
-.wl-price-block__row--buy{background:rgba(14,10,3,.75);}
-.wl-price-block__label{color:#5a4a32;letter-spacing:.05em;}
-.wl-price-block__value{color:#c8a870;font-weight:700;}
-.wl-price-block__value--high{color:#72f4ff;}
-.wl-price-block__value--low{color:#e07050;}
-
-/* ════════════════════════════════
-   声誉进度条（底栏）
-   ════════════════════════════════ */
-.wl-footer-left{display:flex;flex-direction:column;gap:3px;}
-#wl-footer-week{font-size:.62rem;letter-spacing:.07em;color:#3a5068;}
-.wl-rep-bar-wrap{
-  display:flex;align-items:center;gap:5px;
-  font-size:.6rem;color:#3a5068;
+#wl-market{
+  padding:8px;flex-shrink:0;
+  box-shadow:inset 0 0 8px rgba(0,0,0,.5);
 }
-.wl-rep-bar-wrap__label{letter-spacing:.05em;white-space:nowrap;}
-.wl-rep-bar{
-  width:54px;height:5px;background:rgba(255,255,255,.06);
-  border-radius:3px;overflow:hidden;flex-shrink:0;
+/* 基地视图 */
+#wl-base-view{
+  flex:1;min-height:0;
+  display:none;flex-direction:column;
+  background:var(--panel-bg);
 }
-.wl-rep-bar__fill{
-  height:100%;width:0%;border-radius:3px;
-  /* CSS trick: background spans full bar; background-position shifts red→yellow→green */
-  background:linear-gradient(90deg,#e05030 0%,#c8a050 50%,#50c870 100%);
-  background-size:200% 100%;
-  /* position is driven by inline style: 0%=red end, 100%=green end */
-  transition:width .4s,background-position .4s;
+#wl-base-view.active{display:flex;}
+.wl-base-header{
+  padding:10px 14px;
+  border-bottom:1px solid var(--border-rust);
+  display:flex;align-items:center;gap:12px;flex-shrink:0;
+  background:linear-gradient(180deg,rgba(8,14,4,.95),rgba(5,8,3,.95));
+  box-shadow:inset 0 0 10px rgba(0,0,0,.5);
 }
-
-/* ── 响应式 ──────────────────────────────────────────────── */
+.wl-base-header__title{
+  font-size:.8rem;font-weight:700;color:var(--text-bright);
+  letter-spacing:.1em;text-transform:uppercase;
+}
+#wl-power-status{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--phosphor);
+  box-shadow:0 0 6px rgba(57,255,20,.8);
+  flex-shrink:0;
+}
+#wl-power-status.off{background:var(--red-alert);box-shadow:0 0 6px rgba(255,51,51,.8);}
+#wl-switch-shop{
+  margin-left:auto;padding:4px 12px;
+  border:1px solid var(--border-rust);border-radius:3px;
+  background:transparent;color:var(--text-dim);
+  font:inherit;font-size:.72rem;cursor:pointer;
+  transition:all .15s;
+}
+#wl-switch-shop:hover{color:var(--phosphor);border-color:var(--phosphor);box-shadow:0 0 8px rgba(57,255,20,.2);}
+#wl-base{
+  flex:1;min-height:0;overflow-y:auto;padding:12px;
+  scrollbar-width:thin;scrollbar-color:rgba(57,255,20,.1) transparent;
+  box-shadow:inset 0 0 8px rgba(0,0,0,.5);
+}
+#wl-loot{
+  display:none;padding:10px;
+  border-top:1px solid var(--border-rust);
+  background:rgba(4,8,2,.8);
+  flex-shrink:0;
+  box-shadow:inset 0 0 8px rgba(0,0,0,.5);
+}
+#wl-loot.active{display:block;}
+.wl-empty{font-size:.72rem;color:var(--text-dim);font-style:italic;}
 @media(max-width:700px){
-  #wl-game-body{
-    grid-template-columns:1fr;
-    grid-template-rows:auto 1fr;
-    overflow-y:auto;
-  }
-  #wl-left-col{
-    border-right:none;
-    border-bottom:1px solid rgba(80,60,20,.2);
-    padding-bottom:10px;overflow:visible;
-  }
-  #wl-grid-wrap{height:auto;}
-  #wl-right-col{overflow:visible;}
-  #wl-right-scroll{overflow:visible;max-height:none;padding-bottom:72px;}
-  #wl-footer{position:sticky;bottom:0;}
+  #wl-shop-view{flex-direction:column;overflow-y:auto;}
+  #wl-left-pane{border-right:none;border-bottom:1px solid var(--border-rust);}
+  #wl-right-pane{width:100%;overflow:visible;}
+  #wl-stat-day,#wl-stat-rep{display:none;}
 }
 </style>
 </head>
@@ -504,31 +366,39 @@ body::after{
      主菜单
      ════════════════════════════ -->
 <div id="wl-menu">
+  <div class="wl-marquee">
+    <span class="wl-marquee__track">◈ 今日公告：北区水源价格上涨30% &nbsp;·&nbsp; 东检查站封路，绕行南门 &nbsp;·&nbsp; 废金属收购价调整 &nbsp;·&nbsp; 新批医疗包到货 &nbsp;·&nbsp; 警告：流寇活动频繁 &nbsp;·&nbsp; 以物易物协议更新 &nbsp;·&nbsp; 辐射风暴预警 D+3 &nbsp;·&nbsp; 南市集今日开放 &nbsp;◈&nbsp;</span>
+  </div>
+
   <div class="wl-logo">
-    <div class="wl-logo__emblem">
-      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="54" height="54" aria-hidden="true">
-        <!-- roof -->
-        <polyline points="4,25 24,7 44,25" stroke="#c8a050" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-        <!-- broken roof tile displaced to upper-right -->
-        <line x1="35" y1="14" x2="38" y2="11" stroke="#c8a050" stroke-width="1.4" opacity=".45" stroke-linecap="round"/>
-        <!-- chimney (tilted, crumbling) -->
-        <rect x="29" y="9" width="5" height="7" stroke="#c8a050" stroke-width="1.4" fill="none" transform="rotate(-4,31.5,12)"/>
-        <line x1="29" y1="9" x2="27" y2="7" stroke="#c8a050" stroke-width="1" opacity=".4" stroke-linecap="round"/>
-        <!-- walls -->
-        <rect x="9" y="25" width="30" height="16" stroke="#c8a050" stroke-width="2" fill="none"/>
-        <!-- door (arched opening) -->
-        <path d="M19,41 L19,33 Q24,28.5 29,33 L29,41" stroke="#c8a050" stroke-width="1.5" fill="none"/>
-        <!-- left window (broken glass diagonal crack) -->
-        <rect x="10" y="27" width="6" height="5" stroke="#c8a050" stroke-width="1.2" fill="none"/>
-        <line x1="10" y1="27" x2="16" y2="32" stroke="#c8a050" stroke-width=".85" opacity=".5" stroke-linecap="round"/>
-        <!-- right window (intact) -->
-        <rect x="32" y="27" width="6" height="5" stroke="#c8a050" stroke-width="1.2" fill="none"/>
-        <!-- wall crack -->
-        <polyline points="22,29 23.5,33 21,38" stroke="#c8a050" stroke-width=".9" fill="none" opacity=".38" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </div>
+    <svg class="wl-logo__svg" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg" width="160" height="107" aria-hidden="true">
+      <!-- 招牌主体 -->
+      <rect x="6" y="18" width="108" height="44" rx="2" stroke="#39ff14" stroke-width="1.5" fill="none"/>
+      <!-- 破损右上角 -->
+      <polyline points="95,18 104,10 114,18" stroke="#39ff14" stroke-width="1.2" opacity=".6" stroke-linecap="round" fill="none"/>
+      <!-- 招牌裂缝 -->
+      <polyline points="108,20 112,26 109,33 113,40" stroke="#39ff14" stroke-width="1" opacity=".45" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <!-- 支柱 -->
+      <line x1="20" y1="62" x2="20" y2="76" stroke="#39ff14" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="100" y1="62" x2="100" y2="76" stroke="#39ff14" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- 左窗（有裂缝） -->
+      <rect x="12" y="26" width="18" height="12" stroke="#39ff14" stroke-width="1" fill="none"/>
+      <line x1="12" y1="26" x2="30" y2="38" stroke="#39ff14" stroke-width=".7" opacity=".5" stroke-linecap="round"/>
+      <!-- 右窗（完好） -->
+      <rect x="90" y="26" width="18" height="12" stroke="#39ff14" stroke-width="1" fill="none"/>
+      <!-- 招牌文字横线 -->
+      <line x1="38" y1="30" x2="82" y2="30" stroke="#39ff14" stroke-width="2" stroke-linecap="round" opacity=".9"/>
+      <line x1="38" y1="38" x2="76" y2="38" stroke="#39ff14" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>
+      <line x1="38" y1="46" x2="65" y2="46" stroke="#39ff14" stroke-width="1" stroke-linecap="round" opacity=".45"/>
+      <!-- 螺栓 -->
+      <circle cx="8" cy="18" r="2.5" fill="none" stroke="#39ff14" stroke-width="1" opacity=".55"/>
+      <circle cx="112" cy="18" r="2.5" fill="none" stroke="#39ff14" stroke-width="1" opacity=".55"/>
+      <circle cx="8" cy="62" r="2.5" fill="none" stroke="#39ff14" stroke-width="1" opacity=".55"/>
+      <!-- 垂落电线 -->
+      <line x1="112" y1="62" x2="112" y2="72" stroke="#39ff14" stroke-width=".8" stroke-dasharray="2,2" opacity=".35" stroke-linecap="round"/>
+    </svg>
     <div class="wl-logo__title">废土杂货铺</div>
-    <div class="wl-logo__sub">Wasteland Shop</div>
+    <div class="wl-logo__sub">Wasteland Shop · Est. Year Zero</div>
     <div class="wl-logo__lore">水贵如血，信任比货更稀缺。<br>在废土的夹缝里，你开了家店。</div>
   </div>
 
@@ -567,93 +437,54 @@ body::after{
 <div id="wl-game">
 
   <!-- 顶栏 -->
-  <header class="wl-topbar">
-    <button class="wl-topbar__back" id="btn-back">← 退出</button>
+  <div id="wl-topbar">
+    <button id="wl-switch-base">← 基地</button>
     <span class="wl-topbar__title">废土杂货铺</span>
-    <span class="wl-topbar__status" id="game-header-status"></span>
-  </header>
+    <span id="wl-stat-day">第 — 天</span>
+    <span id="wl-stat-cash">¥ —</span>
+    <span id="wl-stat-rep">声誉 —</span>
+    <button id="wl-end-day-btn">结束今天 →</button>
+  </div>
 
-  <!-- 挂载点 -->
-  <div id="wastelandShopMount">
-    <div id="wl-game-body">
-
-      <!-- 左栏：仓库格子 -->
-      <div id="wl-left-col">
-        <div class="wl-grid-label">▦ 仓库 10×8</div>
-        <div class="wl-grid-coords-outer">
-          <div class="wl-grid-col-labels">
-            <span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span><span>I</span><span>J</span>
-          </div>
-          <div class="wl-grid-row-outer">
-            <div class="wl-grid-row-labels">
-              <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span>
-            </div>
-            <div id="wl-grid-wrap">
-              <div id="wl-grid"></div>
-            </div>
-          </div>
-        </div>
+  <!-- 商店视图 -->
+  <div id="wl-shop-view">
+    <div id="wl-left-pane">
+      <div class="wl-grid-label">▦ 仓库 · 10×8</div>
+      <div id="wl-grid-wrap">
+        <div id="wl-grid"></div>
       </div>
-
-      <!-- 右栏：信息面板 -->
-      <div id="wl-right-col">
-
-        <div id="wl-status-bar">
-          <div id="wl-stat-day">第 — 天</div>
-          <div id="wl-stat-cash">¥ —</div>
-          <div id="wl-stat-rep">声誉 —</div>
-        </div>
-
-        <div id="wl-right-scroll">
-
-          <!-- 行情通知条（有数据时 JS 加 .active 并填充 .wl-ticker__track） -->
-          <div id="wl-ticker"><div class="wl-ticker__track"></div></div>
-
-          <div class="wl-panel-section">
-            <div class="wl-panel-title">▸ 今日事件</div>
-            <div id="wl-events"><p class="wl-empty">载入中…</p></div>
-          </div>
-
-          <!-- 派遣面板（JS 控制显示内容） -->
-          <div class="wl-panel-section" id="wl-dispatch-section">
-            <div class="wl-panel-title">▸ 派遣任务</div>
-            <div id="wl-dispatch"><p class="wl-empty">暂无派遣任务。</p></div>
-          </div>
-
-          <div class="wl-panel-section">
-            <div class="wl-panel-title">▸ 物品详情</div>
-            <div id="wl-detail">
-              <p class="wl-empty">点击仓库中的物品查看详情。</p>
-            </div>
-          </div>
-
-          <!-- 战利品面板（有战利品时 JS 加 .active） -->
-          <div class="wl-panel-section" id="wl-loot-section">
-            <div class="wl-panel-title">▸ 战利品</div>
-            <div id="wl-loot"></div>
-          </div>
-
-          <div class="wl-panel-section" id="wl-auction-wrap" style="display:none">
-            <div class="wl-panel-title">▸ 集装箱拍卖</div>
-            <div id="wl-auction"></div>
-          </div>
-
-        </div>
+      <div id="wl-ticker"><div class="wl-ticker__track"></div></div>
+    </div>
+    <div id="wl-right-pane">
+      <div id="wl-npc-queue">
+        <div class="wl-panel-title">▸ 顾客队列</div>
+      </div>
+      <div id="wl-counter">
+        <div class="wl-panel-title">▸ 柜台</div>
+      </div>
+      <div id="wl-detail">
+        <div class="wl-panel-title">▸ 物品详情</div>
+        <p class="wl-empty">点击仓库中的物品查看详情。</p>
+      </div>
+      <div id="wl-market">
+        <div class="wl-panel-title">▸ 市场行情</div>
       </div>
     </div>
+  </div>
 
-    <footer id="wl-footer">
-      <div class="wl-footer-left">
-        <span id="wl-footer-week"></span>
-        <span id="wl-rent-countdown"></span>
-        <div class="wl-rep-bar-wrap">
-          <span class="wl-rep-bar-wrap__label">声誉</span>
-          <div class="wl-rep-bar"><div class="wl-rep-bar__fill" id="wl-rep-fill"></div></div>
-          <span id="wl-rep-value">0</span>
-        </div>
-      </div>
-      <button type="button" id="wl-end-day-btn">结束今天 →</button>
-    </footer>
+  <!-- 基地视图（默认隐藏） -->
+  <div id="wl-base-view">
+    <div class="wl-base-header">
+      <div id="wl-power-status"></div>
+      <span class="wl-base-header__title">基地管理</span>
+      <button id="wl-switch-shop">← 返回商店</button>
+    </div>
+    <div id="wl-base">
+      <p class="wl-empty">基地功能载入中…</p>
+    </div>
+    <div id="wl-loot">
+      <div class="wl-panel-title">▸ 战利品</div>
+    </div>
   </div>
 
 </div>
@@ -731,7 +562,14 @@ body::after{
     startGame(true);
   });
   document.getElementById('btn-continue').addEventListener('click',function(){startGame(false);});
-  document.getElementById('btn-back').addEventListener('click',exitGame);
+  document.getElementById('wl-switch-base').onclick=function(){
+    if(window.WastelandShop&&typeof window.WastelandShop.switchView==='function')
+      window.WastelandShop.switchView('base');
+  };
+  document.getElementById('wl-switch-shop').onclick=function(){
+    if(window.WastelandShop&&typeof window.WastelandShop.switchView==='function')
+      window.WastelandShop.switchView('shop');
+  };
   refreshMenu();
 }());
 </script>
