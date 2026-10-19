@@ -65,7 +65,10 @@ check(html.includes('arcadeGameCardMiniCollection')&&html.includes('class="miniG
 for(const gameId of ['expedition','border','relay','lab','salvage','blackbox','shell','dimension'])check(game.includes(gameId)&&html.includes('data-arcade-game="'+gameId+'"'),'missing arcade game route '+gameId);
 check(games.find(g=>g.id==='dimension'&&g.name==='界门交易行')&&html.includes('data-arcade-page="dimension"')&&game.includes("setArcadeHash('game/dimension')"),'Dimensional Trading Post route is missing');
 check(game.includes("gameMatch[1]==='wasteland'?'dimension'")&&fs.readFileSync(path.join(root,'src/hub.js'),'utf8').includes("id==='wasteland'?'dimension':id"),'legacy wasteland bookmarks and hub records must resolve to the new identity');
-check(fs.readFileSync(path.join(root,'src/play-loader.js'),'utf8').includes("window.location.replace('wasteland.html')")&&fs.readFileSync(path.join(root,'src/play-loader.js'),'utf8').includes("if(id==='dimension')"),'the game route and lobby button must open the standalone playable page');
+// 界门交易行已拆成独立项目。游戏厅这边只保留入口，
+// 地址由 DIMENSION_GAME_URL 控制（留空则回退到仓库内旧副本）。
+const loaderSrc=fs.readFileSync(path.join(root,'src/play-loader.js'),'utf8');
+check(loaderSrc.includes('function dimensionUrl()')&&loaderSrc.includes('window.location.replace(dimensionUrl())')&&loaderSrc.includes("if(id==='dimension')"),'the game route and lobby button must open the standalone playable page');
 check(manifest.files['wasteland.html']&&manifest.files['assets/icons/dimensional-trading-post.svg'],'standalone game page and dedicated cover must ship');
 check(manifest.files['assets/dimensional-market-hall.svg']&&manifest.files['src/dimensional-trading-post.css'],'the trading scene and standalone stylesheet must ship');
 const publishedTradingHtml=fs.readFileSync(path.join(root,'dist/wasteland.html'),'utf8');

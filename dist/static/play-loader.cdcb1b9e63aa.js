@@ -1,0 +1,35 @@
+(function(){
+  'use strict';
+  var files=JSON.parse(document.getElementById('gameFiles').textContent),hash=window.location.hash;
+  var aliases={signals:'relay',bridge:'station',wasteland:'dimension'},match=/^#(?:game|station)\/([a-z]+)/.exec(hash),kind=match?aliases[match[1]]||match[1]:'expedition';
+  var short=['relay','lab','salvage'],known=['expedition','border','blackbox','shell','dimension'].concat(short);
+  if(known.indexOf(kind)<0)kind='station';
+  // 界门交易行已拆成独立项目（github.com/xxsxjt/dimensional-trading-post）。
+  // 这里只保留一张入口卡片，点了跳到独立部署地址。
+  // 换部署地址时改这一行即可；留空则回退到仓库内的旧副本。
+  var DIMENSION_GAME_URL='';
+  function dimensionUrl(){return DIMENSION_GAME_URL||'wasteland.html';}
+  if(kind==='dimension'){window.location.replace(dimensionUrl());return;}
+  var gameNames=[];function updateTitle(path){if(!gameNames.length)return;var route=path===undefined?window.location.hash:path,m=/^#?(?:game|station)\/([a-z]+)/.exec(route||''),id=m?aliases[m[1]]||m[1]:'arcade',game=gameNames.find(function(g){return g.id===id;});document.title=(game?game.name:id==='arcade'?'新伊甸游戏厅':'科幻舰站')+' · XXSX 游戏站';}
+  fetch('content/games.08d5151f65a9.json').then(function(r){return r.json();}).then(function(games){gameNames=games;updateTitle();}).catch(function(){});
+  window.addEventListener('hashchange',function(){updateTitle();});window.addEventListener('popstate',function(){updateTitle();});
+  var loadedKind=kind,common=['catalog','core','runtime','field'],extra=kind==='border'?['border']:kind==='blackbox'?['blackbox','circuit']:kind==='shell'?['shellHeist']:kind==='dimension'?['wastelandCore','wastelandNPC','wastelandUI','wastelandShop']:short.indexOf(kind)>=0?['arcade','campaignCore','salvageExpedition','echoDeck','relayDefense']:[];
+  var tail=kind==='dimension'?[]:['game'];
+  window.NeonPlayLoader={
+    updateTitle:updateTitle,
+    supports:function(id){return id==='expedition'||id==='station'||id===loadedKind||id==='wasteland'&&loadedKind==='dimension'||id==='shell'||short.indexOf(id)>=0&&short.indexOf(loadedKind)>=0;},
+    navigate:function(id){if(id==='dimension'){window.location.replace(dimensionUrl());return;}window.location.replace('play.html#game/'+id);window.location.reload();},
+    home:function(){window.location.assign('./');}
+  };
+  function load(name){return new Promise(function(resolve,reject){var script=document.createElement('script');script.src=files[name];script.onload=resolve;script.onerror=reject;document.head.appendChild(script);});}
+  var loading=document.getElementById('playLoading');
+  common.concat(extra,tail).reduce(function(p,name){return p.then(function(){return load(name);});},Promise.resolve()).then(function(){
+    if(kind==='dimension'){
+      if(window.WastelandShop&&typeof window.WastelandShop.enter==='function')window.WastelandShop.enter();
+      loading.remove();
+      return;
+    }
+    if(!window.NeonGameBooted)throw new Error('game initialization');
+    loading.remove();
+  }).catch(function(err){loading.innerHTML='<h1>游戏暂时未能载入</h1><p>错误：'+(err&&err.message||err)+'</p><p>请刷新重试，已有本机存档仍会保留。</p><a href="./">返回所有游戏</a>';});
+})();

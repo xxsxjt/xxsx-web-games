@@ -2032,11 +2032,11 @@
       "gzipBytes": 2040
     },
     "src/play-loader.js": {
-      "path": "static/play-loader.bd66b9c24b2e.js",
-      "sourceSha256": "90909e6294dbb5330043639cf6e3acf063132c211ab34f73eb7416f98f681020",
-      "sha256": "bd66b9c24b2e1c7eb42a918e052f41ed34359c0ef2d7ff24c426cb04fbea4bc5",
-      "bytes": 2993,
-      "gzipBytes": 1409
+      "path": "static/play-loader.cdcb1b9e63aa.js",
+      "sourceSha256": "59ace8d8bc252cd9179a58e14e8955160d89a1202ed0d03bd533cf7230e14ec2",
+      "sha256": "cdcb1b9e63aaa883befc6b12251f405b64978cbfb73603c3513697feaba8244a",
+      "bytes": 3350,
+      "gzipBytes": 1677
     },
     "src/relay-defense.js": {
       "path": "static/relay-defense.646d29ebd49f.js",
@@ -2118,7 +2118,7 @@
     "play.html": {
       "path": "play.html",
       "sourceSha256": "148c4dea37cc4975c62a35b1c7cdd95c655540d432f6660a771fd3331ed499c9",
-      "sha256": "c359f78ae3769b24296706a8d8c3f9f0f70e8aa3c94d41236b5d80f1921b3191",
+      "sha256": "8b4f48ff437c162ef50a05a72e996de6d3ac7aa385bf23d47095bb84bc54347a",
       "bytes": 54929,
       "gzipBytes": 16914
     },

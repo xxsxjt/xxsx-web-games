@@ -4,7 +4,12 @@
   var aliases={signals:'relay',bridge:'station',wasteland:'dimension'},match=/^#(?:game|station)\/([a-z]+)/.exec(hash),kind=match?aliases[match[1]]||match[1]:'expedition';
   var short=['relay','lab','salvage'],known=['expedition','border','blackbox','shell','dimension'].concat(short);
   if(known.indexOf(kind)<0)kind='station';
-  if(kind==='dimension'){window.location.replace('wasteland.html');return;}
+  // 界门交易行已拆成独立项目（github.com/xxsxjt/dimensional-trading-post）。
+  // 这里只保留一张入口卡片，点了跳到独立部署地址。
+  // 换部署地址时改这一行即可；留空则回退到仓库内的旧副本。
+  var DIMENSION_GAME_URL='';
+  function dimensionUrl(){return DIMENSION_GAME_URL||'wasteland.html';}
+  if(kind==='dimension'){window.location.replace(dimensionUrl());return;}
   var gameNames=[];function updateTitle(path){if(!gameNames.length)return;var route=path===undefined?window.location.hash:path,m=/^#?(?:game|station)\/([a-z]+)/.exec(route||''),id=m?aliases[m[1]]||m[1]:'arcade',game=gameNames.find(function(g){return g.id===id;});document.title=(game?game.name:id==='arcade'?'新伊甸游戏厅':'科幻舰站')+' · XXSX 游戏站';}
   fetch('content/games.json').then(function(r){return r.json();}).then(function(games){gameNames=games;updateTitle();}).catch(function(){});
   window.addEventListener('hashchange',function(){updateTitle();});window.addEventListener('popstate',function(){updateTitle();});
@@ -13,7 +18,7 @@
   window.NeonPlayLoader={
     updateTitle:updateTitle,
     supports:function(id){return id==='expedition'||id==='station'||id===loadedKind||id==='wasteland'&&loadedKind==='dimension'||id==='shell'||short.indexOf(id)>=0&&short.indexOf(loadedKind)>=0;},
-    navigate:function(id){if(id==='dimension'){window.location.replace('wasteland.html');return;}window.location.replace('play.html#game/'+id);window.location.reload();},
+    navigate:function(id){if(id==='dimension'){window.location.replace(dimensionUrl());return;}window.location.replace('play.html#game/'+id);window.location.reload();},
     home:function(){window.location.assign('./');}
   };
   function load(name){return new Promise(function(resolve,reject){var script=document.createElement('script');script.src=files[name];script.onload=resolve;script.onerror=reject;document.head.appendChild(script);});}
