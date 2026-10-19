@@ -1,0 +1,955 @@
+/* Dimensional Trading Post UI styles
+ * Retains legacy shop class names while using the station palette.
+ */
+
+/* Shared trading palette. */
+:root {
+  --wl-bg: #0b1420;
+  --wl-surface: #132331;
+  --wl-text: #eaf6ff;
+  --wl-muted: #9bb0c1;
+  --wl-accent: #79e7ee;
+  --wl-amber: #ffc867;
+  --wl-danger: #ff7e8e;
+  --wl-good: #85edbc;
+  --wl-rule: rgba(166, 196, 220, .18);
+  /* 物品类型色 */
+  --wl-weapon:   #ff7e8e;
+  --wl-ammo:     #ffb75c;
+  --wl-food:     #85edbc;
+  --wl-water:    #79e7ee;
+  --wl-medicine: #c29aff;
+  --wl-chemical: #ff66c4;
+  --wl-metal:    #ffc867;
+  --wl-elec:     #79e7ee;
+  --wl-cloth:    #bb9bff;
+  --wl-alcohol:  #ffb75c;
+  --wl-drug:     #ff7e8e;
+  --wl-tool:     #91a4bf;
+  --wl-fake:     #ff7e8e;
+  --wl-misc:     #91a4bf;
+
+  /* 拍卖档位色 */
+  --wl-tier-low:  #91a4bf;
+  --wl-tier-mid:  #79e7ee;
+  --wl-tier-high: #ffc867;
+
+  /* 通用间距 */
+  --wl-gap:    10px;
+  --wl-radius: 12px;
+  --wl-radius-sm: 8px;
+}
+
+/* ── 通用按钮 ────────────────────────────────────────────── */
+.wl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 44px;
+  padding: 7px 14px;
+  border: 1px solid rgba(121, 231, 238, .28);
+  border-radius: var(--wl-radius-sm);
+  background: rgba(121, 231, 238, .07);
+  color: #e8fcff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .14s, border-color .14s, transform .1s;
+}
+.wl-btn:hover { background: rgba(121, 231, 238, .14); border-color: rgba(121, 231, 238, .55); }
+.wl-btn:active { transform: scale(.97); }
+.wl-btn:focus-visible { outline: 2px solid var(--cyan, #79e7ee); outline-offset: 2px; }
+
+.wl-btn--primary {
+  background: linear-gradient(135deg, var(--cyan, #79e7ee), #c5fbff 48%, var(--violet, #bb9bff));
+  border: 0;
+  color: #06101c;
+  font-weight: 950;
+}
+.wl-btn--primary:hover { filter: brightness(1.08); }
+
+.wl-btn--sm   { min-height: 44px; padding: 6px 10px; font-size: 12px; }
+.wl-btn--ghost { background: transparent; border-color: rgba(255,255,255,.18); color: #b0c4d8; }
+.wl-btn--ghost:hover { background: rgba(255,255,255,.06); }
+
+.wl-btn--tool {
+  border-color: rgba(121, 231, 238, .35);
+  background: rgba(121, 231, 238, .06);
+  color: #d4f6ff;
+}
+
+.wl-section-title {
+  margin: 0 0 10px;
+  font: 700 13px ui-monospace, SFMono-Regular, monospace;
+  letter-spacing: .12em;
+  color: var(--cyan, #79e7ee);
+  text-transform: uppercase;
+}
+
+.wl-empty {
+  padding: 16px 12px;
+  border: 1px dashed rgba(255,255,255,.12);
+  border-radius: var(--wl-radius);
+  color: #7a8fa8;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ── 格子仓库 ────────────────────────────────────────────── */
+.wl-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--wl-grid-cols, 10), 1fr);
+  grid-template-rows:    repeat(var(--wl-grid-rows,  8), 1fr);
+  gap: 3px;
+  padding: 6px;
+  background: rgba(3, 7, 18, .72);
+  border: 1px solid rgba(121, 231, 238, .18);
+  border-radius: var(--wl-radius);
+  aspect-ratio: var(--wl-grid-cols, 10) / var(--wl-grid-rows, 8);
+  width: 100%;
+  touch-action: none;
+  user-select: none;
+}
+
+.wl-cell {
+  position: relative;
+  border-radius: 5px;
+  transition: box-shadow .1s, opacity .1s;
+}
+
+/* Empty cell */
+.wl-cell--empty {
+  background: rgba(255, 255, 255, .025);
+  border: 1px dashed rgba(255, 255, 255, .07);
+  cursor: default;
+}
+.wl-cell--dragover {
+  background: rgba(121, 231, 238, .15);
+  border-color: var(--cyan, #79e7ee);
+  box-shadow: inset 0 0 8px rgba(121, 231, 238, .25);
+}
+
+/* Item cell */
+.wl-cell--item {
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--wl-item-color, #79e7ee) 22%, rgba(12, 24, 52, .95)),
+    rgba(5, 10, 26, .95)
+  );
+  border: 1px solid color-mix(in srgb, var(--wl-item-color, #79e7ee) 45%, transparent);
+  box-shadow: 0 0 0 0 transparent;
+  cursor: grab;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  overflow: hidden;
+  padding: 3px 2px;
+}
+.wl-cell--item:hover {
+  border-color: var(--wl-item-color, #79e7ee);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--wl-item-color, #79e7ee) 50%, transparent);
+  z-index: 2;
+}
+.wl-cell--item:focus-visible {
+  outline: 2px solid var(--wl-item-color, #79e7ee);
+  outline-offset: 1px;
+  z-index: 3;
+}
+.wl-cell--selected {
+  border-color: var(--wl-item-color, #79e7ee);
+  box-shadow: 0 0 0 2px var(--wl-item-color, #79e7ee), 0 0 14px color-mix(in srgb, var(--wl-item-color, #79e7ee) 55%, transparent);
+  z-index: 3;
+}
+.wl-cell--dragging { opacity: .45; cursor: grabbing; }
+
+.wl-cell__icon {
+  font-size: clamp(10px, 2.2cqi, 22px);
+  line-height: 1;
+  filter: drop-shadow(0 0 4px var(--wl-item-color, #79e7ee));
+}
+.wl-cell__name {
+  font-size: clamp(7px, 1.1cqi, 10px);
+  font-weight: 700;
+  line-height: 1.1;
+  color: #ddeeff;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  padding: 0 2px;
+}
+.wl-cell__qty {
+  font-size: clamp(6px, 1cqi, 9px);
+  color: #8aa8c0;
+  font-weight: 900;
+}
+.wl-cell__badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 9px;
+  line-height: 1;
+}
+.wl-cell__badge--fake { color: var(--wl-fake, #ff7e8e); }
+
+/* ── 物品详情 ────────────────────────────────────────────── */
+.wl-detail {
+  padding: 18px;
+  border: 1px solid rgba(121, 231, 238, .22);
+  border-radius: var(--wl-radius);
+  background: linear-gradient(180deg, rgba(12, 22, 50, .97), rgba(5, 10, 24, .97));
+  color: #eef7ff;
+}
+
+.wl-detail__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.wl-detail__icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 13px;
+  border: 1px solid color-mix(in srgb, var(--wl-item-color, #79e7ee) 45%, transparent);
+  background: color-mix(in srgb, var(--wl-item-color, #79e7ee) 12%, rgba(4, 8, 22, .9));
+  font-size: 26px;
+  filter: drop-shadow(0 0 7px var(--wl-item-color, #79e7ee));
+}
+.wl-detail__title-wrap { min-width: 0; }
+.wl-detail__name {
+  margin: 0 0 5px;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+.wl-detail__type-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 999px;
+  background: rgba(255,255,255,.05);
+  color: #a0b8d0;
+  font-size: 11px;
+  font-weight: 700;
+}
+.wl-detail__fake-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 3px 8px;
+  border: 1px solid rgba(255, 126, 142, .4);
+  border-radius: 999px;
+  background: rgba(255, 126, 142, .1);
+  color: #ff7e8e;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.wl-detail__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  margin-bottom: 12px;
+}
+.wl-detail__stat {
+  padding: 8px 9px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--wl-radius-sm);
+  background: rgba(255,255,255,.03);
+}
+.wl-detail__stat-label {
+  display: block;
+  font-size: 10px;
+  color: #7890ab;
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+.wl-detail__stat-value {
+  display: block;
+  margin-top: 3px;
+  font-size: 13px;
+  color: #e0f0ff;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+}
+
+.wl-detail__auth {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: var(--wl-radius-sm);
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(0,0,0,.2);
+  font-size: 13px;
+}
+.wl-detail__auth-result--ok      { color: var(--green, #85edbc); }
+.wl-detail__auth-result--fake     { color: var(--red, #ff7e8e); }
+.wl-detail__auth-result--unknown  { color: #8fa8c0; }
+.wl-detail__auth-estimate         { color: #91a8c0; font-style: italic; }
+
+.wl-detail__notes {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-left: 2px solid var(--gold, #ffc867);
+  border-radius: 0 var(--wl-radius-sm) var(--wl-radius-sm) 0;
+  background: rgba(255, 200, 103, .05);
+}
+.wl-detail__notes-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  color: #c8a84a;
+  margin-bottom: 5px;
+}
+.wl-detail__notes-body {
+  margin: 0;
+  color: #b0c4d8;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.wl-detail__tools { margin-top: 4px; }
+.wl-detail__tools-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  color: #7890ab;
+  margin-bottom: 7px;
+}
+.wl-detail__tool-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.wl-detail__no-tools {
+  margin: 6px 0 0;
+  color: #5e7a92;
+  font-size: 12px;
+  font-style: italic;
+}
+
+/* ── 店铺主界面 ──────────────────────────────────────────── */
+.wl-shop {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.wl-shop__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border: 1px solid rgba(121, 231, 238, .2);
+  border-radius: var(--wl-radius);
+  background: linear-gradient(90deg, rgba(121, 231, 238, .07), rgba(187, 155, 255, .05));
+}
+.wl-shop__day {
+  font: 700 14px ui-monospace, SFMono-Regular, monospace;
+  letter-spacing: .1em;
+  color: var(--cyan, #79e7ee);
+}
+.wl-shop__cash {
+  font: 700 15px ui-monospace, SFMono-Regular, monospace;
+  color: var(--gold, #ffc867);
+}
+
+/* Events */
+.wl-shop__events { margin: 0; }
+.wl-event-list { display: flex; flex-direction: column; gap: 8px; }
+
+.wl-event-card {
+  padding: 11px 13px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: var(--wl-radius);
+  background: linear-gradient(135deg, rgba(20, 36, 72, .82), rgba(7, 13, 31, .94));
+}
+.wl-event-card[data-type="theft"]    { border-color: rgba(255, 126, 142, .35); }
+.wl-event-card[data-type="trader"]   { border-color: rgba(255, 200, 103, .3); }
+.wl-event-card[data-type="enforce"]  { border-color: rgba(121, 231, 238, .3); }
+.wl-event-card[data-type="harass"]   { border-color: rgba(255, 102, 196, .3); }
+.wl-event-card--resolved             { opacity: .55; }
+
+.wl-event-card__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.wl-event-card__hour {
+  font: 700 11px ui-monospace, SFMono-Regular, monospace;
+  color: #7890ab;
+  flex: 0 0 auto;
+}
+.wl-event-card__label {
+  font-size: 14px;
+  font-weight: 800;
+  color: #e2f2ff;
+  flex: 1;
+}
+.wl-event-card__done { color: var(--green, #85edbc); font-size: 14px; }
+.wl-event-card__desc {
+  margin: 0 0 8px;
+  color: #8fa8c0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Price table */
+.wl-shop__prices { margin: 0; }
+.wl-price-table { display: flex; flex-direction: column; gap: 4px; }
+
+.wl-price-row {
+  display: grid;
+  grid-template-columns: 1fr 70px 90px 90px;
+  gap: 6px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: var(--wl-radius-sm);
+}
+.wl-price-row--hdr {
+  background: rgba(121, 231, 238, .06);
+  border: 1px solid rgba(121, 231, 238, .14);
+}
+.wl-price-row:not(.wl-price-row--hdr) {
+  background: rgba(255, 255, 255, .025);
+  border: 1px solid rgba(255, 255, 255, .06);
+}
+.wl-price-row:not(.wl-price-row--hdr):hover {
+  background: rgba(255, 255, 255, .045);
+}
+.wl-price-cell--hdr {
+  font: 700 10px ui-monospace, SFMono-Regular, monospace;
+  letter-spacing: .1em;
+  color: #6a84a0;
+}
+.wl-price-cell--name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #d8ecff;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.wl-price-cell--type { font-size: 11px; color: #7890ab; }
+.wl-price-cell--input { display: flex; }
+
+.wl-price-input {
+  width: 100%;
+  padding: 5px 7px;
+  border: 1px solid rgba(121, 231, 238, .22);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, .3);
+  color: #e2f4ff;
+  font: inherit;
+  font-size: 13px;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  text-align: right;
+  -moz-appearance: textfield;
+}
+.wl-price-input::-webkit-inner-spin-button,
+.wl-price-input::-webkit-outer-spin-button { opacity: .5; }
+.wl-price-input:focus {
+  outline: 1px solid var(--cyan, #79e7ee);
+  outline-offset: 0;
+}
+
+/* End day button */
+.wl-shop__footer {
+  padding-top: 4px;
+  display: flex;
+  justify-content: flex-end;
+}
+.wl-btn--end-day {
+  width: 100%;
+  min-height: 46px;
+  font-size: 15px;
+  letter-spacing: .04em;
+}
+
+/* ── 集装箱拍卖 ──────────────────────────────────────────── */
+.wl-auction {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.wl-auction__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.wl-auction__kicker {
+  display: block;
+  font: 700 10px ui-monospace, SFMono-Regular, monospace;
+  letter-spacing: .18em;
+  color: var(--cyan, #79e7ee);
+  margin-bottom: 4px;
+}
+.wl-auction__name {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+.wl-auction__tier {
+  flex: 0 0 auto;
+  padding: 5px 10px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font: 700 11px ui-monospace, SFMono-Regular, monospace;
+  letter-spacing: .1em;
+  opacity: .85;
+}
+
+.wl-auction__status {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.wl-auction__stat {
+  padding: 10px 11px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: var(--wl-radius-sm);
+  background: rgba(255,255,255,.03);
+}
+.wl-auction__stat > span {
+  display: block;
+  font-size: 10px;
+  color: #7890ab;
+  font-weight: 700;
+  letter-spacing: .08em;
+  margin-bottom: 4px;
+}
+.wl-auction__stat > b {
+  display: block;
+  font: 700 16px ui-monospace, SFMono-Regular, monospace;
+  color: #e8faff;
+}
+.wl-auction__timer { color: var(--gold, #ffc867); }
+.wl-auction__timer--urgent {
+  color: var(--red, #ff7e8e);
+  animation: wlTimerPulse .8s ease-in-out infinite;
+}
+@keyframes wlTimerPulse {
+  50% { opacity: .5; }
+}
+
+/* Clues */
+.wl-auction__clues { margin: 0; }
+.wl-clue-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.wl-clue-card {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 12px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: var(--wl-radius-sm);
+  background: rgba(255,255,255,.03);
+  min-width: 0;
+}
+.wl-clue-card--revealed {
+  border-color: rgba(121, 231, 238, .28);
+  background: rgba(121, 231, 238, .05);
+}
+.wl-clue-card__icon { font-size: 18px; flex: 0 0 auto; }
+.wl-clue-card__label {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: #c8dcea;
+  line-height: 1.4;
+  word-break: break-word;
+}
+.wl-clue-card .wl-btn--sm { flex: 0 0 auto; }
+
+/* Bid area */
+.wl-auction__bid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid rgba(255, 200, 103, .22);
+  border-radius: var(--wl-radius);
+  background: rgba(255, 200, 103, .04);
+}
+.wl-auction__bid-label {
+  font: 700 11px ui-monospace, SFMono-Regular, monospace;
+  letter-spacing: .12em;
+  color: #c8a84a;
+  flex: 0 0 100%;
+}
+.wl-auction__bid-input {
+  flex: 1;
+  min-width: 120px;
+  padding: 9px 12px;
+  border: 1px solid rgba(255, 200, 103, .35);
+  border-radius: var(--wl-radius-sm);
+  background: rgba(0, 0, 0, .35);
+  color: #fff5d0;
+  font: 700 16px ui-monospace, SFMono-Regular, monospace;
+  text-align: right;
+  -moz-appearance: textfield;
+}
+.wl-auction__bid-input::-webkit-inner-spin-button,
+.wl-auction__bid-input::-webkit-outer-spin-button { opacity: .5; }
+.wl-auction__bid-input:focus {
+  outline: 1px solid var(--gold, #ffc867);
+  outline-offset: 0;
+}
+.wl-auction__bid-hint {
+  flex: 0 0 100%;
+  font-size: 11px;
+  color: #7a8fa8;
+  margin-top: -2px;
+}
+
+/* Auction result */
+.wl-auction__result {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: var(--wl-radius);
+}
+.wl-auction__result--won {
+  border: 1px solid rgba(133, 237, 188, .32);
+  background: rgba(133, 237, 188, .07);
+}
+.wl-auction__result--lost {
+  border: 1px solid rgba(255, 255, 255, .12);
+  background: rgba(255, 255, 255, .03);
+}
+.wl-auction__result-icon { font-size: 30px; flex: 0 0 auto; }
+.wl-auction__result--won .wl-auction__result-text { color: var(--green, #85edbc); }
+.wl-auction__result--lost .wl-auction__result-text { color: #8fa8c0; }
+.wl-auction__result-text { font-size: 15px; font-weight: 800; }
+
+/* ── 响应式：小屏调整 ────────────────────────────────────── */
+@media (max-width: 480px) {
+  .wl-detail__stats { grid-template-columns: repeat(2, 1fr); }
+
+  .wl-price-row {
+    grid-template-columns: 1fr 60px 76px 76px;
+    padding: 6px 8px;
+  }
+
+  .wl-auction__status { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .wl-clue-grid { grid-template-columns: 1fr; }
+
+  .wl-grid { gap: 2px; padding: 4px; }
+}
+
+@media (max-width: 360px) {
+  .wl-price-row {
+    grid-template-columns: 1fr 56px 68px 68px;
+    font-size: 12px;
+  }
+  .wl-price-input { font-size: 12px; }
+  .wl-detail__stats { grid-template-columns: 1fr 1fr; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .wl-btn,
+  .wl-cell,
+  .wl-cell--item { transition: none; }
+  .wl-auction__timer--urgent,
+  .wl-cell__icon { animation: none; }
+}
+
+/* Active grid renderer and trading controls. */
+.wl-inventory-grid { display: grid; grid-template-columns: repeat(var(--wl-cols, 10), minmax(0, 1fr)); grid-template-rows: repeat(var(--wl-rows, 8), minmax(0, 1fr)); aspect-ratio: var(--wl-cols, 10) / var(--wl-rows, 8); width: 100%; gap: 3px; padding: 4px; border: 1px solid var(--wl-rule); border-radius: 6px; background: #152634; container-type: inline-size; }
+.wl-inventory-cell { min-width: 0; min-height: 0; overflow: hidden; border: 1px solid transparent; border-radius: 3px; background: #0c1925; }
+.wl-inventory-cell--empty { background: #0c1925; }
+.wl-inventory-cell--item { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 2px; border-color: color-mix(in srgb, var(--wl-item-color) 35%, transparent); background: color-mix(in srgb, var(--wl-item-color) 8%, #0c1925); cursor: grab; }
+.wl-inventory-cell--item { transition: border-color .14s ease, background-color .14s ease, box-shadow .14s ease, transform .14s ease; }
+.wl-inventory-cell--item:hover {
+  border-color: var(--wl-item-color);
+  background: color-mix(in srgb, var(--wl-item-color) 18%, #0c1925);
+  box-shadow: 0 0 0 1px var(--wl-item-color), 0 4px 14px -4px color-mix(in srgb, var(--wl-item-color) 70%, transparent);
+  transform: translateY(-1px);
+  z-index: 2;
+}
+.wl-inventory-cell--item:focus-visible { outline: 2px solid var(--wl-accent); outline-offset: 1px; }
+@media (prefers-reduced-motion: reduce) {
+  .wl-inventory-cell--item { transition: none; }
+  .wl-inventory-cell--item:hover { transform: none; }
+}
+.wl-inventory-cell--selected { outline: 2px solid var(--wl-item-color); outline-offset: -2px; }
+.wl-inventory-cell--dragover { border-color: var(--wl-accent); background: #203e49; }
+.wl-inventory-icon { font-size: clamp(14px, 4.2cqi, 25px); line-height: 1; }
+/* 美术图标：统一走 <img>，尺寸跟着格子走。图片自带透明边距，
+   contain 保证竖构图（瓶子/酒）不会被裁掉瓶口。 */
+img.wl-inventory-icon, img.wl-offer-icon, img.wl-counter-icon, img.wl-loot-icon {
+  object-fit: contain;
+  object-position: center;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .45));
+}
+/* 图标占格子宽度的 72%，让美术真正成为主角；名称缩到下面一行小字 */
+img.wl-inventory-icon { width: 72%; height: 72%; max-width: none; margin: 0 auto; }
+img.wl-offer-icon { width: 28px; height: 28px; }
+img.wl-counter-icon { width: 100%; height: 100%; max-width: 52px; max-height: 52px; }
+img.wl-loot-icon { width: 24px; height: 24px; }
+/* 设施 / 机器 / 商旅立绘 */
+img.wl-facility-icon { width: 32px; height: 32px; flex: 0 0 auto; }
+img.wl-facility-slot-icon { width: 34px; height: 34px; }
+img.wl-machine__icon { width: 30px; height: 30px; }
+img.wl-machine-buy__icon { width: 18px; height: 18px; vertical-align: -4px; }
+.wl-visitor-portrait {
+  width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex: 0 0 auto;
+  border: 1px solid var(--wl-world-color, #557383);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--wl-world-color, #557383) 45%, transparent);
+}
+.wl-inventory-name { max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: clamp(8px, 2cqi, 11px); color: #d9e6eb; }
+.wl-inventory-quality { position: absolute; right: 3px; bottom: 3px; display: flex; gap: 2px; }
+.wl-inventory-quality i { width: 3px; height: 3px; border-radius: 50%; background: #334957; }
+.wl-inventory-quality i.filled { background: var(--wl-item-color); }
+.wl-inventory-warning { position: absolute; right: 3px; top: 2px; font-size: 10px; color: var(--wl-danger); }
+.wl-trade-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0; font-size: 14px; font-weight: 650; color: #d7e2e7; }
+.wl-trade-title > span { font-size: 11px; font-weight: 400; color: var(--wl-muted); }
+.wl-visitor-heading { padding: 22px 20px 16px; }
+.wl-visitor { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--wl-rule); }
+.wl-visitor--done { background: #0d1721; }
+.wl-visitor--done .wl-visitor-info b, .wl-visitor--done .wl-visitor-world { color: #7d92a4; }
+.wl-visitor--done .wl-visitor-budget, .wl-visitor--done .wl-visitor-status { color: #8fa3b4; }
+.wl-visitor--current { background: #1a2f3b; box-shadow: inset 3px 0 var(--wl-accent); }
+.wl-visitor-mark { flex: 0 0 36px; display: grid; place-items: center; width: 36px; height: 40px; border: 1px solid var(--wl-rule); border-radius: 6px; font-size: 20px; color: var(--wl-world-color); }
+.wl-visitor-info { flex: 1; min-width: 0; }
+.wl-visitor-info b { display: block; font-size: 13px; font-weight: 650; color: #e1e9ed; }
+.wl-visitor-world { font-size: 11px; color: var(--wl-world-color); }
+.wl-visitor-budget { display: block; margin-top: 3px; font-size: 11px; color: var(--wl-muted); line-height: 1.6; overflow-wrap: anywhere; }
+.wl-visitor-status { font-size: 11px; color: var(--wl-muted); white-space: nowrap; }
+.wl-counter-panel { display: flex; flex-direction: column; gap: 16px; padding: 22px 20px; }
+.wl-counter-empty { min-height: 180px; display: grid; place-content: center; gap: 12px; padding: 24px 16px; border: 1px dashed #334b5b; border-radius: 6px; background: #0c1925; text-align: center; }
+.wl-counter-empty > span { font-size: 28px; color: #63828e; }
+.wl-counter-empty p, .wl-counter-hint { margin: 0; font-size: 12px; color: var(--wl-muted); line-height: 1.8; }
+.wl-counter-person { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; padding-left: 12px; border-left: 2px solid var(--wl-amber); }
+.wl-counter-person b { font-size: 15px; color: #f0dfbd; }
+.wl-counter-person span { font-size: 11px; color: var(--wl-muted); }
+.wl-counter-person p { flex: 0 0 100%; font-size: 12px; color: #b0c4d1; }
+.wl-counter-slots { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
+.wl-counter-slot { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; min-width: 0; min-height: 60px; padding: 8px 3px; border: 1px dashed #334b5b; border-radius: 4px; background: #0c1925; color: #73919e; }
+.wl-counter-slot--filled { border-style: solid; border-color: #617b82; color: #e0e8ed; }
+.wl-counter-slot:hover, .wl-counter-slot--dragover { background: #1b3442; border-color: var(--wl-accent); }
+.wl-counter-slot > span { font-size: 21px; line-height: 1; }
+.wl-counter-slot small { width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 10px; text-align: center; }
+.wl-counter-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.wl-counter-offer { flex: 0 0 100%; margin-bottom: 4px; font-size: 20px; font-weight: 650; color: var(--wl-amber); font-variant-numeric: tabular-nums; }
+.wl-counter-offer small { margin-right: 12px; font-size: 12px; font-weight: 400; color: var(--wl-muted); }
+.wl-counter-footer .wl-btn--primary { flex: 1; background: #b5d5d1; color: #122c32; }
+.wl-counter-footer .wl-btn--primary:disabled { opacity: .45; cursor: default; }
+.wl-overflow-slots { font-size: 11px; color: var(--wl-muted); }
+.wl-overflow-slots summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+.wl-market-board { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.wl-market-card { display: grid; grid-template-columns: 1fr auto; gap: 6px; padding: 12px; border: 1px solid var(--wl-rule); border-radius: 5px; background: #132330; }
+.wl-market-card > span { font-size: 11px; color: var(--wl-muted); }
+.wl-market-card > b { font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; color: #dce7ed; }
+.wl-market-card > small { font-size: 10px; align-self: center; text-align: right; color: var(--wl-muted); }
+.wl-market-card--scarce { border-color: #915864; }
+.wl-market-card--scarce > small, .wl-market-card--up > small { color: var(--wl-danger); }
+.wl-market-card--down > small { color: var(--wl-good); }
+.wl-reference-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.wl-reference-table th { padding: 0 0 10px; color: var(--wl-muted); font-size: 11px; font-weight: 400; }
+.wl-reference-table td { padding: 10px 0; border-top: 1px solid var(--wl-rule); color: #c7d7e1; }
+.wl-reference-table th, .wl-reference-table td { text-align: right; font-variant-numeric: tabular-nums; }
+.wl-reference-table th:first-child, .wl-reference-table td:first-child { text-align: left; }
+.wl-reference-table td:first-child { padding-right: 10px; }
+.wl-reference-table td small { display: block; font-size: 10px; color: var(--wl-muted); }
+.wl-reference-table td:nth-child(3) { color: var(--wl-amber); }
+.wl-reference-table td:nth-child(4) { color: var(--wl-good); }
+.wl-base-layout { display: flex; flex-wrap: wrap; gap: 24px; }
+.wl-facility-panel { flex: 1; min-width: 0; max-width: 440px; }
+.wl-facility-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr)); aspect-ratio: 4 / 3; width: 100%; }
+.wl-detail-title { color: var(--wl-accent); }
+.wl-detail-content, .wl-auction-content { display: flex; flex-direction: column; gap: 12px; color: var(--wl-text); }
+.wl-detail-content b, .wl-auction-content b { color: #e8dfc9; }
+@media (max-width: 700px) {
+  .wl-visitor-heading { padding: 18px 18px 12px; }
+  .wl-visitor { padding: 12px 18px; }
+  .wl-counter-panel { padding: 18px; }
+  .wl-reference-table { font-size: 11px; }
+}
+
+.wl-event-log { display: flex; flex-direction: column; gap: 8px; }
+.wl-event { padding: 9px 11px; border: 1px solid var(--wl-rule); border-left-width: 3px; border-radius: 4px; background: #132330; }
+.wl-event--intel { border-left-color: var(--wl-accent); }
+.wl-event--market, .wl-event--auction_open { border-left-color: var(--wl-amber); }
+.wl-event--counter_sale { border-left-color: #85edbc; }
+.wl-event--feedback, .wl-event--bid_fail, .wl-event--intel_fail { border-left-color: var(--wl-danger); }
+.wl-event__head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.wl-event__head b { font-size: 12px; font-weight: 650; color: #dbe6ea; }
+.wl-event__head span { font-size: 10px; color: var(--wl-muted); }
+.wl-event__desc { margin-top: 3px !important; font-size: 11px; line-height: 1.6; color: #a9bccb; }
+
+.wl-supply { display: flex; flex-direction: column; gap: 8px; }
+.wl-supply-tag { padding: 1px 6px; border: 1px solid var(--wl-rule); border-radius: 3px; }
+.wl-supply-tag--fake { border-color: #915864; color: var(--wl-danger); }
+.wl-supply-good { color: var(--wl-good) !important; }
+.wl-supply-mid { color: var(--wl-amber) !important; }
+.wl-supply-bad { color: var(--wl-danger) !important; }
+
+.wl-over { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 24px; background: rgba(6,12,20,.86); backdrop-filter: blur(3px); }
+.wl-over[hidden] { display: none; }
+.wl-over__box { width: min(100%, 420px); padding: 28px 30px 26px; border: 1px solid var(--wl-rule); border-radius: 6px; background: #101e2c; box-shadow: 0 20px 60px #0008; }
+.wl-over__eyebrow { color: var(--wl-accent); font: 10px ui-monospace, monospace; letter-spacing: .19em; }
+.wl-over h2 { margin: 10px 0 12px; font-size: 22px; font-weight: 700; color: #f0f1e9; }
+.wl-over__body { font-size: 13px; line-height: 1.8; color: #c3d2dc; }
+.wl-over__hint { margin-top: 10px !important; font-size: 12px; line-height: 1.7; color: var(--wl-muted); }
+.wl-over .wl-btn { margin-top: 20px; width: 100%; }
+
+.wl-offer-shelf { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--wl-rule); }
+.wl-offer-shelf__title { margin-bottom: 8px; font-size: 12px; font-weight: 650; color: var(--wl-amber); }
+.wl-offer-row { display: flex; align-items: center; gap: 12px; padding: 9px 11px; border: 1px solid var(--wl-rule); border-radius: 5px; background: #132330; }
+.wl-offer-row + .wl-offer-row { margin-top: 8px; }
+.wl-offer-icon { flex: 0 0 auto; font-size: 20px; line-height: 1; }
+.wl-offer-info { flex: 1 1 auto; min-width: 0; }
+.wl-offer-info > b { display: block; font-size: 13px; font-weight: 650; color: #e1e9ed; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wl-offer-meta { display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 3px; font-size: 10px; color: var(--wl-muted); }
+.wl-offer-meta i { font-style: normal; }
+.wl-offer-prices { display: flex; gap: 14px; flex: 0 0 auto; text-align: right; }
+.wl-offer-prices small { display: block; font-size: 9px; color: var(--wl-muted); letter-spacing: .05em; }
+.wl-offer-prices b { display: block; font-size: 13px; font-weight: 700; color: #dce7ed; font-variant-numeric: tabular-nums; }
+.wl-offer-row .wl-btn { flex: 0 0 auto; }
+
+.wl-contacts { display: flex; flex-direction: column; gap: 10px; }
+.wl-contact { padding: 12px 14px; border: 1px solid var(--wl-rule); border-radius: 6px; background: #132330; }
+.wl-contact--locked { opacity: .62; }
+.wl-contact__head { display: flex; align-items: center; gap: 10px; }
+.wl-contact__icon { font-size: 22px; line-height: 1; }
+.wl-contact__head b { display: block; font-size: 13px; font-weight: 650; color: #e1e9ed; }
+.wl-contact__head small { display: block; margin-top: 2px; font-size: 10px; color: var(--wl-muted); }
+.wl-contact-order { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--wl-rule); }
+.wl-contact-order__label b { display: block; font-size: 12px; color: #cfdde6; }
+.wl-contact-order__label small { display: block; margin-top: 2px; font-size: 10px; color: var(--wl-muted); font-variant-numeric: tabular-nums; }
+.wl-contact-order .wl-btn { flex: 0 0 auto; }
+
+.wl-facility-card { padding: 9px 11px; border: 1px solid var(--wl-rule); border-radius: 5px; background: #132330; }
+.wl-facility-card + .wl-facility-card { margin-top: 8px; }
+.wl-facility-card__head { display: flex; align-items: center; gap: 8px; }
+.wl-facility-card__desc { margin-top: 6px !important; font-size: 10px; line-height: 1.6; color: var(--wl-muted); }
+.wl-facility-card__actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.wl-facility-card__max { font-size: 10px; color: var(--wl-good); }
+.wl-facility-card .wl-btn[disabled] { opacity: .45; cursor: not-allowed; }
+
+.wl-dispatch { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--wl-rule); }
+.wl-dispatch__head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.wl-dispatch__title { font-size: 13px; font-weight: 650; color: var(--wl-accent); }
+.wl-dispatch__cap { font-size: 10px; color: var(--wl-muted); }
+.wl-dispatch-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; padding: 8px 10px; border: 1px solid var(--wl-rule); border-radius: 5px; background: #132330; }
+.wl-dispatch-row__icon { font-size: 18px; }
+.wl-dispatch-row__info { flex: 1 1 auto; min-width: 0; }
+.wl-dispatch-row__info b { display: block; font-size: 12px; color: #e1e9ed; }
+.wl-dispatch-row__info small { display: block; margin-top: 2px; font-size: 10px; color: var(--wl-muted); }
+.wl-dispatch-row__status { padding: 2px 7px; border: 1px solid var(--wl-amber); border-radius: 3px; font-size: 10px; color: var(--wl-amber); }
+.wl-dispatch__picker { margin-top: 12px; }
+.wl-dispatch__label { display: block; margin-bottom: 6px; font-size: 10px; letter-spacing: .06em; color: var(--wl-muted); }
+.wl-dispatch__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.wl-chip { padding: 4px 10px; border: 1px solid var(--wl-rule); border-radius: 3px; background: transparent; color: #b9cbd8; font-family: inherit; font-size: 11px; cursor: pointer; }
+.wl-chip--on { border-color: var(--wl-accent); color: var(--wl-accent); box-shadow: 0 0 6px var(--wl-accent) 40; }
+.wl-dispatch__dests { display: flex; gap: 10px; margin-top: 12px; }
+.wl-dispatch__dest-wrap { flex: 1 1 0; text-align: center; }
+.wl-dispatch__dest { width: 100%; }
+.wl-dispatch__dest[disabled] { opacity: .45; cursor: not-allowed; }
+.wl-dispatch__dest-meta { display: block; margin-top: 4px; font-size: 9px; color: var(--wl-muted); font-variant-numeric: tabular-nums; }
+.wl-dispatch__hint { margin-top: 10px !important; font-size: 10px; line-height: 1.6; color: var(--wl-muted); }
+#wl-loot { margin-top: 20px; }
+
+/* ── 机器区与生产 ─────────────────────────────────────────── */
+.wl-machines { margin-top: 4px; }
+.wl-machines__head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.wl-machines__title { font-size: 13px; font-weight: 650; color: var(--wl-accent); }
+.wl-machines__world { font-size: 10px; color: var(--wl-muted); }
+.wl-machines__power { margin-top: 8px !important; font-size: 10px; color: var(--wl-good); }
+.wl-machines__power--off { color: var(--wl-amber); }
+.wl-machines__shop { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--wl-rule); }
+.wl-machines__shop-title { display: block; margin-bottom: 8px; font-size: 10px; letter-spacing: .06em; color: var(--wl-muted); }
+.wl-machines__running { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--wl-rule); }
+.wl-machine { margin-top: 10px; padding: 10px 12px; border: 1px solid var(--wl-rule); border-radius: 5px; background: #132330; }
+.wl-machine__head { display: flex; align-items: center; gap: 9px; }
+.wl-machine__icon { font-size: 20px; flex: 0 0 auto; }
+.wl-machine__title { flex: 1 1 auto; min-width: 0; }
+.wl-machine__title b { display: block; font-size: 12px; color: #e1e9ed; }
+.wl-machine__title small { display: block; margin-top: 2px; font-size: 10px; color: var(--wl-muted); }
+.wl-machine__busy { flex: 0 0 auto; padding: 2px 7px; border: 1px solid var(--wl-amber); border-radius: 3px; font-size: 10px; color: var(--wl-amber); }
+.wl-machine__recipes { margin-top: 9px; }
+.wl-machine__recipe { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+.wl-machine__recipe-label { flex: 1 1 auto; min-width: 0; }
+.wl-machine__recipe-label b { display: block; font-size: 11px; color: #cfdde7; }
+.wl-machine__recipe-label small { display: block; margin-top: 1px; font-size: 9px; line-height: 1.5; color: var(--wl-muted); }
+.wl-machine__recipe .wl-btn[disabled] { opacity: .45; cursor: not-allowed; }
+.wl-machine-buy { display: flex; align-items: center; gap: 10px; margin-top: 8px; padding: 8px 10px; border: 1px solid var(--wl-rule); border-radius: 5px; background: #132330; }
+.wl-machine-buy__info { flex: 1 1 auto; min-width: 0; }
+.wl-machine-buy__info b { display: block; font-size: 11px; color: #e1e9ed; }
+.wl-machine-buy__info small { display: block; margin-top: 2px; font-size: 10px; line-height: 1.5; color: var(--wl-muted); }
+.wl-machine-buy__cost { color: var(--wl-amber); font-variant-numeric: tabular-nums; }
+.wl-machine-buy .wl-btn[disabled] { opacity: .45; cursor: not-allowed; }
+.wl-machine-run { margin-top: 5px; font-size: 10px; color: var(--wl-amber); font-variant-numeric: tabular-nums; }
+
+/* ── 今日界门 ─────────────────────────────────────────────── */
+.wl-worlds { margin-top: 4px; }
+.wl-worlds__head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.wl-worlds__title { font-size: 13px; font-weight: 650; color: var(--wl-accent); }
+.wl-worlds__place { font-size: 10px; color: var(--wl-muted); }
+.wl-worlds__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; margin-top: 10px; }
+.wl-world { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 8px; border: 1px solid var(--wl-rule); border-radius: 5px; background: #132330; color: #cfdde7; font-family: inherit; cursor: pointer; text-align: center; position: relative; overflow: hidden; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+.wl-world__mark { font-size: 20px; line-height: 1; }
+/* 有场景图时：图片铺满卡片，文字压在下缘的渐变压底上。
+   开发中的世界图会调暗，和可玩的区分开。 */
+.wl-world--has-scene { padding: 0; min-height: 96px; justify-content: flex-end; }
+.wl-world__scene {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: center; z-index: 0;
+  opacity: .55; transition: opacity .15s ease, transform .25s ease;
+}
+.wl-world--has-scene .wl-world__name,
+.wl-world--has-scene .wl-world__status {
+  position: relative; z-index: 1; width: 100%;
+  padding: 2px 6px;
+  text-shadow: 0 1px 3px #000, 0 0 8px #000;
+}
+.wl-world--has-scene .wl-world__name { padding-top: 12px; background: linear-gradient(to top, rgba(9,17,26,.97), rgba(9,17,26,.88) 55%, transparent); }
+.wl-world--has-scene .wl-world__status { background: rgba(9,17,26,.97); padding-bottom: 5px; }
+/* 开发中的卡把图压得更暗、再盖一层，确保「开发中」三个字读得清 */
+.wl-world--wip.wl-world--has-scene::after {
+  content: ''; position: absolute; inset: 0; z-index: 1;
+  background: rgba(9,17,26,.55); pointer-events: none;
+}
+.wl-world--wip.wl-world--has-scene .wl-world__name,
+.wl-world--wip.wl-world--has-scene .wl-world__status { z-index: 2; }
+.wl-world--has-scene:not(.wl-world--wip):hover .wl-world__scene { opacity: .8; transform: scale(1.04); }
+.wl-world--wip.wl-world--has-scene .wl-world__scene { opacity: .2; filter: grayscale(.7); }
+.wl-world__name { font-size: 11px; }
+.wl-world__status { font-size: 9px; color: var(--wl-muted); }
+.wl-world--active { border-color: var(--wl-accent); box-shadow: 0 0 8px rgba(121, 231, 238, .25); }
+.wl-world--active .wl-world__name { color: var(--wl-accent); }
+.wl-world--wip { opacity: .45; cursor: not-allowed; }
+.wl-world--wip .wl-world__status { color: var(--wl-amber); }
+.wl-world[disabled]:not(.wl-world--wip) { cursor: default; }
+.wl-worlds__note { margin-top: 10px !important; font-size: 10px; line-height: 1.6; color: var(--wl-muted); }
+
+/* 拍卖：货箱缩略图 + 名称并排 */
+.wl-auction-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.wl-auction-crate {
+  width: 56px; height: 56px; flex: 0 0 auto;
+  border-radius: 6px; object-fit: cover;
+  border: 1px solid color-mix(in srgb, var(--wl-accent) 35%, transparent);
+  box-shadow: 0 0 12px -2px color-mix(in srgb, var(--wl-accent) 45%, transparent);
+}

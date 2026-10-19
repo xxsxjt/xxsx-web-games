@@ -909,13 +909,52 @@ img.wl-machine-buy__icon { width: 18px; height: 18px; vertical-align: -4px; }
 .wl-worlds__title { font-size: 13px; font-weight: 650; color: var(--wl-accent); }
 .wl-worlds__place { font-size: 10px; color: var(--wl-muted); }
 .wl-worlds__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; margin-top: 10px; }
-.wl-world { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 8px; border: 1px solid var(--wl-rule); border-radius: 5px; background: #132330; color: #cfdde7; font-family: inherit; cursor: pointer; text-align: center; }
+.wl-world { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 8px; border: 1px solid var(--wl-rule); border-radius: 5px; background: #132330; color: #cfdde7; font-family: inherit; cursor: pointer; text-align: center; position: relative; overflow: hidden; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
 .wl-world__mark { font-size: 20px; line-height: 1; }
+/* 有场景图时：图片铺满卡片，文字压在下缘的渐变压底上。
+   开发中的世界图会调暗，和可玩的区分开。 */
+.wl-world--has-scene { padding: 0; min-height: 96px; justify-content: flex-end; }
+.wl-world__scene {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: center; z-index: 0;
+  opacity: .55; transition: opacity .15s ease, transform .25s ease;
+}
+.wl-world--has-scene .wl-world__name,
+.wl-world--has-scene .wl-world__status {
+  position: relative; z-index: 1; width: 100%;
+  padding: 2px 6px;
+  text-shadow: 0 1px 3px #000, 0 0 8px #000;
+}
+.wl-world--has-scene .wl-world__name { padding-top: 12px; background: linear-gradient(to top, rgba(9,17,26,.97), rgba(9,17,26,.88) 55%, transparent); }
+.wl-world--has-scene .wl-world__status { background: rgba(9,17,26,.97); padding-bottom: 5px; }
+/* 开发中的卡把图压得更暗、再盖一层，确保「开发中」三个字读得清 */
+.wl-world--wip.wl-world--has-scene::after {
+  content: ''; position: absolute; inset: 0; z-index: 1;
+  background: rgba(9,17,26,.55); pointer-events: none;
+}
+.wl-world--wip.wl-world--has-scene .wl-world__name,
+.wl-world--wip.wl-world--has-scene .wl-world__status { z-index: 2; }
+.wl-world--has-scene:not(.wl-world--wip):hover .wl-world__scene { opacity: .8; transform: scale(1.04); }
+.wl-world--wip.wl-world--has-scene .wl-world__scene { opacity: .2; filter: grayscale(.7); }
 .wl-world__name { font-size: 11px; }
 .wl-world__status { font-size: 9px; color: var(--wl-muted); }
 .wl-world--active { border-color: var(--wl-accent); box-shadow: 0 0 8px rgba(121, 231, 238, .25); }
 .wl-world--active .wl-world__name { color: var(--wl-accent); }
+/* 开发中的世界：整卡调暗。有场景图时靠 ::after 盖层，
+   不再降整卡 opacity —— 否则连文字都会一起糊掉。 */
 .wl-world--wip { opacity: .45; cursor: not-allowed; }
+.wl-world--wip.wl-world--has-scene { opacity: 1; }
+.wl-world--wip.wl-world--has-scene .wl-world__name { color: #8fa3b4; }
+.wl-world--wip.wl-world--has-scene .wl-world__status { color: var(--wl-amber); }
 .wl-world--wip .wl-world__status { color: var(--wl-amber); }
 .wl-world[disabled]:not(.wl-world--wip) { cursor: default; }
 .wl-worlds__note { margin-top: 10px !important; font-size: 10px; line-height: 1.6; color: var(--wl-muted); }
+
+/* 拍卖：货箱缩略图 + 名称并排 */
+.wl-auction-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.wl-auction-crate {
+  width: 56px; height: 56px; flex: 0 0 auto;
+  border-radius: 6px; object-fit: cover;
+  border: 1px solid color-mix(in srgb, var(--wl-accent) 35%, transparent);
+  box-shadow: 0 0 12px -2px color-mix(in srgb, var(--wl-accent) 45%, transparent);
+}

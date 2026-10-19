@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-17",
+  "generatedAt": "2026-10-19",
   "model": "gpt-image-2.5-sunburst",
   "entries": [
     {
@@ -935,12 +935,12 @@
     {
       "id": "painkiller",
       "kind": "item",
-      "name": "止痛药x20片",
+      "name": "强效止痛片",
       "category": "medicine",
       "output": "assets/items/painkiller.png",
       "size": 256,
       "transparent": true,
-      "prompt": "「止痛药x20片」，医药包装，洁净感。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+      "prompt": "「强效止痛片」，医药包装，洁净感。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
     },
     {
       "id": "antibiotic",
@@ -985,12 +985,12 @@
     {
       "id": "stimulant",
       "kind": "item",
-      "name": "兴奋剂针管制",
+      "name": "兴奋剂",
       "category": "medicine",
       "output": "assets/items/stimulant.png",
       "size": 256,
       "transparent": true,
-      "prompt": "「兴奋剂针管制」，医药包装，洁净感。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+      "prompt": "「兴奋剂」，医药包装，洁净感。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
     },
     {
       "id": "morphine",
@@ -1280,7 +1280,7 @@
       "output": "assets/items/ammo_9mm.png",
       "size": 256,
       "transparent": true,
-      "prompt": "一个半满的黄铜色小口径弹药盒，盒内整齐排列着圆柱形金属弹壳，工业包装，中性玩具工艺品外观。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+      "prompt": "「9mm弹药x30」，违禁品，低调但贵。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
     },
     {
       "id": "ammo_762",
@@ -1290,7 +1290,7 @@
       "output": "assets/items/ammo_762.png",
       "size": 256,
       "transparent": true,
-      "prompt": "一个军绿色金属弹药收纳箱，箱内整齐排列着细长圆柱形金属弹壳，工业包装，中性外观。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+      "prompt": "「7.62mm弹药x20」，违禁品，低调但贵。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
     },
     {
       "id": "pistol",
@@ -1300,7 +1300,7 @@
       "output": "assets/items/pistol.png",
       "size": 256,
       "transparent": true,
-      "prompt": "一把造型简洁的工程用钉枪，枪身形似握持工具，金属与聚合物外壳，工业工具质感。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+      "prompt": "「手枪」，违禁品，低调但贵。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
     },
     {
       "id": "stun_grenade",
@@ -1601,6 +1601,496 @@
       "size": 256,
       "transparent": true,
       "prompt": "一块多孔的深色炉渣。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "spirit_wood",
+      "kind": "item",
+      "name": "灵木",
+      "category": "material",
+      "output": "assets/items/spirit_wood.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「灵木」，工业原材料，金属或矿料质感。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "black_iron",
+      "kind": "item",
+      "name": "玄铁",
+      "category": "material",
+      "output": "assets/items/black_iron.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「玄铁」，工业原材料，金属或矿料质感。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "beast_bone",
+      "kind": "item",
+      "name": "妖兽骨",
+      "category": "material",
+      "output": "assets/items/beast_bone.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「妖兽骨」，工业原材料，金属或矿料质感。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "spirit_silk",
+      "kind": "item",
+      "name": "灵蚕丝",
+      "category": "material",
+      "output": "assets/items/spirit_silk.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「灵蚕丝」，工业原材料，金属或矿料质感。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "moon_dew",
+      "kind": "item",
+      "name": "月华露",
+      "category": "material",
+      "output": "assets/items/moon_dew.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「月华露」，工业原材料，金属或矿料质感。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "thunder_stone",
+      "kind": "item",
+      "name": "雷击石",
+      "category": "material",
+      "output": "assets/items/thunder_stone.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「雷击石」，工业原材料，金属或矿料质感。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "titanium_scrap",
+      "kind": "item",
+      "name": "钛合金边角料",
+      "category": "material",
+      "output": "assets/items/titanium_scrap.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「钛合金边角料」，工业原材料，金属或矿料质感。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "rare_earth",
+      "kind": "item",
+      "name": "稀土矿粉",
+      "category": "material",
+      "output": "assets/items/rare_earth.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「稀土矿粉」，工业原材料，金属或矿料质感。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "rubber_sheet",
+      "kind": "item",
+      "name": "橡胶板",
+      "category": "material",
+      "output": "assets/items/rubber_sheet.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「橡胶板」，工业原材料，金属或矿料质感。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "glass_pane",
+      "kind": "item",
+      "name": "玻璃板",
+      "category": "material",
+      "output": "assets/items/glass_pane.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「玻璃板」，工业原材料，金属或矿料质感。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "copper_wire_coil",
+      "kind": "item",
+      "name": "铜线圈",
+      "category": "material",
+      "output": "assets/items/copper_wire_coil.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「铜线圈」，工业原材料，金属或矿料质感。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "ceramic_plate",
+      "kind": "item",
+      "name": "陶瓷片",
+      "category": "material",
+      "output": "assets/items/ceramic_plate.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「陶瓷片」，工业原材料，金属或矿料质感。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "microchip",
+      "kind": "item",
+      "name": "微处理器",
+      "category": "tech",
+      "output": "assets/items/microchip.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「微处理器」，电子元件，带发光指示。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "antenna_array",
+      "kind": "item",
+      "name": "天线阵列",
+      "category": "tech",
+      "output": "assets/items/antenna_array.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「天线阵列」，电子元件，带发光指示。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "servo_motor",
+      "kind": "item",
+      "name": "伺服电机",
+      "category": "tech",
+      "output": "assets/items/servo_motor.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「伺服电机」，电子元件，带发光指示。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "power_cell",
+      "kind": "item",
+      "name": "高能电池组",
+      "category": "tech",
+      "output": "assets/items/power_cell.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「高能电池组」，电子元件，带发光指示。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "sensor_module",
+      "kind": "item",
+      "name": "传感器模块",
+      "category": "tech",
+      "output": "assets/items/sensor_module.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「传感器模块」，电子元件，带发光指示。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "display_panel",
+      "kind": "item",
+      "name": "显示面板",
+      "category": "tech",
+      "output": "assets/items/display_panel.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「显示面板」，电子元件，带发光指示。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "relay_switch",
+      "kind": "item",
+      "name": "继电器组",
+      "category": "tech",
+      "output": "assets/items/relay_switch.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「继电器组」，电子元件，带发光指示。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "foundation_pill",
+      "kind": "item",
+      "name": "筑基丹",
+      "category": "medicine",
+      "output": "assets/items/foundation_pill.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「筑基丹」，医药包装，洁净感。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "detox_pill",
+      "kind": "item",
+      "name": "解毒丹",
+      "category": "medicine",
+      "output": "assets/items/detox_pill.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「解毒丹」，医药包装，洁净感。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "marrow_wash_pill",
+      "kind": "item",
+      "name": "淬体丹",
+      "category": "medicine",
+      "output": "assets/items/marrow_wash_pill.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「淬体丹」，医药包装，洁净感。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "blood_pill",
+      "kind": "item",
+      "name": "补血丹",
+      "category": "medicine",
+      "output": "assets/items/blood_pill.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「补血丹」，医药包装，洁净感。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "antiserum",
+      "kind": "item",
+      "name": "抗毒血清",
+      "category": "medicine",
+      "output": "assets/items/antiserum.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「抗毒血清」，医药包装，洁净感。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "spirit_sword",
+      "kind": "item",
+      "name": "灵剑",
+      "category": "equipment",
+      "output": "assets/items/spirit_sword.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「灵剑」，工具或装备，使用痕迹。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "talisman_robe",
+      "kind": "item",
+      "name": "符纹道袍",
+      "category": "equipment",
+      "output": "assets/items/talisman_robe.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「符纹道袍」，工具或装备，使用痕迹。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "storage_ring",
+      "kind": "item",
+      "name": "储物戒",
+      "category": "equipment",
+      "output": "assets/items/storage_ring.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「储物戒」，工具或装备，使用痕迹。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "spirit_lantern",
+      "kind": "item",
+      "name": "引魂灯",
+      "category": "equipment",
+      "output": "assets/items/spirit_lantern.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「引魂灯」，工具或装备，使用痕迹。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "hazmat_suit",
+      "kind": "item",
+      "name": "全套防化服",
+      "category": "equipment",
+      "output": "assets/items/hazmat_suit.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「全套防化服」，工具或装备，使用痕迹。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "welding_mask",
+      "kind": "item",
+      "name": "焊接面罩",
+      "category": "equipment",
+      "output": "assets/items/welding_mask.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「焊接面罩」，工具或装备，使用痕迹。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "toolbox",
+      "kind": "item",
+      "name": "工具箱",
+      "category": "equipment",
+      "output": "assets/items/toolbox.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「工具箱」，工具或装备，使用痕迹。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "night_vision",
+      "kind": "item",
+      "name": "夜视仪",
+      "category": "equipment",
+      "output": "assets/items/night_vision.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「夜视仪」，工具或装备，使用痕迹。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "climbing_gear",
+      "kind": "item",
+      "name": "攀爬索具",
+      "category": "equipment",
+      "output": "assets/items/climbing_gear.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「攀爬索具」，工具或装备，使用痕迹。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "spirit_rice",
+      "kind": "item",
+      "name": "灵米1kg",
+      "category": "food",
+      "output": "assets/items/spirit_rice.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「灵米1kg」，食品包装，罐头或铝箔。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "spirit_tea",
+      "kind": "item",
+      "name": "灵茶50g",
+      "category": "food",
+      "output": "assets/items/spirit_tea.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「灵茶50g」，食品包装，罐头或铝箔。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "dried_meat",
+      "kind": "item",
+      "name": "风干兽肉",
+      "category": "food",
+      "output": "assets/items/dried_meat.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「风干兽肉」，食品包装，罐头或铝箔。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "compressed_ration",
+      "kind": "item",
+      "name": "压缩口粮",
+      "category": "food",
+      "output": "assets/items/compressed_ration.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「压缩口粮」，食品包装，罐头或铝箔。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "pickled_veg",
+      "kind": "item",
+      "name": "腌菜罐",
+      "category": "food",
+      "output": "assets/items/pickled_veg.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「腌菜罐」，食品包装，罐头或铝箔。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "hydrochloric_acid",
+      "kind": "item",
+      "name": "盐酸1L",
+      "category": "chemical",
+      "output": "assets/items/hydrochloric_acid.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「盐酸1L」，工业容器，带危险品气味。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "lye_solution",
+      "kind": "item",
+      "name": "烧碱溶液1L",
+      "category": "chemical",
+      "output": "assets/items/lye_solution.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「烧碱溶液1L」，工业容器，带危险品气味。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "acetone",
+      "kind": "item",
+      "name": "丙酮500ml",
+      "category": "chemical",
+      "output": "assets/items/acetone.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「丙酮500ml」，工业容器，带危险品气味。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "hydrogen_peroxide",
+      "kind": "item",
+      "name": "双氧水500ml",
+      "category": "chemical",
+      "output": "assets/items/hydrogen_peroxide.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「双氧水500ml」，工业容器，带危险品气味。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "ammonia",
+      "kind": "item",
+      "name": "氨水1L",
+      "category": "chemical",
+      "output": "assets/items/ammonia.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「氨水1L」，工业容器，带危险品气味。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "resin_glue",
+      "kind": "item",
+      "name": "合成树脂胶",
+      "category": "chemical",
+      "output": "assets/items/resin_glue.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「合成树脂胶」，工业容器，带危险品气味。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "sect_pass",
+      "kind": "item",
+      "name": "宗门通行令",
+      "category": "misc",
+      "output": "assets/items/sect_pass.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「宗门通行令」，杂项小物件。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "beast_tamer_permit",
+      "kind": "item",
+      "name": "御兽许可",
+      "category": "misc",
+      "output": "assets/items/beast_tamer_permit.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「御兽许可」，杂项小物件。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "ancient_coin",
+      "kind": "item",
+      "name": "古币",
+      "category": "misc",
+      "output": "assets/items/ancient_coin.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「古币」，杂项小物件。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "star_chart",
+      "kind": "item",
+      "name": "星图残卷",
+      "category": "misc",
+      "output": "assets/items/star_chart.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「星图残卷」，杂项小物件。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
+    },
+    {
+      "id": "blueprint",
+      "kind": "item",
+      "name": "机械图纸",
+      "category": "misc",
+      "output": "assets/items/blueprint.png",
+      "size": 256,
+      "transparent": true,
+      "prompt": "「机械图纸」，杂项小物件。单个物体，透明背景（alpha 通道，PNG 透明，无背景板、无地面、无地面投影），居中，四周留约 12% 空白，四分之三视角，左上方柔光，青色 #79e7ee 与琥珀色 #ffc867 点缀，干净的绘画矢量风格，适配深色科幻交易题材游戏。不要任何文字、字母、标签、logo、水印、边框、画框。"
     },
     {
       "id": "junk_metal",
@@ -1980,6 +2470,78 @@
       "size": 1536,
       "transparent": false,
       "prompt": "场景：「灵霄宗门界」，一座建在云海之上的宗门坊市，飞檐木构与石阶，远处漂浮的山峰与青色灵光，空气中飘着符纸与灯笼，色调偏青紫与暖金。宽幅场景插画，无人物或无脸人物，电影感构图，景深，光雾，以深蓝 #0b1420 为底、青色 #79e7ee 与琥珀色 #ffc867 为主光，绘画质感。不要任何文字、字母、logo、水印。"
+    },
+    {
+      "id": "world_wasteland_plague",
+      "kind": "world",
+      "name": "瘟疫荒原",
+      "output": "assets/worlds/wasteland_plague.png",
+      "size": 1536,
+      "transparent": false,
+      "prompt": "场景：「瘟疫荒原」，一座被废弃的隔离集市，破败帐篷与铁皮棚，地面泥泞积水，远处雾中废墟城市，枯树与焚烧痕迹，冷绿灰黄调。宽幅场景插画，无人物或无脸人物，电影感构图，景深，光雾，以深蓝 #0b1420 为底、青色 #79e7ee 与琥珀色 #ffc867 为主光，绘画质感。不要任何文字、字母、logo、水印。"
+    },
+    {
+      "id": "world_wasteland_ai",
+      "kind": "world",
+      "name": "机械末日",
+      "output": "assets/worlds/wasteland_ai.png",
+      "size": 1536,
+      "transparent": false,
+      "prompt": "场景：「机械末日」，被失控机械占据的废墟市集，金属骨架与断壁间挂着摊位，远处巨大机械臂与红色传感器，湿润地面反射冷光。宽幅场景插画，无人物或无脸人物，电影感构图，景深，光雾，以深蓝 #0b1420 为底、青色 #79e7ee 与琥珀色 #ffc867 为主光，绘画质感。不要任何文字、字母、logo、水印。"
+    },
+    {
+      "id": "world_xianxia_mortal",
+      "kind": "world",
+      "name": "凡界集市",
+      "output": "assets/worlds/xianxia_mortal.png",
+      "size": 1536,
+      "transparent": false,
+      "prompt": "场景：「凡界集市」，热闹的古代市集，木质摊位与布棚连成长街，灯笼高挂，人流穿行，地上堆着粮袋陶器，暖黄青灰调。宽幅场景插画，无人物或无脸人物，电影感构图，景深，光雾，以深蓝 #0b1420 为底、青色 #79e7ee 与琥珀色 #ffc867 为主光，绘画质感。不要任何文字、字母、logo、水印。"
+    },
+    {
+      "id": "world_steampunk",
+      "kind": "world",
+      "name": "蒸汽帝国",
+      "output": "assets/worlds/steampunk.png",
+      "size": 1536,
+      "transparent": false,
+      "prompt": "场景：「蒸汽帝国」，蒸汽朋克工业货运站，巨大铜制管道与齿轮交错，蒸汽从阀门喷出，铁架天桥横跨，黄铜深绿调。宽幅场景插画，无人物或无脸人物，电影感构图，景深，光雾，以深蓝 #0b1420 为底、青色 #79e7ee 与琥珀色 #ffc867 为主光，绘画质感。不要任何文字、字母、logo、水印。"
+    },
+    {
+      "id": "world_cybermage",
+      "kind": "world",
+      "name": "赛博魔法城",
+      "output": "assets/worlds/cybermage.png",
+      "size": 1536,
+      "transparent": false,
+      "prompt": "场景：「赛博魔法城」，霓虹与符文交织的未来街市，全息广告墙与悬浮摊位，魔法阵与电路纹理重叠，紫粉青蓝反光，雨夜镜面反射。宽幅场景插画，无人物或无脸人物，电影感构图，景深，光雾，以深蓝 #0b1420 为底、青色 #79e7ee 与琥珀色 #ffc867 为主光，绘画质感。不要任何文字、字母、logo、水印。"
+    },
+    {
+      "id": "world_medieval",
+      "kind": "world",
+      "name": "中世纪王国",
+      "output": "assets/worlds/medieval.png",
+      "size": 1536,
+      "transparent": false,
+      "prompt": "场景：「中世纪王国」，石砌城墙下的集市广场，木制摊位与麻布棚，铁匠铺冒烟，远处教堂尖顶与城堡，暖黄昏调。宽幅场景插画，无人物或无脸人物，电影感构图，景深，光雾，以深蓝 #0b1420 为底、青色 #79e7ee 与琥珀色 #ffc867 为主光，绘画质感。不要任何文字、字母、logo、水印。"
+    },
+    {
+      "id": "world_stellar",
+      "kind": "world",
+      "name": "星际外站",
+      "output": "assets/worlds/stellar.png",
+      "size": 1536,
+      "transparent": false,
+      "prompt": "场景：「星际外站」，悬浮在深空中的轨道货运站，环形结构与观察窗，窗外星云与星环，站内摊位由金属与全息投影构成，冷蓝紫调。宽幅场景插画，无人物或无脸人物，电影感构图，景深，光雾，以深蓝 #0b1420 为底、青色 #79e7ee 与琥珀色 #ffc867 为主光，绘画质感。不要任何文字、字母、logo、水印。"
+    },
+    {
+      "id": "world_ancient_empire",
+      "kind": "world",
+      "name": "古代帝国集市",
+      "output": "assets/worlds/ancient_empire.png",
+      "size": 1536,
+      "transparent": false,
+      "prompt": "场景：「古代帝国集市」，宏伟的古代帝国商道驿站，石柱与拱廊，骆驼商队与麻布帐棚，陶罐与香料堆叠，暖褐金色调。宽幅场景插画，无人物或无脸人物，电影感构图，景深，光雾，以深蓝 #0b1420 为底、青色 #79e7ee 与琥珀色 #ffc867 为主光，绘画质感。不要任何文字、字母、logo、水印。"
     }
   ]
 }

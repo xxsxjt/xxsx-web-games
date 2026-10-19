@@ -998,8 +998,21 @@
     container.style.cssText = '';
     container.className = 'wl-auction-content';
 
-    container.appendChild(el('b', { style: 'font-size:14px;color:' + PHOSPHOR + ';' },
-      esc(s.containerName || '未知集装箱')));
+    // 漂流货箱缩略图：让拍卖看起来像一件具体的东西，而不是一行字。
+    // 图是深底带发光描边的，不需要抠，直接当卡片用。
+    var crate = (window.WL_ART && window.WL_ART['ui_auction_crate']) || '';
+    if (crate) {
+      var crateHead = el('div', {class:'wl-auction-head'});
+      var crateImg = el('img', {class:'wl-auction-crate', src:crate, alt:'', 'aria-hidden':'true', loading:'lazy'});
+      crateImg.addEventListener('error', function () { if (crateImg.parentNode) crateImg.parentNode.removeChild(crateImg); });
+      crateHead.appendChild(crateImg);
+      crateHead.appendChild(el('b', { style: 'font-size:14px;color:' + PHOSPHOR + ';' },
+        esc(s.containerName || '未知集装箱')));
+      container.appendChild(crateHead);
+    } else {
+      container.appendChild(el('b', { style: 'font-size:14px;color:' + PHOSPHOR + ';' },
+        esc(s.containerName || '未知集装箱')));
+    }
 
     var statusBar = el('div', { style: 'display:flex;flex-wrap:wrap;gap:8px 12px;font-size:12px;color:' + AMBER + ';' });
     statusBar.appendChild(el('span', {}, '最高价: ' + (s.currentBid != null ? s.currentBid.toLocaleString() + ' ¤' : '—')));
@@ -1187,7 +1200,20 @@
         class: 'wl-world' + (active ? ' wl-world--active' : '') + (playable ? '' : ' wl-world--wip'),
         'aria-pressed': active ? 'true' : 'false',
       });
-      card.appendChild(el('span', {class:'wl-world__mark','aria-hidden':'true'}, w.mark || '◇'));
+      // 场景缩略图：有图就把卡片做成一张小风景，没图退回原来的符号。
+      // 开发中的世界也有图——玩家能看见规划，比一排灰框有说服力。
+      var scene = (window.WL_ART && window.WL_ART['world_' + w.id]) || '';
+      if (scene) {
+        var thumb = el('img', {class:'wl-world__scene', src:scene, alt:'', 'aria-hidden':'true', loading:'lazy', decoding:'async'});
+        thumb.addEventListener('error', function () {
+          if (thumb.parentNode) thumb.parentNode.removeChild(thumb);
+          card.classList.remove('wl-world--has-scene');
+        });
+        card.classList.add('wl-world--has-scene');
+        card.appendChild(thumb);
+      } else {
+        card.appendChild(el('span', {class:'wl-world__mark','aria-hidden':'true'}, w.mark || '◇'));
+      }
       card.appendChild(el('b', {class:'wl-world__name'}, esc(w.name)));
       card.appendChild(el('small', {class:'wl-world__status'},
         !playable ? '开发中' : (active ? '今天在这里' : '可转场')));

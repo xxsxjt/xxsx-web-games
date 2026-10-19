@@ -30,6 +30,8 @@ const SOURCES = [
   {dir: 'assets/portraits', key: name => 'npc_' + name.replace(/\.png$/i, '')},
   // 世界背景：<worldId>.png → world_<worldId>
   {dir: 'assets/worlds', key: name => 'world_' + name.replace(/\.png$/i, '')},
+  // UI 部件：<name>.png → ui_<name>
+  {dir: 'assets/ui', key: name => 'ui_' + name.replace(/\.png$/i, '').replace(/-/g, '_')},
 ];
 
 const art = {};

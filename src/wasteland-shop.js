@@ -624,7 +624,10 @@
   var DISPATCH_TIERS = {
     suburb:   { key: 'suburb',   label: '近郊',     fee: 6,   days: 1, emptyHanded: 0.12 },
     midrange: { key: 'midrange', label: '中距离',   fee: 40,  days: 3, emptyHanded: 0.25 },
-    deepzone: { key: 'deepzone', label: '深入禁区', fee: 240, days: 7, emptyHanded: 0.35 }
+    deepzone: { key: 'deepzone', label: '深入禁区', fee: 240, days: 7, emptyHanded: 0.35 },
+    // 宗门界专属：废土的派遣队进不去。单品价值高（¤420–1500），
+    // 但空手率也最高——那里真正值钱的东西本来就不多。
+    sect_ruins: { key: 'sect_ruins', label: '宗门遗迹', fee: 180, days: 5, emptyHanded: 0.3, world: 'xianxia_sect' }
   };
   var DISPATCH_EMPTY_FLOOR = 0.05;   // 空手概率下限
   var DISPATCH_POWER_RELIEF = 0.04;  // 每级在线电力降低 4 个百分点
@@ -650,6 +653,13 @@
     _lockWorld();
     var tier = DISPATCH_TIERS[destination];
     if (!tier) return;
+    // UI 已经过滤过，但这里也要挡一道：绕过 UI 直接调用的路径不该能跨世界派队
+    if (tier.world && tier.world !== _currentWorld()) {
+      state.todayEvents.push(_makeEvent('dispatch_fail', '这里派不出去',
+        tier.label + ' 只在' + _worldLabel(tier.world) + '开放，今天店里不在那一界。'));
+      render();
+      return;
+    }
 
     // 先校验再扣钱：任何一项不满足都直接返回，不碰 state.gold
     if (_inFlightCount() >= _dispatchCap()) {
@@ -2192,9 +2202,16 @@
     // 派遣
     var dispatchEl = document.getElementById('wl-dispatch');
     if (dispatchEl && UI.renderDispatchPanel) {
+      // 目的地按世界过滤：废土的队进不了宗门遗迹，反之亦然。
+      // 没有 world 字段的档位（近郊/中距离/深入禁区）是通用的。
+      var usableTiers = {};
+      Object.keys(DISPATCH_TIERS).forEach(function (k) {
+        var t = DISPATCH_TIERS[k];
+        if (!t.world || t.world === _currentWorld()) usableTiers[k] = t;
+      });
       UI.renderDispatchPanel(dispatchEl, {
         dispatches:    state.dispatches || [],
-        tiers:         DISPATCH_TIERS,
+        tiers:         usableTiers,
         cap:           _dispatchCap(),
         inFlight:      _inFlightCount(),
         gold:          state.gold,

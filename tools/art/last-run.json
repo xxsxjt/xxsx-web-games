@@ -1,67 +1,29 @@
 {
-  "finishedAt": "2026-10-19T00:52:01.823Z",
+  "finishedAt": "2026-10-19T05:40:44.290Z",
   "tally": {
-    "ok": 3,
+    "ok": 1,
     "skipped": 0,
     "failed": 0
   },
   "failures": [],
   "results": [
     {
-      "id": "ammo_9mm",
+      "id": "blueprint",
       "status": "ok",
-      "secs": 31.9,
-      "bytes": 1163482,
+      "secs": 140.5,
+      "bytes": 1072420,
       "usage": {
         "completion_tokens": 2058,
         "completion_tokens_details": {
           "image_tokens": 2058,
           "text_tokens": 0
         },
-        "prompt_tokens": 157,
+        "prompt_tokens": 127,
         "prompt_tokens_details": {
           "image_tokens": 0,
-          "text_tokens": 157
+          "text_tokens": 127
         },
-        "total_tokens": 2215
-      }
-    },
-    {
-      "id": "ammo_762",
-      "status": "ok",
-      "secs": 32.3,
-      "bytes": 1561643,
-      "usage": {
-        "completion_tokens": 2058,
-        "completion_tokens_details": {
-          "image_tokens": 2058,
-          "text_tokens": 0
-        },
-        "prompt_tokens": 151,
-        "prompt_tokens_details": {
-          "image_tokens": 0,
-          "text_tokens": 151
-        },
-        "total_tokens": 2209
-      }
-    },
-    {
-      "id": "pistol",
-      "status": "ok",
-      "secs": 35.8,
-      "bytes": 1182489,
-      "usage": {
-        "completion_tokens": 2058,
-        "completion_tokens_details": {
-          "image_tokens": 2058,
-          "text_tokens": 0
-        },
-        "prompt_tokens": 152,
-        "prompt_tokens_details": {
-          "image_tokens": 0,
-          "text_tokens": 152
-        },
-        "total_tokens": 2210
+        "total_tokens": 2185
       }
     }
   ]

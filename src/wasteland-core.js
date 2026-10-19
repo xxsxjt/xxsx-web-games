@@ -197,6 +197,74 @@
     radio_station:       {name:'自制电台',             category:'tech',     subtype:'radio',   basePrice:320, w:1,h:2,puritySystem:false,expiryDays:null, icon:'📻',tags:['tech','communication','craft']},
     burnt_board:         {name:'烧毁电路',             category:'tech',     subtype:'junk',    basePrice:12,  w:1,h:1,puritySystem:false,expiryDays:null, icon:'🔥',tags:['tech','junk']},
     slag:                {name:'炉渣',                 category:'misc',     subtype:'junk',    basePrice:6,   w:1,h:1,puritySystem:false,expiryDays:null, icon:'🪨',tags:['junk','metal']},
+
+    /* ══ 扩展包 A · 宗门材料（喂给丹炉与符箓台） ══════════════ */
+    spirit_wood:         {name:'灵木',                 category:'material', subtype:'wood',    basePrice:65,  w:1,h:1,puritySystem:false,expiryDays:null, icon:'🎋',tags:['material','xianxia','wood']},
+    black_iron:          {name:'玄铁',                 category:'material', subtype:'ore',     basePrice:180, w:1,h:1,puritySystem:false,expiryDays:null, icon:'⬛',tags:['material','xianxia','ore','rare']},
+    beast_bone:          {name:'妖兽骨',               category:'material', subtype:'bone',    basePrice:95,  w:1,h:1,puritySystem:false,expiryDays:null, icon:'🦴',tags:['material','xianxia','bone']},
+    spirit_silk:         {name:'灵蚕丝',               category:'material', subtype:'cloth',   basePrice:140, w:1,h:1,puritySystem:false,expiryDays:null, icon:'🧵',tags:['material','xianxia','cloth']},
+    moon_dew:            {name:'月华露',               category:'material', subtype:'essence', basePrice:120, w:1,h:1,puritySystem:false,expiryDays:120,  icon:'💧',tags:['material','xianxia','essence','alchemy']},
+    thunder_stone:       {name:'雷击石',               category:'material', subtype:'ore',     basePrice:210, w:1,h:1,puritySystem:false,expiryDays:null, icon:'⚡',tags:['material','xianxia','ore','hot']},
+
+    /* ══ 扩展包 B · 废土稀有材料 ══════════════════════════════ */
+    titanium_scrap:      {name:'钛合金边角料',         category:'material', subtype:'metal',   basePrice:85,  w:1,h:1,puritySystem:false,expiryDays:null, icon:'⚙️',tags:['material','metal','alloy']},
+    rare_earth:          {name:'稀土矿粉',             category:'material', subtype:'ore',     basePrice:130, w:1,h:1,puritySystem:false,expiryDays:null, icon:'🪙',tags:['material','ore','rare']},
+    rubber_sheet:        {name:'橡胶板',               category:'material', subtype:'rubber',  basePrice:28,  w:1,h:1,puritySystem:false,expiryDays:null, icon:'⬜',tags:['material','rubber']},
+    glass_pane:          {name:'玻璃板',               category:'material', subtype:'glass',   basePrice:22,  w:1,h:2,puritySystem:false,expiryDays:null, icon:'🪟',tags:['material','glass']},
+    copper_wire_coil:    {name:'铜线圈',               category:'material', subtype:'metal',   basePrice:55,  w:1,h:1,puritySystem:false,expiryDays:null, icon:'🧲',tags:['material','metal','electric']},
+    ceramic_plate:       {name:'陶瓷片',               category:'material', subtype:'ceramic', basePrice:38,  w:1,h:1,puritySystem:false,expiryDays:null, icon:'🍽️',tags:['material','ceramic']},
+
+    /* ══ 扩展包 C · 高阶电子 ══════════════════════════════════ */
+    microchip:           {name:'微处理器',             category:'tech',     subtype:'chip',    basePrice:260, w:1,h:1,puritySystem:false,expiryDays:null, icon:'💠',tags:['tech','chip','electronics']},
+    antenna_array:       {name:'天线阵列',             category:'tech',     subtype:'antenna', basePrice:150, w:1,h:1,puritySystem:false,expiryDays:null, icon:'📡',tags:['tech','communication','radio']},
+    servo_motor:         {name:'伺服电机',             category:'tech',     subtype:'motor',   basePrice:190, w:1,h:1,puritySystem:false,expiryDays:null, icon:'🌀',tags:['tech','motor','mechanical']},
+    power_cell:          {name:'高能电池组',           category:'tech',     subtype:'battery', basePrice:220, w:1,h:1,puritySystem:false,expiryDays:null, icon:'🔋',tags:['tech','battery','power']},
+    sensor_module:       {name:'传感器模块',           category:'tech',     subtype:'sensor',  basePrice:165, w:1,h:1,puritySystem:false,expiryDays:null, icon:'📶',tags:['tech','sensor','electronics']},
+    display_panel:       {name:'显示面板',             category:'tech',     subtype:'display', basePrice:140, w:1,h:2,puritySystem:false,expiryDays:null, icon:'🖥️',tags:['tech','display','electronics']},
+    relay_switch:        {name:'继电器组',             category:'tech',     subtype:'relay',   basePrice:75,  w:1,h:1,puritySystem:false,expiryDays:null, icon:'🔌',tags:['tech','relay','electric']},
+
+    /* ══ 扩展包 D · 宗门丹药与医药 ════════════════════════════ */
+    foundation_pill:     {name:'筑基丹',               category:'medicine', subtype:'pill',    basePrice:900, w:1,h:1,puritySystem:false,expiryDays:null, icon:'🟣',tags:['medicine','xianxia','pill','rare']},
+    detox_pill:          {name:'解毒丹',               category:'medicine', subtype:'pill',    basePrice:280, w:1,h:1,puritySystem:false,expiryDays:null, icon:'🟢',tags:['medicine','xianxia','pill','antidote']},
+    marrow_wash_pill:    {name:'淬体丹',               category:'medicine', subtype:'pill',    basePrice:600, w:1,h:1,puritySystem:false,expiryDays:null, icon:'🔵',tags:['medicine','xianxia','pill','rare']},
+    blood_pill:          {name:'补血丹',               category:'medicine', subtype:'pill',    basePrice:190, w:1,h:1,puritySystem:false,expiryDays:null, icon:'🔴',tags:['medicine','xianxia','pill','healing']},
+    antiserum:           {name:'抗毒血清',             category:'medicine', subtype:'injectable',basePrice:320,w:1,h:1,puritySystem:false,expiryDays:180, icon:'💉',tags:['medicine','injectable','antidote']},
+    painkiller:          {name:'强效止痛片',           category:'medicine', subtype:'pill',    basePrice:85,  w:1,h:1,puritySystem:false,expiryDays:365,  icon:'⚪',tags:['medicine','pill','pain']},
+    stimulant:           {name:'兴奋剂',               category:'medicine', subtype:'injectable',basePrice:140,w:1,h:1,puritySystem:false,expiryDays:240,icon:'💊',tags:['medicine','injectable','stimulant']},
+
+    /* ══ 扩展包 E · 装备与法器 ════════════════════════════════ */
+    spirit_sword:        {name:'灵剑',                 category:'equipment',subtype:'weapon',  basePrice:1100,w:1,h:2,puritySystem:false,expiryDays:null, icon:'🗡️',tags:['equipment','weapon','xianxia','rare']},
+    talisman_robe:       {name:'符纹道袍',             category:'equipment',subtype:'armor',   basePrice:680, w:1,h:2,puritySystem:false,expiryDays:null, icon:'🥋',tags:['equipment','armor','xianxia']},
+    storage_ring:        {name:'储物戒',               category:'equipment',subtype:'accessory',basePrice:1500,w:1,h:1,puritySystem:false,expiryDays:null, icon:'💍',tags:['equipment','accessory','xianxia','rare']},
+    spirit_lantern:      {name:'引魂灯',               category:'equipment',subtype:'tool',    basePrice:420, w:1,h:1,puritySystem:false,expiryDays:null, icon:'🏮',tags:['equipment','tool','xianxia']},
+    hazmat_suit:         {name:'全套防化服',           category:'equipment',subtype:'armor',   basePrice:520, w:1,h:2,puritySystem:false,expiryDays:null, icon:'🥼',tags:['equipment','armor','survival']},
+    welding_mask:        {name:'焊接面罩',             category:'equipment',subtype:'tool',    basePrice:95,  w:1,h:1,puritySystem:false,expiryDays:null, icon:'🪖',tags:['equipment','tool','repair']},
+    toolbox:             {name:'工具箱',               category:'equipment',subtype:'tool',    basePrice:180, w:1,h:1,puritySystem:false,expiryDays:null, icon:'🧰',tags:['equipment','tool','repair']},
+    night_vision:        {name:'夜视仪',               category:'equipment',subtype:'gadget',  basePrice:460, w:1,h:1,puritySystem:false,expiryDays:null, icon:'🌙',tags:['equipment','gadget','optics']},
+    climbing_gear:       {name:'攀爬索具',             category:'equipment',subtype:'tool',    basePrice:130, w:1,h:1,puritySystem:false,expiryDays:null, icon:'🪜',tags:['equipment','tool','survival']},
+
+    /* ══ 扩展包 F · 宗门灵食与废土干粮 ════════════════════════ */
+    spirit_rice:         {name:'灵米1kg',              category:'food',     subtype:'grain',   basePrice:75,  w:1,h:1,puritySystem:false,expiryDays:365,  icon:'🍚',tags:['food','xianxia','grain']},
+    spirit_tea:          {name:'灵茶50g',              category:'food',     subtype:'drink',   basePrice:110, w:1,h:1,puritySystem:false,expiryDays:540,  icon:'🍵',tags:['food','xianxia','drink','luxury']},
+    dried_meat:          {name:'风干兽肉',             category:'food',     subtype:'meat',    basePrice:90,  w:1,h:1,puritySystem:false,expiryDays:400,  icon:'🥓',tags:['food','xianxia','meat']},
+    compressed_ration:   {name:'压缩口粮',             category:'food',     subtype:'ration',  basePrice:35,  w:1,h:1,puritySystem:false,expiryDays:1800, icon:'🍫',tags:['food','ration','survival']},
+    pickled_veg:         {name:'腌菜罐',               category:'food',     subtype:'preserve',basePrice:18,  w:1,h:1,puritySystem:false,expiryDays:900,  icon:'🫙',tags:['food','preserve']},
+
+    /* ══ 扩展包 G · 化学品完整链 ══════════════════════════════ */
+    hydrochloric_acid:   {name:'盐酸1L',               category:'chemical', subtype:'acid',    basePrice:42,  w:1,h:1,puritySystem:true, expiryDays:null, icon:'🧪',tags:['chemical','acid','industrial']},
+    lye_solution:        {name:'烧碱溶液1L',           category:'chemical', subtype:'base',    basePrice:38,  w:1,h:1,puritySystem:true, expiryDays:null, icon:'🧼',tags:['chemical','base','industrial']},
+    acetone:             {name:'丙酮500ml',            category:'chemical', subtype:'solvent', basePrice:48,  w:1,h:1,puritySystem:true, expiryDays:null, icon:'💨',tags:['chemical','solvent','industrial']},
+    hydrogen_peroxide:   {name:'双氧水500ml',          category:'chemical', subtype:'oxidizer',basePrice:36,  w:1,h:1,puritySystem:true, expiryDays:365,  icon:'🫧',tags:['chemical','oxidizer','medical']},
+    ammonia:             {name:'氨水1L',               category:'chemical', subtype:'base',    basePrice:40,  w:1,h:1,puritySystem:true, expiryDays:null, icon:'🧴',tags:['chemical','base','industrial']},
+    resin_glue:          {name:'合成树脂胶',           category:'chemical', subtype:'adhesive',basePrice:58,  w:1,h:1,puritySystem:false,expiryDays:720,  icon:'🩹',tags:['chemical','adhesive','craft']},
+
+    /* ══ 扩展包 H · 杂项与凭证 ════════════════════════════════ */
+    sect_pass:           {name:'宗门通行令',           category:'misc',     subtype:'token',   basePrice:280, w:1,h:1,puritySystem:false,expiryDays:null, icon:'🎫',tags:['misc','xianxia','token','document']},
+    beast_tamer_permit:  {name:'御兽许可',             category:'misc',     subtype:'document',basePrice:340, w:1,h:1,puritySystem:false,expiryDays:null, icon:'📜',tags:['misc','xianxia','document','rare']},
+    ancient_coin:        {name:'古币',                 category:'misc',     subtype:'currency',basePrice:200, w:1,h:1,puritySystem:false,expiryDays:null, icon:'🪙',tags:['misc','currency','collectible']},
+    star_chart:          {name:'星图残卷',             category:'misc',     subtype:'document',basePrice:180, w:1,h:1,puritySystem:false,expiryDays:null, icon:'🌌',tags:['misc','document','navigation']},
+    blueprint:           {name:'机械图纸',             category:'misc',     subtype:'document',basePrice:260, w:1,h:1,puritySystem:false,expiryDays:null, icon:'📐',tags:['misc','document','craft','recipe']},
+
     /* ── 杂项 ── */
     junk_metal:          {name:'废铁500g',             category:'misc',     subtype:'junk',     basePrice:4,   w:1,h:1,puritySystem:false,expiryDays:null, icon:'🗑️',tags:['junk','metal']},
     junk_plastic:        {name:'废塑料',               category:'misc',     subtype:'junk',     basePrice:3,   w:1,h:1,puritySystem:false,expiryDays:null, icon:'🗑️',tags:['junk','plastic']},
@@ -418,8 +486,15 @@
       // signal_jammer 是唯一没法靠商旅带上门的货（¤350 超过访客带货上限），
       // 所以它的入口只能在这里：一台被遗弃在禁区里的干扰器。
       // 240 的补给费加 7 天往返，换来它也不算白送。
-      skus:['water_distilled_500','canned_meat','iron_ingot_5kg','circuit_board','antibiotic','surgical_kit','first_aid_kit','voltage_meter','radio_module','fuel_jerrycan_5l','geiger','antidote','ammo_9mm','stolen_goods','recipe_card','map_fragment','signal_jammer','ammo_762','stun_grenade'],
+      skus:['water_distilled_500','canned_meat','iron_ingot_5kg','circuit_board','antibiotic','surgical_kit','first_aid_kit','voltage_meter','radio_module','fuel_jerrycan_5l','geiger','antidote','ammo_9mm','stolen_goods','recipe_card','map_fragment','signal_jammer','ammo_762','stun_grenade','hazmat_suit','night_vision','toolbox'],
       count:[2,5],qualityRange:[2,5]
+    },
+    sect_ruins:{
+      // 宗门界的派遣目的地。高阶法器与丹材单价高（¤420–1500），
+      // 商旅带货上限（900）收不下，只能靠进遗迹去捡。
+      // 也正因为难拿，它们才撑得起宗门线的高端交易。
+      skus:['spirit_sword','storage_ring','spirit_lantern','talisman_robe','formation_disc','jade_gourd','black_iron','beast_bone','thunder_stone','spirit_silk','moon_dew','spirit_wood','foundation_pill','marrow_wash_pill','sect_pass','beast_tamer_permit','ancient_coin','star_chart','spirit_tea','dried_meat'],
+      count:[1,3],qualityRange:[3,5]
     }
   };
 
