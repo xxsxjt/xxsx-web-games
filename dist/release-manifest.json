@@ -1,5 +1,5 @@
 {
-  "version": "V56",
+  "version": "V62",
   "files": {
     "assets/enemy-atlas-v3.png": {
       "path": "assets/enemy-atlas-v3.6b1b37b39a1e.png",
@@ -50,6 +50,13 @@
       "bytes": 175562,
       "gzipBytes": 175635
     },
+    "assets/dimensional-market-hall.svg": {
+      "path": "assets/dimensional-market-hall.8d08fa080311.svg",
+      "sourceSha256": "8d08fa080311fa85d5bae3c5569d4633fe07ef1d9de956953b94cd5a20a40ad3",
+      "sha256": "8d08fa080311fa85d5bae3c5569d4633fe07ef1d9de956953b94cd5a20a40ad3",
+      "bytes": 6818,
+      "gzipBytes": 2348
+    },
     "assets/icons/expedition-v1.webp": {
       "path": "assets/icons/expedition-v1.7b2e72347f0e.webp",
       "sourceSha256": "7b2e72347f0eb25bd0ec8a7db1c99526ba3091dbd16f722c6884b1f13cdac8d6",
@@ -99,12 +106,1426 @@
       "bytes": 1058,
       "gzipBytes": 604
     },
+    "assets/icons/dimensional-trading-post.svg": {
+      "path": "assets/icons/dimensional-trading-post.c705f6686e88.svg",
+      "sourceSha256": "c705f6686e8822cf24a40f50546690891140da145a5ca6562eca08b6fa6d1f63",
+      "sha256": "c705f6686e8822cf24a40f50546690891140da145a5ca6562eca08b6fa6d1f63",
+      "bytes": 1365,
+      "gzipBytes": 710
+    },
+    "assets/items/acid_1l.png": {
+      "path": "assets/items/acid_1l.5755ae88fc76.png",
+      "sourceSha256": "5755ae88fc76108dc5a502cd6b74fa8a52a2ca7015105ae1cd5d5fa69781cf09",
+      "sha256": "5755ae88fc76108dc5a502cd6b74fa8a52a2ca7015105ae1cd5d5fa69781cf09",
+      "bytes": 45071,
+      "gzipBytes": 44948
+    },
+    "assets/items/aluminum_sheet.png": {
+      "path": "assets/items/aluminum_sheet.6f1053c4818f.png",
+      "sourceSha256": "6f1053c4818f53d0fffadae99a43488ac274274684b289fac972a2da62f2189d",
+      "sha256": "6f1053c4818f53d0fffadae99a43488ac274274684b289fac972a2da62f2189d",
+      "bytes": 48147,
+      "gzipBytes": 47875
+    },
+    "assets/items/ammo_762.png": {
+      "path": "assets/items/ammo_762.324acf967433.png",
+      "sourceSha256": "324acf967433df478ee56154031ac40e37aef74ef28f8449f25e426ccdbdb7d3",
+      "sha256": "324acf967433df478ee56154031ac40e37aef74ef28f8449f25e426ccdbdb7d3",
+      "bytes": 85062,
+      "gzipBytes": 85073
+    },
+    "assets/items/ammo_9mm.png": {
+      "path": "assets/items/ammo_9mm.3d6f91593245.png",
+      "sourceSha256": "3d6f9159324539ae1b6f3ea0eff639c461fdc9f61339109562805ebec386bd91",
+      "sha256": "3d6f9159324539ae1b6f3ea0eff639c461fdc9f61339109562805ebec386bd91",
+      "bytes": 65609,
+      "gzipBytes": 65482
+    },
+    "assets/items/antenna.png": {
+      "path": "assets/items/antenna.240653a96bde.png",
+      "sourceSha256": "240653a96bde8471d3b505fb5504905d4a8962858784f041d2fa5eb8167feb78",
+      "sha256": "240653a96bde8471d3b505fb5504905d4a8962858784f041d2fa5eb8167feb78",
+      "bytes": 41629,
+      "gzipBytes": 41540
+    },
+    "assets/items/antibiotic.png": {
+      "path": "assets/items/antibiotic.50be0d676cb7.png",
+      "sourceSha256": "50be0d676cb7e4d80d2740d1707f4b28e6d0d474410b39e83dfb64bebf414b7f",
+      "sha256": "50be0d676cb7e4d80d2740d1707f4b28e6d0d474410b39e83dfb64bebf414b7f",
+      "bytes": 67251,
+      "gzipBytes": 67104
+    },
+    "assets/items/antidote.png": {
+      "path": "assets/items/antidote.70a1e2bd0195.png",
+      "sourceSha256": "70a1e2bd019512f3c0a4f7b623c9bf46b80c014c47abca5c9e83dc05ef22eecc",
+      "sha256": "70a1e2bd019512f3c0a4f7b623c9bf46b80c014c47abca5c9e83dc05ef22eecc",
+      "bytes": 41827,
+      "gzipBytes": 41683
+    },
+    "assets/items/antiseptic_100.png": {
+      "path": "assets/items/antiseptic_100.d640743737ab.png",
+      "sourceSha256": "d640743737abb1317094efc748c461d1615313afd890fe97c6e0b8fcc3c65023",
+      "sha256": "d640743737abb1317094efc748c461d1615313afd890fe97c6e0b8fcc3c65023",
+      "bytes": 34650,
+      "gzipBytes": 34470
+    },
+    "assets/items/axe.png": {
+      "path": "assets/items/axe.440d83731fc5.png",
+      "sourceSha256": "440d83731fc5e4ab405deaace76db99f4aaf994b08ce91de2dae23781ac238d9",
+      "sha256": "440d83731fc5e4ab405deaace76db99f4aaf994b08ce91de2dae23781ac238d9",
+      "bytes": 57281,
+      "gzipBytes": 57319
+    },
+    "assets/items/balance_scale.png": {
+      "path": "assets/items/balance_scale.3669d6293cd6.png",
+      "sourceSha256": "3669d6293cd673e9c44a6e89ab1bbdce283b02805b006cc6116b324c416666e4",
+      "sha256": "3669d6293cd673e9c44a6e89ab1bbdce283b02805b006cc6116b324c416666e4",
+      "bytes": 72160,
+      "gzipBytes": 72203
+    },
+    "assets/items/bandage_roll.png": {
+      "path": "assets/items/bandage_roll.679410171cc4.png",
+      "sourceSha256": "679410171cc44e2ed6de2dfe17a00aeb7fb3d7db32a20a649c22fbcd2e08457e",
+      "sha256": "679410171cc44e2ed6de2dfe17a00aeb7fb3d7db32a20a649c22fbcd2e08457e",
+      "bytes": 76092,
+      "gzipBytes": 75989
+    },
+    "assets/items/battery_aa.png": {
+      "path": "assets/items/battery_aa.a5ac01f0cd64.png",
+      "sourceSha256": "a5ac01f0cd64a616e86dfdd266e49a40a0482ef50469d3d0011fa0d2f8db77c0",
+      "sha256": "a5ac01f0cd64a616e86dfdd266e49a40a0482ef50469d3d0011fa0d2f8db77c0",
+      "bytes": 61066,
+      "gzipBytes": 60942
+    },
+    "assets/items/battery_flat.png": {
+      "path": "assets/items/battery_flat.d4d888a71e4a.png",
+      "sourceSha256": "d4d888a71e4a1f4e70589441d13edb6493f2808de1a2009e13a2236456aca280",
+      "sha256": "d4d888a71e4a1f4e70589441d13edb6493f2808de1a2009e13a2236456aca280",
+      "bytes": 58430,
+      "gzipBytes": 58221
+    },
+    "assets/items/battery_large.png": {
+      "path": "assets/items/battery_large.7d902c5e3cea.png",
+      "sourceSha256": "7d902c5e3ceaab1784219d01d2bb2acb320829f301856eec503234b9c271b850",
+      "sha256": "7d902c5e3ceaab1784219d01d2bb2acb320829f301856eec503234b9c271b850",
+      "bytes": 58461,
+      "gzipBytes": 58428
+    },
+    "assets/items/bearing_pack.png": {
+      "path": "assets/items/bearing_pack.355d4b641ed7.png",
+      "sourceSha256": "355d4b641ed74e6f7a8cbcdcaaf3f9ffeea8f95f1ed79ed3c6ac352ac487bc1b",
+      "sha256": "355d4b641ed74e6f7a8cbcdcaaf3f9ffeea8f95f1ed79ed3c6ac352ac487bc1b",
+      "bytes": 91063,
+      "gzipBytes": 90989
+    },
+    "assets/items/beast_core.png": {
+      "path": "assets/items/beast_core.03339139c909.png",
+      "sourceSha256": "03339139c909f3067de2ded35cc4b34e8754719cf862e630d2c74f1dd1b1964a",
+      "sha256": "03339139c909f3067de2ded35cc4b34e8754719cf862e630d2c74f1dd1b1964a",
+      "bytes": 71872,
+      "gzipBytes": 71856
+    },
+    "assets/items/beer_can.png": {
+      "path": "assets/items/beer_can.7c93147632d7.png",
+      "sourceSha256": "7c93147632d73c9023aba18ad1f7c1f31b90c9be6298b25643aed96bd22a278e",
+      "sha256": "7c93147632d73c9023aba18ad1f7c1f31b90c9be6298b25643aed96bd22a278e",
+      "bytes": 42211,
+      "gzipBytes": 41938
+    },
+    "assets/items/black_market_info.png": {
+      "path": "assets/items/black_market_info.7b3fdcb88dbf.png",
+      "sourceSha256": "7b3fdcb88dbf889505e72c2d81289c7b50e019d0230b5996a2b9fca55a823564",
+      "sha256": "7b3fdcb88dbf889505e72c2d81289c7b50e019d0230b5996a2b9fca55a823564",
+      "bytes": 43456,
+      "gzipBytes": 43130
+    },
+    "assets/items/bleach_1l.png": {
+      "path": "assets/items/bleach_1l.5c5911f9afaf.png",
+      "sourceSha256": "5c5911f9afafe3d4928cb733944410deaaf3299e89e2f439679c86ea1388a8cb",
+      "sha256": "5c5911f9afafe3d4928cb733944410deaaf3299e89e2f439679c86ea1388a8cb",
+      "bytes": 45551,
+      "gzipBytes": 45511
+    },
+    "assets/items/brandy_500.png": {
+      "path": "assets/items/brandy_500.df7eeb3c9ffb.png",
+      "sourceSha256": "df7eeb3c9ffbd03b3f95d52c7885b61f4bffcc2f3deed5eb7c69a64e8d3eb141",
+      "sha256": "df7eeb3c9ffbd03b3f95d52c7885b61f4bffcc2f3deed5eb7c69a64e8d3eb141",
+      "bytes": 68569,
+      "gzipBytes": 68612
+    },
+    "assets/items/brass_rod.png": {
+      "path": "assets/items/brass_rod.58b14951c05d.png",
+      "sourceSha256": "58b14951c05da667a564c07d5e0d7b8d523bc90243510589ec9b92e0fdb8d8f1",
+      "sha256": "58b14951c05da667a564c07d5e0d7b8d523bc90243510589ec9b92e0fdb8d8f1",
+      "bytes": 29311,
+      "gzipBytes": 28755
+    },
+    "assets/items/bread_loaf.png": {
+      "path": "assets/items/bread_loaf.7a2b35c6ea32.png",
+      "sourceSha256": "7a2b35c6ea326c487e28789a2b1cd586efea57fdac621a28f9cccb5a743e8bfe",
+      "sha256": "7a2b35c6ea326c487e28789a2b1cd586efea57fdac621a28f9cccb5a743e8bfe",
+      "bytes": 59921,
+      "gzipBytes": 59619
+    },
+    "assets/items/burnt_board.png": {
+      "path": "assets/items/burnt_board.8ae53da62515.png",
+      "sourceSha256": "8ae53da62515aa3376e076bf0344f75f48d137452cddda2bbed301da80012c11",
+      "sha256": "8ae53da62515aa3376e076bf0344f75f48d137452cddda2bbed301da80012c11",
+      "bytes": 72341,
+      "gzipBytes": 72384
+    },
+    "assets/items/candle_pack.png": {
+      "path": "assets/items/candle_pack.467bb6b69f46.png",
+      "sourceSha256": "467bb6b69f461d65ecc60ec67668a89da8284a768daa65a33c2087bfac10bfea",
+      "sha256": "467bb6b69f461d65ecc60ec67668a89da8284a768daa65a33c2087bfac10bfea",
+      "bytes": 78278,
+      "gzipBytes": 78321
+    },
+    "assets/items/canned_beans.png": {
+      "path": "assets/items/canned_beans.891c5cbcd287.png",
+      "sourceSha256": "891c5cbcd28765982ba4ea8876e8027ccf19af3ad8c5cced807632139291acfb",
+      "sha256": "891c5cbcd28765982ba4ea8876e8027ccf19af3ad8c5cced807632139291acfb",
+      "bytes": 70182,
+      "gzipBytes": 70072
+    },
+    "assets/items/canned_fish.png": {
+      "path": "assets/items/canned_fish.a56a14321116.png",
+      "sourceSha256": "a56a1432111613a25da2b94e54b535f26be33b5103320ce9940fe9da9bb355ef",
+      "sha256": "a56a1432111613a25da2b94e54b535f26be33b5103320ce9940fe9da9bb355ef",
+      "bytes": 65380,
+      "gzipBytes": 65027
+    },
+    "assets/items/canned_fruit.png": {
+      "path": "assets/items/canned_fruit.ab26b9b86956.png",
+      "sourceSha256": "ab26b9b86956e8bb37da5fd958bebecdb12ac83929a62d96db80856abd9d39dc",
+      "sha256": "ab26b9b86956e8bb37da5fd958bebecdb12ac83929a62d96db80856abd9d39dc",
+      "bytes": 66105,
+      "gzipBytes": 65884
+    },
+    "assets/items/canned_meat.png": {
+      "path": "assets/items/canned_meat.c6f8fa749d85.png",
+      "sourceSha256": "c6f8fa749d85877edf3c8edab6729cb8c7efe59c3f803e62f3314453b6508793",
+      "sha256": "c6f8fa749d85877edf3c8edab6729cb8c7efe59c3f803e62f3314453b6508793",
+      "bytes": 65071,
+      "gzipBytes": 64694
+    },
+    "assets/items/canned_stew.png": {
+      "path": "assets/items/canned_stew.0d8b7d9551e4.png",
+      "sourceSha256": "0d8b7d9551e44038298369d17cc34b1c3203a1e5c43c3f89ae3b054143e2166d",
+      "sha256": "0d8b7d9551e44038298369d17cc34b1c3203a1e5c43c3f89ae3b054143e2166d",
+      "bytes": 71614,
+      "gzipBytes": 71463
+    },
+    "assets/items/canned_vegetable.png": {
+      "path": "assets/items/canned_vegetable.305054ac9807.png",
+      "sourceSha256": "305054ac9807a494a964308d4c00230383b24139e3d41f7dc39fa93a8a78775c",
+      "sha256": "305054ac9807a494a964308d4c00230383b24139e3d41f7dc39fa93a8a78775c",
+      "bytes": 64916,
+      "gzipBytes": 64699
+    },
+    "assets/items/capacitor_pack.png": {
+      "path": "assets/items/capacitor_pack.4ed838551a72.png",
+      "sourceSha256": "4ed838551a72f02311c4fefa543d4cd9d9923a79b45f31d55fce0fd4814fdaca",
+      "sha256": "4ed838551a72f02311c4fefa543d4cd9d9923a79b45f31d55fce0fd4814fdaca",
+      "bytes": 47227,
+      "gzipBytes": 47028
+    },
+    "assets/items/chain_1m.png": {
+      "path": "assets/items/chain_1m.1fea73e53b6d.png",
+      "sourceSha256": "1fea73e53b6d33492bba507c38d39d53c95d1feb753296cb8fc3244037d349b1",
+      "sha256": "1fea73e53b6d33492bba507c38d39d53c95d1feb753296cb8fc3244037d349b1",
+      "bytes": 76668,
+      "gzipBytes": 76643
+    },
+    "assets/items/charcoal_bag.png": {
+      "path": "assets/items/charcoal_bag.511f243b772a.png",
+      "sourceSha256": "511f243b772a9fcdb603b4b9a8f2d1d77fa4b661d88ba55ae193843d54e05d68",
+      "sha256": "511f243b772a9fcdb603b4b9a8f2d1d77fa4b661d88ba55ae193843d54e05d68",
+      "bytes": 64354,
+      "gzipBytes": 64231
+    },
+    "assets/items/chewing_tobacco.png": {
+      "path": "assets/items/chewing_tobacco.2482c872343f.png",
+      "sourceSha256": "2482c872343fda0005e2060c2794a033d95da878091d977d2886eda9d8e1a22b",
+      "sha256": "2482c872343fda0005e2060c2794a033d95da878091d977d2886eda9d8e1a22b",
+      "bytes": 53356,
+      "gzipBytes": 53247
+    },
+    "assets/items/cigarette_carton.png": {
+      "path": "assets/items/cigarette_carton.95575ca02e58.png",
+      "sourceSha256": "95575ca02e5872083f9f45abc6e5403254224e3519816378d685bc3725aae0c2",
+      "sha256": "95575ca02e5872083f9f45abc6e5403254224e3519816378d685bc3725aae0c2",
+      "bytes": 65256,
+      "gzipBytes": 65106
+    },
+    "assets/items/cigarette_pack.png": {
+      "path": "assets/items/cigarette_pack.2e868214bc0a.png",
+      "sourceSha256": "2e868214bc0a280734e56f747ba066c309e93f6cf7503b05575f4d8bd0bedc47",
+      "sha256": "2e868214bc0a280734e56f747ba066c309e93f6cf7503b05575f4d8bd0bedc47",
+      "bytes": 47124,
+      "gzipBytes": 47078
+    },
+    "assets/items/cigar_box.png": {
+      "path": "assets/items/cigar_box.985ec2e6e329.png",
+      "sourceSha256": "985ec2e6e329e69ff8c47d497f44560e4ba3de48a17f11900518e4ad94e5859c",
+      "sha256": "985ec2e6e329e69ff8c47d497f44560e4ba3de48a17f11900518e4ad94e5859c",
+      "bytes": 63673,
+      "gzipBytes": 63575
+    },
+    "assets/items/cinnabar_ink.png": {
+      "path": "assets/items/cinnabar_ink.b1460e9828ba.png",
+      "sourceSha256": "b1460e9828bab6a05c5f61de7eb35bff73dcd4b0632d7e68107e35462a6f33f1",
+      "sha256": "b1460e9828bab6a05c5f61de7eb35bff73dcd4b0632d7e68107e35462a6f33f1",
+      "bytes": 58015,
+      "gzipBytes": 57684
+    },
+    "assets/items/cinnabar_ore.png": {
+      "path": "assets/items/cinnabar_ore.8b29822c3313.png",
+      "sourceSha256": "8b29822c331310470903b5c504c5303fa2ceb60af94743496de49a6fd4b89dab",
+      "sha256": "8b29822c331310470903b5c504c5303fa2ceb60af94743496de49a6fd4b89dab",
+      "bytes": 81621,
+      "gzipBytes": 81407
+    },
+    "assets/items/circuit_board.png": {
+      "path": "assets/items/circuit_board.1ef346354b3b.png",
+      "sourceSha256": "1ef346354b3b6742fc0551e13afc2d45483ec2f9a46e5c52e597ed2662bdb8ac",
+      "sha256": "1ef346354b3b6742fc0551e13afc2d45483ec2f9a46e5c52e597ed2662bdb8ac",
+      "bytes": 76324,
+      "gzipBytes": 76267
+    },
+    "assets/items/circuit_board_broken.png": {
+      "path": "assets/items/circuit_board_broken.3d9e1eb0803f.png",
+      "sourceSha256": "3d9e1eb0803f9ad9030419d3a8ccd9e382c02ad6b9cf4d31a30790de1903096a",
+      "sha256": "3d9e1eb0803f9ad9030419d3a8ccd9e382c02ad6b9cf4d31a30790de1903096a",
+      "bytes": 56487,
+      "gzipBytes": 56226
+    },
+    "assets/items/coffee_powder.png": {
+      "path": "assets/items/coffee_powder.804ec49cfff6.png",
+      "sourceSha256": "804ec49cfff63e2f007ca5e1dffe64feffad336f933ae1e9356756e9774a87fc",
+      "sha256": "804ec49cfff63e2f007ca5e1dffe64feffad336f933ae1e9356756e9774a87fc",
+      "bytes": 60518,
+      "gzipBytes": 60446
+    },
+    "assets/items/compass.png": {
+      "path": "assets/items/compass.6c96c55665c9.png",
+      "sourceSha256": "6c96c55665c9650cf1a7272a6b2cd9d3088c4125adec4c64127e2ca203bc9134",
+      "sha256": "6c96c55665c9650cf1a7272a6b2cd9d3088c4125adec4c64127e2ca203bc9134",
+      "bytes": 68326,
+      "gzipBytes": 68152
+    },
+    "assets/items/cooking_oil_500.png": {
+      "path": "assets/items/cooking_oil_500.532f428a9cfb.png",
+      "sourceSha256": "532f428a9cfb5fa911ce65fb347dfe5c2977d4c4c361728bbd1f027af88a3d20",
+      "sha256": "532f428a9cfb5fa911ce65fb347dfe5c2977d4c4c361728bbd1f027af88a3d20",
+      "bytes": 62677,
+      "gzipBytes": 62658
+    },
+    "assets/items/coolant_2l.png": {
+      "path": "assets/items/coolant_2l.2ce9da12be5d.png",
+      "sourceSha256": "2ce9da12be5d8f47b25fb69944923826af090fdfe45f70fa75c48ffa53ca3dd8",
+      "sha256": "2ce9da12be5d8f47b25fb69944923826af090fdfe45f70fa75c48ffa53ca3dd8",
+      "bytes": 66182,
+      "gzipBytes": 66134
+    },
+    "assets/items/copper_pipe_1m.png": {
+      "path": "assets/items/copper_pipe_1m.f80cf96dea83.png",
+      "sourceSha256": "f80cf96dea83e6ae8731a0c168b4c2e91a316ddf131da284c728f519b125f719",
+      "sha256": "f80cf96dea83e6ae8731a0c168b4c2e91a316ddf131da284c728f519b125f719",
+      "bytes": 37558,
+      "gzipBytes": 37191
+    },
+    "assets/items/copper_pipe_30.png": {
+      "path": "assets/items/copper_pipe_30.edc9427ca6e8.png",
+      "sourceSha256": "edc9427ca6e89681aa17a19d90e67f495c3aa9d645a58c435a4f1a7e6449691c",
+      "sha256": "edc9427ca6e89681aa17a19d90e67f495c3aa9d645a58c435a4f1a7e6449691c",
+      "bytes": 36821,
+      "gzipBytes": 36165
+    },
+    "assets/items/copper_wire.png": {
+      "path": "assets/items/copper_wire.d395e0b3e367.png",
+      "sourceSha256": "d395e0b3e367a0ca88543eddb023553d999b638680d771179f5fea0851458891",
+      "sha256": "d395e0b3e367a0ca88543eddb023553d999b638680d771179f5fea0851458891",
+      "bytes": 77546,
+      "gzipBytes": 77472
+    },
+    "assets/items/dried_mushroom.png": {
+      "path": "assets/items/dried_mushroom.8b48df959b3e.png",
+      "sourceSha256": "8b48df959b3eb6a696ce2a151ce357c14ac1a5633c9fafaec047e9f03c0c6f60",
+      "sha256": "8b48df959b3eb6a696ce2a151ce357c14ac1a5633c9fafaec047e9f03c0c6f60",
+      "bytes": 75738,
+      "gzipBytes": 75625
+    },
+    "assets/items/duct_tape.png": {
+      "path": "assets/items/duct_tape.f97d1a4a359a.png",
+      "sourceSha256": "f97d1a4a359ac8794b742e4c423e835e0afe5181329491f45b55c42ddacfed51",
+      "sha256": "f97d1a4a359ac8794b742e4c423e835e0afe5181329491f45b55c42ddacfed51",
+      "bytes": 47267,
+      "gzipBytes": 46897
+    },
+    "assets/items/empty_bottle.png": {
+      "path": "assets/items/empty_bottle.28de2203cbdd.png",
+      "sourceSha256": "28de2203cbdd59c46060fda0ab9d8b11792ac250c16fc601e7ca9114fbd670d7",
+      "sha256": "28de2203cbdd59c46060fda0ab9d8b11792ac250c16fc601e7ca9114fbd670d7",
+      "bytes": 50773,
+      "gzipBytes": 50781
+    },
+    "assets/items/empty_can.png": {
+      "path": "assets/items/empty_can.9364bef4b11d.png",
+      "sourceSha256": "9364bef4b11dac2f0ca47a24b85063e32b4e733d9423c560159a2ac5e8864498",
+      "sha256": "9364bef4b11dac2f0ca47a24b85063e32b4e733d9423c560159a2ac5e8864498",
+      "bytes": 65537,
+      "gzipBytes": 65409
+    },
+    "assets/items/energy_bar.png": {
+      "path": "assets/items/energy_bar.2d0c6f5cd5e0.png",
+      "sourceSha256": "2d0c6f5cd5e0721086be69922838d70f9748ae1482d037ba057a43119faf88df",
+      "sha256": "2d0c6f5cd5e0721086be69922838d70f9748ae1482d037ba057a43119faf88df",
+      "bytes": 82639,
+      "gzipBytes": 82365
+    },
+    "assets/items/explosive.png": {
+      "path": "assets/items/explosive.a06b7c2723ad.png",
+      "sourceSha256": "a06b7c2723ad8e747dd53d12d66a510bcff1a119bbb1c6484e09f4e63bf1ac7f",
+      "sha256": "a06b7c2723ad8e747dd53d12d66a510bcff1a119bbb1c6484e09f4e63bf1ac7f",
+      "bytes": 61346,
+      "gzipBytes": 61147
+    },
+    "assets/items/eye_drops.png": {
+      "path": "assets/items/eye_drops.d382b622f881.png",
+      "sourceSha256": "d382b622f881941611c933fd22d0f8b7252cf1a2ed82b429062717e2ce858cfe",
+      "sha256": "d382b622f881941611c933fd22d0f8b7252cf1a2ed82b429062717e2ce858cfe",
+      "bytes": 43767,
+      "gzipBytes": 43664
+    },
+    "assets/items/fake_id.png": {
+      "path": "assets/items/fake_id.a004fd64e694.png",
+      "sourceSha256": "a004fd64e69426eae39e53a89f2b712885aa614867753fb87c8e303d661f7374",
+      "sha256": "a004fd64e69426eae39e53a89f2b712885aa614867753fb87c8e303d661f7374",
+      "bytes": 51794,
+      "gzipBytes": 51589
+    },
+    "assets/items/fever_reducer.png": {
+      "path": "assets/items/fever_reducer.b01deb235060.png",
+      "sourceSha256": "b01deb235060f61d14aad3273706df78f6bda38ac046632917d4094468137781",
+      "sha256": "b01deb235060f61d14aad3273706df78f6bda38ac046632917d4094468137781",
+      "bytes": 82092,
+      "gzipBytes": 81997
+    },
+    "assets/items/filter_cartridge.png": {
+      "path": "assets/items/filter_cartridge.11e80fc4e956.png",
+      "sourceSha256": "11e80fc4e956866c10c88f6bc676bb8fd7203a06c1ce5130875f22b1a0522ce3",
+      "sha256": "11e80fc4e956866c10c88f6bc676bb8fd7203a06c1ce5130875f22b1a0522ce3",
+      "bytes": 41571,
+      "gzipBytes": 41340
+    },
+    "assets/items/first_aid_kit.png": {
+      "path": "assets/items/first_aid_kit.233072508099.png",
+      "sourceSha256": "233072508099a97ac6f7751a79b49453c5054487bdabdc3e22051046c71ad362",
+      "sha256": "233072508099a97ac6f7751a79b49453c5054487bdabdc3e22051046c71ad362",
+      "bytes": 67766,
+      "gzipBytes": 67535
+    },
+    "assets/items/flashlight.png": {
+      "path": "assets/items/flashlight.4e84d2634f34.png",
+      "sourceSha256": "4e84d2634f346b5bdc44620070de2cebbfb6fec73191226d4001f2b6c4b2e200",
+      "sha256": "4e84d2634f346b5bdc44620070de2cebbfb6fec73191226d4001f2b6c4b2e200",
+      "bytes": 55857,
+      "gzipBytes": 55467
+    },
+    "assets/items/formation_disc.png": {
+      "path": "assets/items/formation_disc.b2be6b5b453e.png",
+      "sourceSha256": "b2be6b5b453ef5da0fc164f8899f6b4fe3758f3dcb2f5dbf6fc57f8e2a2dd01b",
+      "sha256": "b2be6b5b453ef5da0fc164f8899f6b4fe3758f3dcb2f5dbf6fc57f8e2a2dd01b",
+      "bytes": 85910,
+      "gzipBytes": 85801
+    },
+    "assets/items/fresh_vegetable.png": {
+      "path": "assets/items/fresh_vegetable.ceaa044ff57b.png",
+      "sourceSha256": "ceaa044ff57b454b0d70e1b218300f69cbcf5b06d099361f1d5fbf79794fe022",
+      "sha256": "ceaa044ff57b454b0d70e1b218300f69cbcf5b06d099361f1d5fbf79794fe022",
+      "bytes": 87992,
+      "gzipBytes": 87962
+    },
+    "assets/items/fuel_jerrycan_5l.png": {
+      "path": "assets/items/fuel_jerrycan_5l.4834d68c6d25.png",
+      "sourceSha256": "4834d68c6d25a2dad7ca2a8c782cad2b9dff56ab24fd31055647b8a6e003ee82",
+      "sha256": "4834d68c6d25a2dad7ca2a8c782cad2b9dff56ab24fd31055647b8a6e003ee82",
+      "bytes": 58624,
+      "gzipBytes": 58600
+    },
+    "assets/items/gas_mask.png": {
+      "path": "assets/items/gas_mask.e655fd05a825.png",
+      "sourceSha256": "e655fd05a825bd1925d6f85c94dc97e0f14e05de9c1b6ef0dce34cdc360dc194",
+      "sha256": "e655fd05a825bd1925d6f85c94dc97e0f14e05de9c1b6ef0dce34cdc360dc194",
+      "bytes": 72085,
+      "gzipBytes": 71968
+    },
+    "assets/items/gauze_pack.png": {
+      "path": "assets/items/gauze_pack.a9c05dd2cfc3.png",
+      "sourceSha256": "a9c05dd2cfc37b06fa0e4219799ac0e6eb726386b49583b4de45855c642c6585",
+      "sha256": "a9c05dd2cfc37b06fa0e4219799ac0e6eb726386b49583b4de45855c642c6585",
+      "bytes": 60898,
+      "gzipBytes": 60629
+    },
+    "assets/items/geiger.png": {
+      "path": "assets/items/geiger.9844eb6330e6.png",
+      "sourceSha256": "9844eb6330e6f04b130ee84cf649943c73f97621924913480df01560601a3930",
+      "sha256": "9844eb6330e6f04b130ee84cf649943c73f97621924913480df01560601a3930",
+      "bytes": 52747,
+      "gzipBytes": 52716
+    },
+    "assets/items/glycerin_500.png": {
+      "path": "assets/items/glycerin_500.8d2c905f9c32.png",
+      "sourceSha256": "8d2c905f9c32eaae0f403b995386ff9ff317483b6727d9d2a10bbe3cee0c445e",
+      "sha256": "8d2c905f9c32eaae0f403b995386ff9ff317483b6727d9d2a10bbe3cee0c445e",
+      "bytes": 74258,
+      "gzipBytes": 74301
+    },
+    "assets/items/hardtack.png": {
+      "path": "assets/items/hardtack.6833f16edbc4.png",
+      "sourceSha256": "6833f16edbc45914428c4fafac8dc22bfc883b6cc820146c5bb17ae8f38d730c",
+      "sha256": "6833f16edbc45914428c4fafac8dc22bfc883b6cc820146c5bb17ae8f38d730c",
+      "bytes": 70090,
+      "gzipBytes": 70050
+    },
+    "assets/items/hazmat_gloves.png": {
+      "path": "assets/items/hazmat_gloves.0db15de66dd9.png",
+      "sourceSha256": "0db15de66dd99a6d34bc7c2b676e9f59e46f1f69dfde3a77af7219eb386fed50",
+      "sha256": "0db15de66dd99a6d34bc7c2b676e9f59e46f1f69dfde3a77af7219eb386fed50",
+      "bytes": 67763,
+      "gzipBytes": 67680
+    },
+    "assets/items/healing_pill.png": {
+      "path": "assets/items/healing_pill.9f338272dc4b.png",
+      "sourceSha256": "9f338272dc4b4e44e8af8ac7705d98e8f7c3b7dd4d90a43a692577eaa46c08aa",
+      "sha256": "9f338272dc4b4e44e8af8ac7705d98e8f7c3b7dd4d90a43a692577eaa46c08aa",
+      "bytes": 81061,
+      "gzipBytes": 81035
+    },
+    "assets/items/herb_huoyan.png": {
+      "path": "assets/items/herb_huoyan.86c9ca1c68b5.png",
+      "sourceSha256": "86c9ca1c68b58078a8003f5feda60a505c1b73287d02a2c438f79d377ea681e9",
+      "sha256": "86c9ca1c68b58078a8003f5feda60a505c1b73287d02a2c438f79d377ea681e9",
+      "bytes": 70540,
+      "gzipBytes": 70486
+    },
+    "assets/items/herb_lingcao.png": {
+      "path": "assets/items/herb_lingcao.f8f617c3fa19.png",
+      "sourceSha256": "f8f617c3fa19a79b61cbd495503688396030b28932ac7a60b02ab7224a85dae5",
+      "sha256": "f8f617c3fa19a79b61cbd495503688396030b28932ac7a60b02ab7224a85dae5",
+      "bytes": 75437,
+      "gzipBytes": 75415
+    },
+    "assets/items/herb_lingzhi.png": {
+      "path": "assets/items/herb_lingzhi.cb66a3b44ddc.png",
+      "sourceSha256": "cb66a3b44ddc6e778c2284a80111cab713d21b6bf064ca1cf46e43d3c90452e5",
+      "sha256": "cb66a3b44ddc6e778c2284a80111cab713d21b6bf064ca1cf46e43d3c90452e5",
+      "bytes": 108521,
+      "gzipBytes": 108574
+    },
+    "assets/items/industrial_alcohol_5l.png": {
+      "path": "assets/items/industrial_alcohol_5l.d32c5979fc92.png",
+      "sourceSha256": "d32c5979fc9235bd7584b5ccd29ed64167989f146d474ddfec5ccf89fddfbf00",
+      "sha256": "d32c5979fc9235bd7584b5ccd29ed64167989f146d474ddfec5ccf89fddfbf00",
+      "bytes": 64096,
+      "gzipBytes": 64134
+    },
+    "assets/items/instant_rice.png": {
+      "path": "assets/items/instant_rice.89342b2f840e.png",
+      "sourceSha256": "89342b2f840eafd2aad7baf3248c77c6fbbdf60c3aae4740104c1023d13f48ef",
+      "sha256": "89342b2f840eafd2aad7baf3248c77c6fbbdf60c3aae4740104c1023d13f48ef",
+      "bytes": 63075,
+      "gzipBytes": 62924
+    },
+    "assets/items/iron_ingot_1kg.png": {
+      "path": "assets/items/iron_ingot_1kg.4dca5a2bfc3c.png",
+      "sourceSha256": "4dca5a2bfc3cb02cf3ed353455b5df56bf63cc6bd41072da2f3066610a7c583e",
+      "sha256": "4dca5a2bfc3cb02cf3ed353455b5df56bf63cc6bd41072da2f3066610a7c583e",
+      "bytes": 45323,
+      "gzipBytes": 44903
+    },
+    "assets/items/iron_ingot_5kg.png": {
+      "path": "assets/items/iron_ingot_5kg.152c4536d905.png",
+      "sourceSha256": "152c4536d90522e4dedb985525128e6344da2e4c31093b7b4c52abef5e434e4b",
+      "sha256": "152c4536d90522e4dedb985525128e6344da2e4c31093b7b4c52abef5e434e4b",
+      "bytes": 48535,
+      "gzipBytes": 48153
+    },
+    "assets/items/jade_gourd.png": {
+      "path": "assets/items/jade_gourd.6e4078b5f77c.png",
+      "sourceSha256": "6e4078b5f77cb9c0c6606b7fd22482670ae306ef4bc72d315b46755af25627bf",
+      "sha256": "6e4078b5f77cb9c0c6606b7fd22482670ae306ef4bc72d315b46755af25627bf",
+      "bytes": 69726,
+      "gzipBytes": 69750
+    },
+    "assets/items/jerky.png": {
+      "path": "assets/items/jerky.96c8daa8e463.png",
+      "sourceSha256": "96c8daa8e46388ac77d31ddca28cbe413389bb8ea6a8914785be7bc33b7ab4bd",
+      "sha256": "96c8daa8e46388ac77d31ddca28cbe413389bb8ea6a8914785be7bc33b7ab4bd",
+      "bytes": 68984,
+      "gzipBytes": 68911
+    },
+    "assets/items/junk_cloth.png": {
+      "path": "assets/items/junk_cloth.51ef70f38d65.png",
+      "sourceSha256": "51ef70f38d65c73305946a04febbb3cb7e3a3560a6280579d46605c96a8552d1",
+      "sha256": "51ef70f38d65c73305946a04febbb3cb7e3a3560a6280579d46605c96a8552d1",
+      "bytes": 49795,
+      "gzipBytes": 49386
+    },
+    "assets/items/junk_metal.png": {
+      "path": "assets/items/junk_metal.273272c1243c.png",
+      "sourceSha256": "273272c1243ce673835256ae58444291c0d0f4489f3f20365fb0700280c991b4",
+      "sha256": "273272c1243ce673835256ae58444291c0d0f4489f3f20365fb0700280c991b4",
+      "bytes": 69629,
+      "gzipBytes": 69429
+    },
+    "assets/items/junk_plastic.png": {
+      "path": "assets/items/junk_plastic.20a95d59b299.png",
+      "sourceSha256": "20a95d59b299897a1666f2c54dbb7d4d2654208256c0c305802f29141ebccfe1",
+      "sha256": "20a95d59b299897a1666f2c54dbb7d4d2654208256c0c305802f29141ebccfe1",
+      "bytes": 69200,
+      "gzipBytes": 69014
+    },
+    "assets/items/knife.png": {
+      "path": "assets/items/knife.85a90afcd3cc.png",
+      "sourceSha256": "85a90afcd3cc5b4c32f2829dd977a521d103e5ed04e1318f4d75f157a424e1f9",
+      "sha256": "85a90afcd3cc5b4c32f2829dd977a521d103e5ed04e1318f4d75f157a424e1f9",
+      "bytes": 37847,
+      "gzipBytes": 37693
+    },
+    "assets/items/lead_block.png": {
+      "path": "assets/items/lead_block.21d48a1dc718.png",
+      "sourceSha256": "21d48a1dc7185153d475fd4595bf17b11d4ed6736aa5a82e55cd6537d82655a4",
+      "sha256": "21d48a1dc7185153d475fd4595bf17b11d4ed6736aa5a82e55cd6537d82655a4",
+      "bytes": 51551,
+      "gzipBytes": 51319
+    },
+    "assets/items/led_strip.png": {
+      "path": "assets/items/led_strip.ca94eae1503f.png",
+      "sourceSha256": "ca94eae1503f5d66f716a75c49446068e75d42a5a94ada771c50021eb5361c36",
+      "sha256": "ca94eae1503f5d66f716a75c49446068e75d42a5a94ada771c50021eb5361c36",
+      "bytes": 65787,
+      "gzipBytes": 65681
+    },
+    "assets/items/lockpick_set.png": {
+      "path": "assets/items/lockpick_set.492bb17a8ae5.png",
+      "sourceSha256": "492bb17a8ae5329a8fa221de4d48d3649f6fce25c801dde7eb6e2d9bb86f5d78",
+      "sha256": "492bb17a8ae5329a8fa221de4d48d3649f6fce25c801dde7eb6e2d9bb86f5d78",
+      "bytes": 74052,
+      "gzipBytes": 74085
+    },
+    "assets/items/lubricant_500.png": {
+      "path": "assets/items/lubricant_500.9c32e2c6ffe1.png",
+      "sourceSha256": "9c32e2c6ffe14c15a9da462677bd13cf7d9539feba755cd0c65812d0e86a951b",
+      "sha256": "9c32e2c6ffe14c15a9da462677bd13cf7d9539feba755cd0c65812d0e86a951b",
+      "bytes": 58280,
+      "gzipBytes": 58284
+    },
+    "assets/items/magnet.png": {
+      "path": "assets/items/magnet.99c3756e551f.png",
+      "sourceSha256": "99c3756e551fe10893f9feffd299cadc310451c7884d053ca7f2cb722195a4ae",
+      "sha256": "99c3756e551fe10893f9feffd299cadc310451c7884d053ca7f2cb722195a4ae",
+      "bytes": 55637,
+      "gzipBytes": 55394
+    },
+    "assets/items/magnifier.png": {
+      "path": "assets/items/magnifier.4ac0a86aa1f1.png",
+      "sourceSha256": "4ac0a86aa1f1b204327a566a13beb9cf38f2202a39b8278d1be04d2aed312024",
+      "sha256": "4ac0a86aa1f1b204327a566a13beb9cf38f2202a39b8278d1be04d2aed312024",
+      "bytes": 50982,
+      "gzipBytes": 50902
+    },
+    "assets/items/map_fragment.png": {
+      "path": "assets/items/map_fragment.71f36e3077fa.png",
+      "sourceSha256": "71f36e3077fa34f5a6c1d4840e1a2e0287a96ca6434112f8a9d8ede7681d58b2",
+      "sha256": "71f36e3077fa34f5a6c1d4840e1a2e0287a96ca6434112f8a9d8ede7681d58b2",
+      "bytes": 63343,
+      "gzipBytes": 63158
+    },
+    "assets/items/marrow_pill.png": {
+      "path": "assets/items/marrow_pill.b762c5402150.png",
+      "sourceSha256": "b762c5402150a8bd138228fe0541dd96ae467e469d89cd4a2e246fa329567de5",
+      "sha256": "b762c5402150a8bd138228fe0541dd96ae467e469d89cd4a2e246fa329567de5",
+      "bytes": 80038,
+      "gzipBytes": 80031
+    },
+    "assets/items/matches.png": {
+      "path": "assets/items/matches.ae3dca57b7ae.png",
+      "sourceSha256": "ae3dca57b7ae699742e18a8a75ec8895f7d344d060b873fbf34435facfaefb47",
+      "sha256": "ae3dca57b7ae699742e18a8a75ec8895f7d344d060b873fbf34435facfaefb47",
+      "bytes": 56143,
+      "gzipBytes": 55982
+    },
+    "assets/items/moonshine_500.png": {
+      "path": "assets/items/moonshine_500.64bb5ca9925d.png",
+      "sourceSha256": "64bb5ca9925d898897aae3b444b046c253082dd084955f189778901db254a196",
+      "sha256": "64bb5ca9925d898897aae3b444b046c253082dd084955f189778901db254a196",
+      "bytes": 45937,
+      "gzipBytes": 45800
+    },
+    "assets/items/morphine.png": {
+      "path": "assets/items/morphine.3b9fbe3f4ba1.png",
+      "sourceSha256": "3b9fbe3f4ba15cd5747251a8a1517221dc2708631185a93018b249563fbe88a5",
+      "sha256": "3b9fbe3f4ba15cd5747251a8a1517221dc2708631185a93018b249563fbe88a5",
+      "bytes": 43772,
+      "gzipBytes": 43693
+    },
+    "assets/items/motion_sensor.png": {
+      "path": "assets/items/motion_sensor.0d13966db5de.png",
+      "sourceSha256": "0d13966db5de7112b7238d1add85981e2b4b481ec923c6471360b631cd28dfd8",
+      "sha256": "0d13966db5de7112b7238d1add85981e2b4b481ec923c6471360b631cd28dfd8",
+      "bytes": 58186,
+      "gzipBytes": 57835
+    },
+    "assets/items/multitool.png": {
+      "path": "assets/items/multitool.144add59f86f.png",
+      "sourceSha256": "144add59f86f049c04814da9e71691de72753d985e6e3349a8207442f34f0c4b",
+      "sha256": "144add59f86f049c04814da9e71691de72753d985e6e3349a8207442f34f0c4b",
+      "bytes": 58566,
+      "gzipBytes": 58493
+    },
+    "assets/items/notebook.png": {
+      "path": "assets/items/notebook.fac33c7ff5dd.png",
+      "sourceSha256": "fac33c7ff5ddad5beb5d3b8df86c555193862386b9db9fa24f918dc49ffe5d3b",
+      "sha256": "fac33c7ff5ddad5beb5d3b8df86c555193862386b9db9fa24f918dc49ffe5d3b",
+      "bytes": 41986,
+      "gzipBytes": 41823
+    },
+    "assets/items/painkiller.png": {
+      "path": "assets/items/painkiller.d5261f41f36f.png",
+      "sourceSha256": "d5261f41f36f8c42febbf41b0de71ca5295f706b04b584a14eb48769ef44c61f",
+      "sha256": "d5261f41f36f8c42febbf41b0de71ca5295f706b04b584a14eb48769ef44c61f",
+      "bytes": 81079,
+      "gzipBytes": 81045
+    },
+    "assets/items/pistol.png": {
+      "path": "assets/items/pistol.f226b2a32edf.png",
+      "sourceSha256": "f226b2a32edfe5e5ea849cf3913c82645aac2d8763a07a22c231391071dc6418",
+      "sha256": "f226b2a32edfe5e5ea849cf3913c82645aac2d8763a07a22c231391071dc6418",
+      "bytes": 63081,
+      "gzipBytes": 63087
+    },
+    "assets/items/plastic_bag.png": {
+      "path": "assets/items/plastic_bag.eab5ac7092ed.png",
+      "sourceSha256": "eab5ac7092edbcc509ac43e62b410130b6c429d4bbc21c10d86053d0c71c1fe7",
+      "sha256": "eab5ac7092edbcc509ac43e62b410130b6c429d4bbc21c10d86053d0c71c1fe7",
+      "bytes": 69023,
+      "gzipBytes": 68998
+    },
+    "assets/items/pliers.png": {
+      "path": "assets/items/pliers.862b5ea1b318.png",
+      "sourceSha256": "862b5ea1b31885b9d9770e4f91e4a9846f768d55dea15a1601abfdae9eca537f",
+      "sha256": "862b5ea1b31885b9d9770e4f91e4a9846f768d55dea15a1601abfdae9eca537f",
+      "bytes": 41074,
+      "gzipBytes": 40917
+    },
+    "assets/items/potato_bag.png": {
+      "path": "assets/items/potato_bag.8467551fed39.png",
+      "sourceSha256": "8467551fed39183103ea0cab0b99775233b7c2010c26abb59757f07b89fcfe24",
+      "sha256": "8467551fed39183103ea0cab0b99775233b7c2010c26abb59757f07b89fcfe24",
+      "bytes": 66742,
+      "gzipBytes": 66668
+    },
+    "assets/items/power_drill.png": {
+      "path": "assets/items/power_drill.8f967d783b3e.png",
+      "sourceSha256": "8f967d783b3e988e518df5f5abe03af95206ad761c317692bc51fc6d492b64e9",
+      "sha256": "8f967d783b3e988e518df5f5abe03af95206ad761c317692bc51fc6d492b64e9",
+      "bytes": 57802,
+      "gzipBytes": 57720
+    },
+    "assets/items/power_inverter.png": {
+      "path": "assets/items/power_inverter.0dfb9b295703.png",
+      "sourceSha256": "0dfb9b29570388d8c7b7ba2c705db0f5a6a91ca93754e53dd07f913026721250",
+      "sha256": "0dfb9b29570388d8c7b7ba2c705db0f5a6a91ca93754e53dd07f913026721250",
+      "bytes": 56127,
+      "gzipBytes": 55603
+    },
+    "assets/items/protein_powder.png": {
+      "path": "assets/items/protein_powder.0027169e0b95.png",
+      "sourceSha256": "0027169e0b95f3868a7084945e23ab037d29d0efe3d01e7c9725723d5aa206b7",
+      "sha256": "0027169e0b95f3868a7084945e23ab037d29d0efe3d01e7c9725723d5aa206b7",
+      "bytes": 62336,
+      "gzipBytes": 62256
+    },
+    "assets/items/qi_pill.png": {
+      "path": "assets/items/qi_pill.fd265e98d5ae.png",
+      "sourceSha256": "fd265e98d5aed732c23dbaa0190af811718de480449edce3612fcdc92c7244d6",
+      "sha256": "fd265e98d5aed732c23dbaa0190af811718de480449edce3612fcdc92c7244d6",
+      "bytes": 78142,
+      "gzipBytes": 78185
+    },
+    "assets/items/radiation_pill.png": {
+      "path": "assets/items/radiation_pill.b3bc7f771be2.png",
+      "sourceSha256": "b3bc7f771be267ea0bc9368a7a8bde520a676d8cb1e9b6f1f06646ca36caf1de",
+      "sha256": "b3bc7f771be267ea0bc9368a7a8bde520a676d8cb1e9b6f1f06646ca36caf1de",
+      "bytes": 74337,
+      "gzipBytes": 74307
+    },
+    "assets/items/radio_module.png": {
+      "path": "assets/items/radio_module.2592b43cb68d.png",
+      "sourceSha256": "2592b43cb68dc908fa2c37f450e18c7fa63e45d679a5098d0cef44d0c7d731ec",
+      "sha256": "2592b43cb68dc908fa2c37f450e18c7fa63e45d679a5098d0cef44d0c7d731ec",
+      "bytes": 57541,
+      "gzipBytes": 57471
+    },
+    "assets/items/radio_station.png": {
+      "path": "assets/items/radio_station.2c9609d4f170.png",
+      "sourceSha256": "2c9609d4f170ef24c195bcd41d4cc399b5d146f155c5df3113b98481843f8793",
+      "sha256": "2c9609d4f170ef24c195bcd41d4cc399b5d146f155c5df3113b98481843f8793",
+      "bytes": 57685,
+      "gzipBytes": 57499
+    },
+    "assets/items/ration_pack.png": {
+      "path": "assets/items/ration_pack.724f0e77d1eb.png",
+      "sourceSha256": "724f0e77d1ebed16edd37fc2eae0bbb18a9b07e774b550684628c6e79c244c08",
+      "sha256": "724f0e77d1ebed16edd37fc2eae0bbb18a9b07e774b550684628c6e79c244c08",
+      "bytes": 61802,
+      "gzipBytes": 61800
+    },
+    "assets/items/recipe_card.png": {
+      "path": "assets/items/recipe_card.4e4776f97e0c.png",
+      "sourceSha256": "4e4776f97e0c6e5b55b2d5200515ee907a21cb6ed55cf05227909adf320eef06",
+      "sha256": "4e4776f97e0c6e5b55b2d5200515ee907a21cb6ed55cf05227909adf320eef06",
+      "bytes": 60317,
+      "gzipBytes": 60142
+    },
+    "assets/items/recipe_scroll.png": {
+      "path": "assets/items/recipe_scroll.9c2f87f19808.png",
+      "sourceSha256": "9c2f87f19808f1d75b59b6a5c9b01dc7ff2288d838845d84e1e46e4ab1428488",
+      "sha256": "9c2f87f19808f1d75b59b6a5c9b01dc7ff2288d838845d84e1e46e4ab1428488",
+      "bytes": 52099,
+      "gzipBytes": 51871
+    },
+    "assets/items/relay_module.png": {
+      "path": "assets/items/relay_module.a1ab6abd555a.png",
+      "sourceSha256": "a1ab6abd555a6dfa5e704d525eed99a4eec4922cebfe836cc919e25f1871b433",
+      "sha256": "a1ab6abd555a6dfa5e704d525eed99a4eec4922cebfe836cc919e25f1871b433",
+      "bytes": 71102,
+      "gzipBytes": 71054
+    },
+    "assets/items/rice_wine_500.png": {
+      "path": "assets/items/rice_wine_500.ab8ae300cfd4.png",
+      "sourceSha256": "ab8ae300cfd4829b8c62fd56fa97cb4df8a52374d4da23a780f420f4330d0ba9",
+      "sha256": "ab8ae300cfd4829b8c62fd56fa97cb4df8a52374d4da23a780f420f4330d0ba9",
+      "bytes": 47905,
+      "gzipBytes": 47876
+    },
+    "assets/items/rivets_bag.png": {
+      "path": "assets/items/rivets_bag.23863eb82a39.png",
+      "sourceSha256": "23863eb82a396d8b9bc5536ec2ff6eec3165c6ba11b02e7f2425423d46ed70cf",
+      "sha256": "23863eb82a396d8b9bc5536ec2ff6eec3165c6ba11b02e7f2425423d46ed70cf",
+      "bytes": 80423,
+      "gzipBytes": 80380
+    },
+    "assets/items/rolling_tobacco.png": {
+      "path": "assets/items/rolling_tobacco.295d2a640ae9.png",
+      "sourceSha256": "295d2a640ae9400cdbac67d36f1e948fb28b7df2b40c1f647607c784250c716a",
+      "sha256": "295d2a640ae9400cdbac67d36f1e948fb28b7df2b40c1f647607c784250c716a",
+      "bytes": 79140,
+      "gzipBytes": 79028
+    },
+    "assets/items/rope_10m.png": {
+      "path": "assets/items/rope_10m.6c74424a98b7.png",
+      "sourceSha256": "6c74424a98b7dac6bd82f0a9ff5965fa44b38d88c84826903f24494c8a298aa8",
+      "sha256": "6c74424a98b7dac6bd82f0a9ff5965fa44b38d88c84826903f24494c8a298aa8",
+      "bytes": 62084,
+      "gzipBytes": 61862
+    },
+    "assets/items/saline_500.png": {
+      "path": "assets/items/saline_500.4b574f5ad16f.png",
+      "sourceSha256": "4b574f5ad16f2a038c9daa7f2fb1ab7c18492f3c733e1407b9a4e0bfbf707baa",
+      "sha256": "4b574f5ad16f2a038c9daa7f2fb1ab7c18492f3c733e1407b9a4e0bfbf707baa",
+      "bytes": 40291,
+      "gzipBytes": 40241
+    },
+    "assets/items/salt_bag.png": {
+      "path": "assets/items/salt_bag.fd1c2d3dd14c.png",
+      "sourceSha256": "fd1c2d3dd14cc98b17df9a7c10ee2ee0eec1d2c312c94f952d352166b6287321",
+      "sha256": "fd1c2d3dd14cc98b17df9a7c10ee2ee0eec1d2c312c94f952d352166b6287321",
+      "bytes": 73951,
+      "gzipBytes": 73768
+    },
+    "assets/items/saw.png": {
+      "path": "assets/items/saw.70b4ead33477.png",
+      "sourceSha256": "70b4ead33477d812ebdce3782e2847fec7e48051d266bf1fa1a190c36ddee184",
+      "sha256": "70b4ead33477d812ebdce3782e2847fec7e48051d266bf1fa1a190c36ddee184",
+      "bytes": 49940,
+      "gzipBytes": 49743
+    },
+    "assets/items/screw_bag.png": {
+      "path": "assets/items/screw_bag.43fcf62d9082.png",
+      "sourceSha256": "43fcf62d9082d2e80eeb256e45dff53dcedd3c8e59e6c96fbc0e69ecdb2f0010",
+      "sha256": "43fcf62d9082d2e80eeb256e45dff53dcedd3c8e59e6c96fbc0e69ecdb2f0010",
+      "bytes": 66232,
+      "gzipBytes": 66101
+    },
+    "assets/items/sect_token.png": {
+      "path": "assets/items/sect_token.c49279fee572.png",
+      "sourceSha256": "c49279fee5721c0b025a8b8749ec6542b2dfb16a3014ceef5d4a2498541f4efe",
+      "sha256": "c49279fee5721c0b025a8b8749ec6542b2dfb16a3014ceef5d4a2498541f4efe",
+      "bytes": 69237,
+      "gzipBytes": 69276
+    },
+    "assets/items/seed_herb.png": {
+      "path": "assets/items/seed_herb.dceadf3f798c.png",
+      "sourceSha256": "dceadf3f798c874e5aaa194ce12aa3d61d0100ed0cc373a44e55d30cbeae6bfe",
+      "sha256": "dceadf3f798c874e5aaa194ce12aa3d61d0100ed0cc373a44e55d30cbeae6bfe",
+      "bytes": 66753,
+      "gzipBytes": 66770
+    },
+    "assets/items/seed_potato.png": {
+      "path": "assets/items/seed_potato.0eeabcc32992.png",
+      "sourceSha256": "0eeabcc32992710b2d17a57eb3484b1da8919f3981458cffab37cf24339ad179",
+      "sha256": "0eeabcc32992710b2d17a57eb3484b1da8919f3981458cffab37cf24339ad179",
+      "bytes": 67029,
+      "gzipBytes": 66822
+    },
+    "assets/items/seed_wheat.png": {
+      "path": "assets/items/seed_wheat.135d76693f04.png",
+      "sourceSha256": "135d76693f041b9ae654cff2170c10704557f3ec5f1c3e5d69ba77b20c128ff4",
+      "sha256": "135d76693f041b9ae654cff2170c10704557f3ec5f1c3e5d69ba77b20c128ff4",
+      "bytes": 68752,
+      "gzipBytes": 68653
+    },
+    "assets/items/shovel.png": {
+      "path": "assets/items/shovel.8b9092903d43.png",
+      "sourceSha256": "8b9092903d43a512adf341bd43c27eebf01af60666bf43688803c8b767450209",
+      "sha256": "8b9092903d43a512adf341bd43c27eebf01af60666bf43688803c8b767450209",
+      "bytes": 45669,
+      "gzipBytes": 45604
+    },
+    "assets/items/signal_jammer.png": {
+      "path": "assets/items/signal_jammer.f745476c8109.png",
+      "sourceSha256": "f745476c810918efce0c3ffb751694716f061598693a751dde845a4bb2b1eb3f",
+      "sha256": "f745476c810918efce0c3ffb751694716f061598693a751dde845a4bb2b1eb3f",
+      "bytes": 58972,
+      "gzipBytes": 58807
+    },
+    "assets/items/slag.png": {
+      "path": "assets/items/slag.70184e4ac0e3.png",
+      "sourceSha256": "70184e4ac0e31c948850f929b0c6eaf13cc5fc6958746e6c791540912d14cd4b",
+      "sha256": "70184e4ac0e31c948850f929b0c6eaf13cc5fc6958746e6c791540912d14cd4b",
+      "bytes": 69161,
+      "gzipBytes": 69025
+    },
+    "assets/items/sleeping_pill.png": {
+      "path": "assets/items/sleeping_pill.5e4ca2bec7b5.png",
+      "sourceSha256": "5e4ca2bec7b5df9e080907594cc856d3f6c864389487bb71aa016f8010a74df2",
+      "sha256": "5e4ca2bec7b5df9e080907594cc856d3f6c864389487bb71aa016f8010a74df2",
+      "bytes": 71847,
+      "gzipBytes": 71576
+    },
+    "assets/items/soil_bag.png": {
+      "path": "assets/items/soil_bag.3611250ae082.png",
+      "sourceSha256": "3611250ae082e2bae3cae220a319a97178872e71fa1f503204c77dbbd9aa09ba",
+      "sha256": "3611250ae082e2bae3cae220a319a97178872e71fa1f503204c77dbbd9aa09ba",
+      "bytes": 57989,
+      "gzipBytes": 57861
+    },
+    "assets/items/solar_panel_mid.png": {
+      "path": "assets/items/solar_panel_mid.34f2a9894868.png",
+      "sourceSha256": "34f2a9894868d6a4cd24bc55f11b956df49657a5c25fea29de0ebdb464d42804",
+      "sha256": "34f2a9894868d6a4cd24bc55f11b956df49657a5c25fea29de0ebdb464d42804",
+      "bytes": 67228,
+      "gzipBytes": 66990
+    },
+    "assets/items/solar_panel_small.png": {
+      "path": "assets/items/solar_panel_small.fbb100a69202.png",
+      "sourceSha256": "fbb100a69202d931bce66db454b16e8aafec75aa1b97394806a09aab4ed0f046",
+      "sha256": "fbb100a69202d931bce66db454b16e8aafec75aa1b97394806a09aab4ed0f046",
+      "bytes": 56597,
+      "gzipBytes": 56385
+    },
+    "assets/items/soldering_iron.png": {
+      "path": "assets/items/soldering_iron.8d8deaabfaab.png",
+      "sourceSha256": "8d8deaabfaab82a8d08027e79c6633d57b590b6472afd84cda188abda997f825",
+      "sha256": "8d8deaabfaab82a8d08027e79c6633d57b590b6472afd84cda188abda997f825",
+      "bytes": 43816,
+      "gzipBytes": 43668
+    },
+    "assets/items/solvent_1l.png": {
+      "path": "assets/items/solvent_1l.2641f22d3ec4.png",
+      "sourceSha256": "2641f22d3ec4b7a5dac5941f5f0bebf8aa3f36d33700ae3de5dfe7c60edc86e0",
+      "sha256": "2641f22d3ec4b7a5dac5941f5f0bebf8aa3f36d33700ae3de5dfe7c60edc86e0",
+      "bytes": 58290,
+      "gzipBytes": 58275
+    },
+    "assets/items/spice_pack.png": {
+      "path": "assets/items/spice_pack.af00cde5daf1.png",
+      "sourceSha256": "af00cde5daf16cf0b5dd4ccb266b1c6b69d623634613b8ee3a1c9a3b47888860",
+      "sha256": "af00cde5daf16cf0b5dd4ccb266b1c6b69d623634613b8ee3a1c9a3b47888860",
+      "bytes": 67046,
+      "gzipBytes": 66971
+    },
+    "assets/items/spirit_essence.png": {
+      "path": "assets/items/spirit_essence.9a346d6d1730.png",
+      "sourceSha256": "9a346d6d1730817bdca5c8a3eb377c70444ab1b70277039a622480c9e8952dab",
+      "sha256": "9a346d6d1730817bdca5c8a3eb377c70444ab1b70277039a622480c9e8952dab",
+      "bytes": 58753,
+      "gzipBytes": 58610
+    },
+    "assets/items/spirit_ore.png": {
+      "path": "assets/items/spirit_ore.d4b2835424fd.png",
+      "sourceSha256": "d4b2835424fda8c8b72c63c1d68c94094eec09113878ee4ab63d6c8538d08225",
+      "sha256": "d4b2835424fda8c8b72c63c1d68c94094eec09113878ee4ab63d6c8538d08225",
+      "bytes": 74241,
+      "gzipBytes": 74168
+    },
+    "assets/items/spirit_pill.png": {
+      "path": "assets/items/spirit_pill.0c32f2aa55a7.png",
+      "sourceSha256": "0c32f2aa55a714f33aa2428dd3f458f28dfee78f805431f675914a9ee8290a84",
+      "sha256": "0c32f2aa55a714f33aa2428dd3f458f28dfee78f805431f675914a9ee8290a84",
+      "bytes": 83129,
+      "gzipBytes": 83177
+    },
+    "assets/items/spirit_sand.png": {
+      "path": "assets/items/spirit_sand.263a31c77b97.png",
+      "sourceSha256": "263a31c77b97a4ed9a6603613fde55dc7741175572d1eb0a2c727814046c80d2",
+      "sha256": "263a31c77b97a4ed9a6603613fde55dc7741175572d1eb0a2c727814046c80d2",
+      "bytes": 112079,
+      "gzipBytes": 112132
+    },
+    "assets/items/spirit_stone.png": {
+      "path": "assets/items/spirit_stone.a7ea4ce66a43.png",
+      "sourceSha256": "a7ea4ce66a43f9653b99e8970593a894e34054ffe30a4e4839f6a5380dd26dae",
+      "sha256": "a7ea4ce66a43f9653b99e8970593a894e34054ffe30a4e4839f6a5380dd26dae",
+      "bytes": 55413,
+      "gzipBytes": 55389
+    },
+    "assets/items/spring_pack.png": {
+      "path": "assets/items/spring_pack.81c3ea6c5b8d.png",
+      "sourceSha256": "81c3ea6c5b8dd73da66669164f688a51921d791940db76af0638f9557920a684",
+      "sha256": "81c3ea6c5b8dd73da66669164f688a51921d791940db76af0638f9557920a684",
+      "bytes": 51811,
+      "gzipBytes": 51735
+    },
+    "assets/items/sprouted_potato.png": {
+      "path": "assets/items/sprouted_potato.77b1968942ef.png",
+      "sourceSha256": "77b1968942efd097601fbc623227b5ad291a8cd60ba7a2d5997dcd5815a02ec3",
+      "sha256": "77b1968942efd097601fbc623227b5ad291a8cd60ba7a2d5997dcd5815a02ec3",
+      "bytes": 68379,
+      "gzipBytes": 68400
+    },
+    "assets/items/steel_ball_pack.png": {
+      "path": "assets/items/steel_ball_pack.c54b7fda86c0.png",
+      "sourceSha256": "c54b7fda86c007170f1421a4dce2a0b57fea335b7995b5ee02f8386aef87f115",
+      "sha256": "c54b7fda86c007170f1421a4dce2a0b57fea335b7995b5ee02f8386aef87f115",
+      "bytes": 86505,
+      "gzipBytes": 86479
+    },
+    "assets/items/steel_pipe_50.png": {
+      "path": "assets/items/steel_pipe_50.839c5bff97de.png",
+      "sourceSha256": "839c5bff97deaa2abd88926878445496a643d553e0674aeb68ae411a3bbd6d65",
+      "sha256": "839c5bff97deaa2abd88926878445496a643d553e0674aeb68ae411a3bbd6d65",
+      "bytes": 41794,
+      "gzipBytes": 41529
+    },
+    "assets/items/stimulant.png": {
+      "path": "assets/items/stimulant.05b1ac214d16.png",
+      "sourceSha256": "05b1ac214d16c03a99888b20e9b11ddfaec00f30ccead56f394bd885bc19ef36",
+      "sha256": "05b1ac214d16c03a99888b20e9b11ddfaec00f30ccead56f394bd885bc19ef36",
+      "bytes": 44827,
+      "gzipBytes": 44787
+    },
+    "assets/items/stolen_goods.png": {
+      "path": "assets/items/stolen_goods.4f519a985db4.png",
+      "sourceSha256": "4f519a985db40dc6476c566ac1c265440ba3445406f64aa53616e48eacda3bd3",
+      "sha256": "4f519a985db40dc6476c566ac1c265440ba3445406f64aa53616e48eacda3bd3",
+      "bytes": 43376,
+      "gzipBytes": 42994
+    },
+    "assets/items/stun_grenade.png": {
+      "path": "assets/items/stun_grenade.cc4c43dd8921.png",
+      "sourceSha256": "cc4c43dd89219bbf29cd4392948faac98c8817049f0ec0d79c1493871a98c10b",
+      "sha256": "cc4c43dd89219bbf29cd4392948faac98c8817049f0ec0d79c1493871a98c10b",
+      "bytes": 42557,
+      "gzipBytes": 42411
+    },
+    "assets/items/sugar_bag.png": {
+      "path": "assets/items/sugar_bag.0c75203f46dd.png",
+      "sourceSha256": "0c75203f46dd2c89f29566a828803da77fd6d64a727779fb731df8cec41410d9",
+      "sha256": "0c75203f46dd2c89f29566a828803da77fd6d64a727779fb731df8cec41410d9",
+      "bytes": 70366,
+      "gzipBytes": 70250
+    },
+    "assets/items/surgical_kit.png": {
+      "path": "assets/items/surgical_kit.05460804fc65.png",
+      "sourceSha256": "05460804fc650ad935fd5e2f7f011cee3ab5b60a506a96d785b8e52cf2c86f85",
+      "sha256": "05460804fc650ad935fd5e2f7f011cee3ab5b60a506a96d785b8e52cf2c86f85",
+      "bytes": 84708,
+      "gzipBytes": 84697
+    },
+    "assets/items/talisman_paper.png": {
+      "path": "assets/items/talisman_paper.8f5d8135a2dd.png",
+      "sourceSha256": "8f5d8135a2dd90c7501b07ecccea0993511211eeee189b2d2afcc96214c23968",
+      "sha256": "8f5d8135a2dd90c7501b07ecccea0993511211eeee189b2d2afcc96214c23968",
+      "bytes": 55628,
+      "gzipBytes": 55569
+    },
+    "assets/items/tarp.png": {
+      "path": "assets/items/tarp.be274bbedb18.png",
+      "sourceSha256": "be274bbedb186f31b1a0bccada17ddfb4685f68fbc2a977d12ce08742a2ae85e",
+      "sha256": "be274bbedb186f31b1a0bccada17ddfb4685f68fbc2a977d12ce08742a2ae85e",
+      "bytes": 65510,
+      "gzipBytes": 65229
+    },
+    "assets/items/tetanus_vaccine.png": {
+      "path": "assets/items/tetanus_vaccine.44c1b992a769.png",
+      "sourceSha256": "44c1b992a769fea47c8d3f37aa5f9d2b45e9a0957c5a05d4a3ea2aa5cbf8be96",
+      "sha256": "44c1b992a769fea47c8d3f37aa5f9d2b45e9a0957c5a05d4a3ea2aa5cbf8be96",
+      "bytes": 53685,
+      "gzipBytes": 53574
+    },
+    "assets/items/thermostat.png": {
+      "path": "assets/items/thermostat.d4daaeae22e3.png",
+      "sourceSha256": "d4daaeae22e308307d9495fb1ac4fcb6ec067f792268595a412e9e833e513839",
+      "sha256": "d4daaeae22e308307d9495fb1ac4fcb6ec067f792268595a412e9e833e513839",
+      "bytes": 66517,
+      "gzipBytes": 66416
+    },
+    "assets/items/tin_sheet.png": {
+      "path": "assets/items/tin_sheet.06934e4551e5.png",
+      "sourceSha256": "06934e4551e5d662ca4634fcd13ea2480255f663912d541470d53cbfe5d3559c",
+      "sha256": "06934e4551e5d662ca4634fcd13ea2480255f663912d541470d53cbfe5d3559c",
+      "bytes": 49519,
+      "gzipBytes": 49149
+    },
+    "assets/items/tobacco_leaf.png": {
+      "path": "assets/items/tobacco_leaf.73ed8f76acbe.png",
+      "sourceSha256": "73ed8f76acbe37e05b35336d9795fdedaf3fc04306b37dc1603545b6ad70cb02",
+      "sha256": "73ed8f76acbe37e05b35336d9795fdedaf3fc04306b37dc1603545b6ad70cb02",
+      "bytes": 85386,
+      "gzipBytes": 85403
+    },
+    "assets/items/toxic_extract.png": {
+      "path": "assets/items/toxic_extract.d9c8f72762c8.png",
+      "sourceSha256": "d9c8f72762c83256b7c4e161cbd582be88ccd8754c52fa674122661cfd05a042",
+      "sha256": "d9c8f72762c83256b7c4e161cbd582be88ccd8754c52fa674122661cfd05a042",
+      "bytes": 62687,
+      "gzipBytes": 62618
+    },
+    "assets/items/toxic_pill.png": {
+      "path": "assets/items/toxic_pill.84f4488fd54d.png",
+      "sourceSha256": "84f4488fd54de43d4c9d8cce7731ff6fff39bbd8301b576862cf8b76c83d07df",
+      "sha256": "84f4488fd54de43d4c9d8cce7731ff6fff39bbd8301b576862cf8b76c83d07df",
+      "bytes": 68797,
+      "gzipBytes": 68785
+    },
+    "assets/items/transistor_pack.png": {
+      "path": "assets/items/transistor_pack.6e0e252c4294.png",
+      "sourceSha256": "6e0e252c4294ec8df45133d6da8f909d43ee5e9aee175d67b4ffe73cc650baa2",
+      "sha256": "6e0e252c4294ec8df45133d6da8f909d43ee5e9aee175d67b4ffe73cc650baa2",
+      "bytes": 37317,
+      "gzipBytes": 37082
+    },
+    "assets/items/usb_hub.png": {
+      "path": "assets/items/usb_hub.e8e9918d3725.png",
+      "sourceSha256": "e8e9918d3725b5c2de75b3fbcdfc07979df4f94f3e3e283fab3b24102609f108",
+      "sha256": "e8e9918d3725b5c2de75b3fbcdfc07979df4f94f3e3e283fab3b24102609f108",
+      "bytes": 51174,
+      "gzipBytes": 50746
+    },
+    "assets/items/vape_pen.png": {
+      "path": "assets/items/vape_pen.f6d3a5df7ef6.png",
+      "sourceSha256": "f6d3a5df7ef68da5353c2387ddf7bc728d0524a376c44de7aca366df056a39ef",
+      "sha256": "f6d3a5df7ef68da5353c2387ddf7bc728d0524a376c44de7aca366df056a39ef",
+      "bytes": 39790,
+      "gzipBytes": 39627
+    },
+    "assets/items/vitamin_c.png": {
+      "path": "assets/items/vitamin_c.111d1e8647d5.png",
+      "sourceSha256": "111d1e8647d556ddf9900218d867b57421069d3365bee3b1101d3d13277d0aa5",
+      "sha256": "111d1e8647d556ddf9900218d867b57421069d3365bee3b1101d3d13277d0aa5",
+      "bytes": 61739,
+      "gzipBytes": 61573
+    },
+    "assets/items/vitamin_pack.png": {
+      "path": "assets/items/vitamin_pack.4a39f510fcae.png",
+      "sourceSha256": "4a39f510fcaec6985052b981d655731a8fc96138a35efa912267ce1aa99ebeca",
+      "sha256": "4a39f510fcaec6985052b981d655731a8fc96138a35efa912267ce1aa99ebeca",
+      "bytes": 62202,
+      "gzipBytes": 62149
+    },
+    "assets/items/vodka_1l.png": {
+      "path": "assets/items/vodka_1l.19faa4a97d31.png",
+      "sourceSha256": "19faa4a97d31b6c49c3ea16e3621f4c8a2bae021654e0f1595d1da679e0f9aa6",
+      "sha256": "19faa4a97d31b6c49c3ea16e3621f4c8a2bae021654e0f1595d1da679e0f9aa6",
+      "bytes": 61144,
+      "gzipBytes": 61182
+    },
+    "assets/items/vodka_500.png": {
+      "path": "assets/items/vodka_500.271a3125b72d.png",
+      "sourceSha256": "271a3125b72d9576220dddf894930f923a7aa86bdeebe02fb2855b43473dea80",
+      "sha256": "271a3125b72d9576220dddf894930f923a7aa86bdeebe02fb2855b43473dea80",
+      "bytes": 55206,
+      "gzipBytes": 55244
+    },
+    "assets/items/voltage_meter.png": {
+      "path": "assets/items/voltage_meter.266b6ab514b2.png",
+      "sourceSha256": "266b6ab514b231711df7c116732c94daeae3ffc376800bc06842f9df9019154a",
+      "sha256": "266b6ab514b231711df7c116732c94daeae3ffc376800bc06842f9df9019154a",
+      "bytes": 63177,
+      "gzipBytes": 63065
+    },
+    "assets/items/waste_pill.png": {
+      "path": "assets/items/waste_pill.da6e505a62f2.png",
+      "sourceSha256": "da6e505a62f252973a2f814d68bad110fb670acf890d3e5af566100798132eaf",
+      "sha256": "da6e505a62f252973a2f814d68bad110fb670acf890d3e5af566100798132eaf",
+      "bytes": 68579,
+      "gzipBytes": 68619
+    },
+    "assets/items/water_bottle_2l.png": {
+      "path": "assets/items/water_bottle_2l.0ecc9e209643.png",
+      "sourceSha256": "0ecc9e209643292205eeb3de37a136fa5e08b607b66bc798396520cbeb1b9c10",
+      "sha256": "0ecc9e209643292205eeb3de37a136fa5e08b607b66bc798396520cbeb1b9c10",
+      "bytes": 70563,
+      "gzipBytes": 70606
+    },
+    "assets/items/water_bottle_500.png": {
+      "path": "assets/items/water_bottle_500.ac340636dba3.png",
+      "sourceSha256": "ac340636dba3859f37f25cd89037c11ba7833bbc4ade0040e4bc156b525cbdc9",
+      "sha256": "ac340636dba3859f37f25cd89037c11ba7833bbc4ade0040e4bc156b525cbdc9",
+      "bytes": 62973,
+      "gzipBytes": 63006
+    },
+    "assets/items/water_bucket_5l.png": {
+      "path": "assets/items/water_bucket_5l.586e0ae6fd7c.png",
+      "sourceSha256": "586e0ae6fd7c03c01300a8adcfad6e430a4536d740cc622472acde4517cde763",
+      "sha256": "586e0ae6fd7c03c01300a8adcfad6e430a4536d740cc622472acde4517cde763",
+      "bytes": 59647,
+      "gzipBytes": 59555
+    },
+    "assets/items/water_cup.png": {
+      "path": "assets/items/water_cup.d4a2d66d959b.png",
+      "sourceSha256": "d4a2d66d959b0ccdb42b9261aca0f24ad9dd7792cf7cb0bea27fb80fb17d0263",
+      "sha256": "d4a2d66d959b0ccdb42b9261aca0f24ad9dd7792cf7cb0bea27fb80fb17d0263",
+      "bytes": 45849,
+      "gzipBytes": 45684
+    },
+    "assets/items/water_distilled_500.png": {
+      "path": "assets/items/water_distilled_500.f0b0475063b5.png",
+      "sourceSha256": "f0b0475063b58a879a3867d7f9149172433d50fa73348afbef63cc69ff14855c",
+      "sha256": "f0b0475063b58a879a3867d7f9149172433d50fa73348afbef63cc69ff14855c",
+      "bytes": 45909,
+      "gzipBytes": 45697
+    },
+    "assets/items/water_filtered_1l.png": {
+      "path": "assets/items/water_filtered_1l.06a3752efc18.png",
+      "sourceSha256": "06a3752efc18a7c0ef97753d73275bd9bee09b4f133eee9334d7c7750cfc9aa4",
+      "sha256": "06a3752efc18a7c0ef97753d73275bd9bee09b4f133eee9334d7c7750cfc9aa4",
+      "bytes": 53560,
+      "gzipBytes": 53442
+    },
+    "assets/items/water_industrial_10l.png": {
+      "path": "assets/items/water_industrial_10l.2bad8f7c7925.png",
+      "sourceSha256": "2bad8f7c792576fa9953ec5643036e3921b2c355650c1ea85166988733d3ca2f",
+      "sha256": "2bad8f7c792576fa9953ec5643036e3921b2c355650c1ea85166988733d3ca2f",
+      "bytes": 67231,
+      "gzipBytes": 67239
+    },
+    "assets/items/water_purifier_tablet.png": {
+      "path": "assets/items/water_purifier_tablet.8316f65788e7.png",
+      "sourceSha256": "8316f65788e71c1c5c3500b11076bf17ce8f8c91694ce9154beb8e4424217de5",
+      "sha256": "8316f65788e71c1c5c3500b11076bf17ce8f8c91694ce9154beb8e4424217de5",
+      "bytes": 66047,
+      "gzipBytes": 65803
+    },
+    "assets/items/water_tester.png": {
+      "path": "assets/items/water_tester.47de782c49dd.png",
+      "sourceSha256": "47de782c49dda04fc084f93119a0715f13cf9faa8a4f317bfe933a95995a989f",
+      "sha256": "47de782c49dda04fc084f93119a0715f13cf9faa8a4f317bfe933a95995a989f",
+      "bytes": 53604,
+      "gzipBytes": 53558
+    },
+    "assets/items/whisky_700.png": {
+      "path": "assets/items/whisky_700.b6cf2a1e5756.png",
+      "sourceSha256": "b6cf2a1e575662256c79ef2cf1ca64db30619c64323a69d135519c1676ca50f4",
+      "sha256": "b6cf2a1e575662256c79ef2cf1ca64db30619c64323a69d135519c1676ca50f4",
+      "bytes": 57656,
+      "gzipBytes": 57694
+    },
+    "assets/items/wine_750.png": {
+      "path": "assets/items/wine_750.0b416a3d27a3.png",
+      "sourceSha256": "0b416a3d27a3a10784fc9de20f5d027b19bb0d76563dd2fac3f02ed282880e66",
+      "sha256": "0b416a3d27a3a10784fc9de20f5d027b19bb0d76563dd2fac3f02ed282880e66",
+      "bytes": 45309,
+      "gzipBytes": 45342
+    },
+    "assets/items/wire_mesh.png": {
+      "path": "assets/items/wire_mesh.f8c2d2d0dbab.png",
+      "sourceSha256": "f8c2d2d0dbabdf2cf9632265e4cd37aa6339a3f689b754e5f398118b88558413",
+      "sha256": "f8c2d2d0dbabdf2cf9632265e4cd37aa6339a3f689b754e5f398118b88558413",
+      "bytes": 109404,
+      "gzipBytes": 109380
+    },
+    "assets/items/wrench.png": {
+      "path": "assets/items/wrench.d0ee2f65e4f2.png",
+      "sourceSha256": "d0ee2f65e4f2ce17a61a010fd2253c8302af435424320867d2757a09d0d906a4",
+      "sha256": "d0ee2f65e4f2ce17a61a010fd2253c8302af435424320867d2757a09d0d906a4",
+      "bytes": 43615,
+      "gzipBytes": 43570
+    },
+    "assets/machines/alchemy_furnace.png": {
+      "path": "assets/machines/alchemy_furnace.86c107f1fa20.png",
+      "sourceSha256": "86c107f1fa20552c81a7fa5d6fa7d061d311d517330d0970c921f54ccc426e5d",
+      "sha256": "86c107f1fa20552c81a7fa5d6fa7d061d311d517330d0970c921f54ccc426e5d",
+      "bytes": 104022,
+      "gzipBytes": 104075
+    },
+    "assets/machines/chem_still.png": {
+      "path": "assets/machines/chem_still.276e33ed680a.png",
+      "sourceSha256": "276e33ed680a06901afaa11ae027babfbc681fa229246aa298e2d0e5e688e31a",
+      "sha256": "276e33ed680a06901afaa11ae027babfbc681fa229246aa298e2d0e5e688e31a",
+      "bytes": 79349,
+      "gzipBytes": 79392
+    },
+    "assets/machines/smelter.png": {
+      "path": "assets/machines/smelter.542967d6768b.png",
+      "sourceSha256": "542967d6768b4a0891a9b6fabf609f9c0b4cd5ecbb7bae069f2e65eae902a20b",
+      "sha256": "542967d6768b4a0891a9b6fabf609f9c0b4cd5ecbb7bae069f2e65eae902a20b",
+      "bytes": 84761,
+      "gzipBytes": 84794
+    },
+    "assets/machines/spirit_field.png": {
+      "path": "assets/machines/spirit_field.c0121cbacaab.png",
+      "sourceSha256": "c0121cbacaab58816455f1ac6e774bebd29ff850ac74dc4a679f3ee9c4dd4c12",
+      "sha256": "c0121cbacaab58816455f1ac6e774bebd29ff850ac74dc4a679f3ee9c4dd4c12",
+      "bytes": 93245,
+      "gzipBytes": 93293
+    },
+    "assets/machines/talisman_desk.png": {
+      "path": "assets/machines/talisman_desk.054efc2639b3.png",
+      "sourceSha256": "054efc2639b3e3ff022567002013fce836abf968d1a75a6d0325cbe684232ed0",
+      "sha256": "054efc2639b3e3ff022567002013fce836abf968d1a75a6d0325cbe684232ed0",
+      "bytes": 72272,
+      "gzipBytes": 72234
+    },
+    "assets/machines/workbench.png": {
+      "path": "assets/machines/workbench.7e24b8665def.png",
+      "sourceSha256": "7e24b8665def95a31d6c875d8a43e8e248e960da0fe05b770ed53e5181a95b4c",
+      "sha256": "7e24b8665def95a31d6c875d8a43e8e248e960da0fe05b770ed53e5181a95b4c",
+      "bytes": 87685,
+      "gzipBytes": 87658
+    },
+    "assets/facilities/power.png": {
+      "path": "assets/facilities/power.7c5ee2b8fa03.png",
+      "sourceSha256": "7c5ee2b8fa0311237710046fa1053c06e9cb08bb8ccf4eef1cd0f1033d58f1a4",
+      "sha256": "7c5ee2b8fa0311237710046fa1053c06e9cb08bb8ccf4eef1cd0f1033d58f1a4",
+      "bytes": 82124,
+      "gzipBytes": 82068
+    },
+    "assets/facilities/security.png": {
+      "path": "assets/facilities/security.7cc77a969ff7.png",
+      "sourceSha256": "7cc77a969ff70751c7829aec8f80666f00f26bc36388a7cfa97a8728e222bd30",
+      "sha256": "7cc77a969ff70751c7829aec8f80666f00f26bc36388a7cfa97a8728e222bd30",
+      "bytes": 50091,
+      "gzipBytes": 49987
+    },
+    "assets/facilities/storage.png": {
+      "path": "assets/facilities/storage.93de3d6eb9fd.png",
+      "sourceSha256": "93de3d6eb9fd374963f9274d051a3a0185f1901fa2cd827ab58129aed098358d",
+      "sha256": "93de3d6eb9fd374963f9274d051a3a0185f1901fa2cd827ab58129aed098358d",
+      "bytes": 104010,
+      "gzipBytes": 104063
+    },
+    "assets/facilities/water_purifier.png": {
+      "path": "assets/facilities/water_purifier.976082f3949d.png",
+      "sourceSha256": "976082f3949df99bb84c562ecd1743c55b0e1e5b2a5389b7e65e3e6756109c0a",
+      "sha256": "976082f3949df99bb84c562ecd1743c55b0e1e5b2a5389b7e65e3e6756109c0a",
+      "bytes": 75472,
+      "gzipBytes": 75466
+    },
+    "assets/portraits/alchemist.png": {
+      "path": "assets/portraits/alchemist.80d542b6ed9d.png",
+      "sourceSha256": "80d542b6ed9d081edc8aca7c54ccb3088cb9a01f07528d7055294e4038878b71",
+      "sha256": "80d542b6ed9d081edc8aca7c54ccb3088cb9a01f07528d7055294e4038878b71",
+      "bytes": 384695,
+      "gzipBytes": 384833
+    },
+    "assets/portraits/collector.png": {
+      "path": "assets/portraits/collector.dc019ba7e548.png",
+      "sourceSha256": "dc019ba7e548cc0d1cf7c5a43ce89049ef7f3346e9430a73de0d1104fb294b3f",
+      "sha256": "dc019ba7e548cc0d1cf7c5a43ce89049ef7f3346e9430a73de0d1104fb294b3f",
+      "bytes": 375994,
+      "gzipBytes": 376127
+    },
+    "assets/portraits/contractor.png": {
+      "path": "assets/portraits/contractor.ccec1aa5464a.png",
+      "sourceSha256": "ccec1aa5464af62ecce784169c5a97e589dcee36e9d9b670a9159c06408c4269",
+      "sha256": "ccec1aa5464af62ecce784169c5a97e589dcee36e9d9b670a9159c06408c4269",
+      "bytes": 361244,
+      "gzipBytes": 361377
+    },
+    "assets/portraits/cultivator.png": {
+      "path": "assets/portraits/cultivator.6f94a8ec129c.png",
+      "sourceSha256": "6f94a8ec129c73b8c4866d9d32e406a524d6160e59263db0e2369e2de5318fc4",
+      "sha256": "6f94a8ec129c73b8c4866d9d32e406a524d6160e59263db0e2369e2de5318fc4",
+      "bytes": 399772,
+      "gzipBytes": 399915
+    },
+    "assets/portraits/herbalist.png": {
+      "path": "assets/portraits/herbalist.a938e7148095.png",
+      "sourceSha256": "a938e7148095fb5831de2193f2293098290293378fd7240d69e027614480961c",
+      "sha256": "a938e7148095fb5831de2193f2293098290293378fd7240d69e027614480961c",
+      "bytes": 425558,
+      "gzipBytes": 425706
+    },
+    "assets/portraits/informant.png": {
+      "path": "assets/portraits/informant.cf2e38c79dbf.png",
+      "sourceSha256": "cf2e38c79dbf23671de0171af9eb98fe29fb694a8f1110375c7475d60a895327",
+      "sha256": "cf2e38c79dbf23671de0171af9eb98fe29fb694a8f1110375c7475d60a895327",
+      "bytes": 288820,
+      "gzipBytes": 288928
+    },
+    "assets/portraits/medic.png": {
+      "path": "assets/portraits/medic.26f3db81d3e7.png",
+      "sourceSha256": "26f3db81d3e71459598f07c91fdf38d074a2321f9e96641363c4cbfda0d0f740",
+      "sha256": "26f3db81d3e71459598f07c91fdf38d074a2321f9e96641363c4cbfda0d0f740",
+      "bytes": 366081,
+      "gzipBytes": 366214
+    },
+    "assets/portraits/scavenger.png": {
+      "path": "assets/portraits/scavenger.51514f6e33f8.png",
+      "sourceSha256": "51514f6e33f8d8b46296e832a022670ca42eead2ea7936c53c8355eba30f2c5c",
+      "sha256": "51514f6e33f8d8b46296e832a022670ca42eead2ea7936c53c8355eba30f2c5c",
+      "bytes": 402083,
+      "gzipBytes": 402226
+    },
+    "assets/portraits/trader.png": {
+      "path": "assets/portraits/trader.c3f1e944c4b5.png",
+      "sourceSha256": "c3f1e944c4b5d2b3fedea17a098a091dd6f7cc3e7c773883ec075e985a533154",
+      "sha256": "c3f1e944c4b5d2b3fedea17a098a091dd6f7cc3e7c773883ec075e985a533154",
+      "bytes": 330831,
+      "gzipBytes": 330954
+    },
+    "assets/worlds/wasteland_nuclear.png": {
+      "path": "assets/worlds/wasteland_nuclear.4255a3236d34.png",
+      "sourceSha256": "4255a3236d340aba54f2117d14767671ba37b5f71bf4cbe3f8504ee74a354bed",
+      "sha256": "4255a3236d340aba54f2117d14767671ba37b5f71bf4cbe3f8504ee74a354bed",
+      "bytes": 3507569,
+      "gzipBytes": 3508657
+    },
+    "assets/worlds/xianxia_sect.png": {
+      "path": "assets/worlds/xianxia_sect.79d9783a11f6.png",
+      "sourceSha256": "79d9783a11f67308556d153c9e1554a43dfe76fbfe15d8b4b229a55ccb5c35e5",
+      "sha256": "79d9783a11f67308556d153c9e1554a43dfe76fbfe15d8b4b229a55ccb5c35e5",
+      "bytes": 3711081,
+      "gzipBytes": 3712234
+    },
+    "assets/art-index.js": {
+      "path": "assets/art-index.84912b3fefe4.js",
+      "sourceSha256": "e7bad7f4cab69421564f5dc2b0b1a39d19f9e08d8777f8bef8620a55c002ce6c",
+      "sha256": "84912b3fefe4dbf5791c78a4629911ee4d6591fd4b7fbb646537f359f8cf72ab",
+      "bytes": 11906,
+      "gzipBytes": 3880
+    },
     "content/games.json": {
-      "path": "content/games.665fa329e1dd.json",
-      "sourceSha256": "60bd7ceef33e78f0873e35cea628dc079ec7ec7a1299ae50c2d9ddad6d9c592b",
-      "sha256": "665fa329e1ddbc9f85fc1555f61f83c913841938900d7a518743b67d0f5767ca",
-      "bytes": 3262,
-      "gzipBytes": 1361
+      "path": "content/games.08d5151f65a9.json",
+      "sourceSha256": "f3238bc00386c5a2cf4fb1bb83abce0aadfa36cfb40d93174306a9bd5e76519d",
+      "sha256": "08d5151f65a901736275f76c6583858cb6bf0abead61254f3e9e90ca686b4424",
+      "bytes": 3248,
+      "gzipBytes": 1375
     },
     "src/arcade.js": {
       "path": "static/arcade.c0a8dd221f1b.js",
@@ -169,6 +1590,13 @@
       "bytes": 8463,
       "gzipBytes": 3522
     },
+    "src/dimensional-trading-post.css": {
+      "path": "static/dimensional-trading-post.15c0bdb0fb92.css",
+      "sourceSha256": "15c0bdb0fb92a34399ac19e4368d6645ecb6baf0a18a2292feaff700b4de5df1",
+      "sha256": "15c0bdb0fb92a34399ac19e4368d6645ecb6baf0a18a2292feaff700b4de5df1",
+      "bytes": 12278,
+      "gzipBytes": 3456
+    },
     "src/echo-deck.js": {
       "path": "static/echo-deck.a5ed74fe566b.js",
       "sourceSha256": "a5ed74fe566beb10ea5fd4e5edc232077d6032a661e2b0674b10ecfa8a7afd09",
@@ -184,11 +1612,11 @@
       "gzipBytes": 1536
     },
     "src/game.js": {
-      "path": "static/game.e36f4322794a.js",
-      "sourceSha256": "f5dc3358eec5840fbf4c865ca58bb02a81b8c16cc0be2497f064fa9e4dec7381",
-      "sha256": "e36f4322794a2a037111eb03d96e882e4fbc4766466d47d4fb3ed96d615f3c8b",
-      "bytes": 298753,
-      "gzipBytes": 89277
+      "path": "static/game.f72313622a1e.js",
+      "sourceSha256": "a9f983b1b8e616a3e3015ca8d7fe1265fb7953a27fe1a74e887ed9e89c6c4882",
+      "sha256": "f72313622a1eae3fa72812c5fdfa53c2051b762e70916e4c7072aa272568cf3e",
+      "bytes": 298832,
+      "gzipBytes": 89303
     },
     "src/hub.css": {
       "path": "static/hub.424ddcdfcbab.css",
@@ -198,18 +1626,18 @@
       "gzipBytes": 1945
     },
     "src/hub.js": {
-      "path": "static/hub.86bfe16a7bd5.js",
-      "sourceSha256": "fa778aa5e906b3df2c27aff452aba9ace39c0f6eaa00aac2ea2b79bc95bd973c",
-      "sha256": "86bfe16a7bd5218e406b44190f53b0adce90895bbeb059d5c7c828d37d835d71",
-      "bytes": 4289,
-      "gzipBytes": 1938
+      "path": "static/hub.6a111a408772.js",
+      "sourceSha256": "512018f6c46e3e23a066f833c91df7f40a18d054ddc89f26d37b4fb112042d14",
+      "sha256": "6a111a408772512363d203205df0c8e2d648d3729f4f89d240023418058ce413",
+      "bytes": 4802,
+      "gzipBytes": 2040
     },
     "src/play-loader.js": {
-      "path": "static/play-loader.0c1f3104d29b.js",
-      "sourceSha256": "8b876cb8573204731de0389921e083139db1d0bbb387714f5edc752b4cd5fc02",
-      "sha256": "0c1f3104d29b3d83a93da3a03824c1f213098e19f6a9c1434a1db6c6463773b9",
-      "bytes": 2779,
-      "gzipBytes": 1367
+      "path": "static/play-loader.bd66b9c24b2e.js",
+      "sourceSha256": "90909e6294dbb5330043639cf6e3acf063132c211ab34f73eb7416f98f681020",
+      "sha256": "bd66b9c24b2e1c7eb42a918e052f41ed34359c0ef2d7ff24c426cb04fbea4bc5",
+      "bytes": 2993,
+      "gzipBytes": 1409
     },
     "src/relay-defense.js": {
       "path": "static/relay-defense.646d29ebd49f.js",
@@ -240,60 +1668,67 @@
       "gzipBytes": 3982
     },
     "src/styles.css": {
-      "path": "static/styles.d2b220d78727.css",
-      "sourceSha256": "b3653f197a6e492b2e4555cfa37805d3f7d435f292e362e9723a586242d6541d",
-      "sha256": "d2b220d78727f43b21db14b3a6ca48f9fdf68d019915e80df444ead63ec6dc8d",
-      "bytes": 194952,
-      "gzipBytes": 38194
+      "path": "static/styles.edeb3f3f714f.css",
+      "sourceSha256": "18487edef08226bcb388a936669946cc1bd8564cc30c5e5fc53269dde8696d74",
+      "sha256": "edeb3f3f714f2bbd87a2b6f41225e81879478cc4ddf2e222fe6b1d7d4a51bca4",
+      "bytes": 195043,
+      "gzipBytes": 38225
     },
     "src/wasteland-core.js": {
-      "path": "static/wasteland-core.566bc8d6a877.js",
-      "sourceSha256": "566bc8d6a8775c04e1493df19d86302505c1677bc089d534edb957f240f08288",
-      "sha256": "566bc8d6a8775c04e1493df19d86302505c1677bc089d534edb957f240f08288",
-      "bytes": 45725,
-      "gzipBytes": 10472
+      "path": "static/wasteland-core.2a7911352e51.js",
+      "sourceSha256": "2a7911352e51724976d892c1efe3472c32bb91f3bf183be6ca2a0c98b6726267",
+      "sha256": "2a7911352e51724976d892c1efe3472c32bb91f3bf183be6ca2a0c98b6726267",
+      "bytes": 65711,
+      "gzipBytes": 15619
     },
     "src/wasteland-npc.js": {
-      "path": "static/wasteland-npc.320071cd8df8.js",
-      "sourceSha256": "320071cd8df801d0d0376114893641017c0019cfce0c7375b6c2b5c750b0d0fd",
-      "sha256": "320071cd8df801d0d0376114893641017c0019cfce0c7375b6c2b5c750b0d0fd",
-      "bytes": 11054,
-      "gzipBytes": 3829
+      "path": "static/wasteland-npc.73641662a115.js",
+      "sourceSha256": "73641662a115641f656a6e375c9ffa8f3f2f635f692a6f3bbf32c0a69c45725b",
+      "sha256": "73641662a115641f656a6e375c9ffa8f3f2f635f692a6f3bbf32c0a69c45725b",
+      "bytes": 14161,
+      "gzipBytes": 5269
     },
     "src/wasteland-shop.css": {
-      "path": "static/wasteland-shop.af778a9fbbcd.css",
-      "sourceSha256": "af778a9fbbcd046aadd3946b136c8f0ab387fc8f27e446a7e456e7ff7a818200",
-      "sha256": "af778a9fbbcd046aadd3946b136c8f0ab387fc8f27e446a7e456e7ff7a818200",
-      "bytes": 17959,
-      "gzipBytes": 4087
+      "path": "static/wasteland-shop.c3e1974ea2d1.css",
+      "sourceSha256": "c3e1974ea2d1b51b55a8a0da8262d7ddba21660a192f783c7b59c9463fe3d747",
+      "sha256": "c3e1974ea2d1b51b55a8a0da8262d7ddba21660a192f783c7b59c9463fe3d747",
+      "bytes": 38764,
+      "gzipBytes": 7756
     },
     "src/wasteland-shop.js": {
-      "path": "static/wasteland-shop.2bd43118d66d.js",
-      "sourceSha256": "2bd43118d66dce37592c00d33b6b105089910373ecbba8fc872f8042de0d99cb",
-      "sha256": "2bd43118d66dce37592c00d33b6b105089910373ecbba8fc872f8042de0d99cb",
-      "bytes": 48037,
-      "gzipBytes": 13516
+      "path": "static/wasteland-shop.b98b6c0d925f.js",
+      "sourceSha256": "b0eb217db489d704907992b240b05b5bb8744f32b644c7031ffaed7d94e06eee",
+      "sha256": "b98b6c0d925fa3a1d9148648df88c54069faf6cbf356a633c34610427162da4a",
+      "bytes": 113077,
+      "gzipBytes": 34484
     },
     "src/wasteland-ui.js": {
-      "path": "static/wasteland-ui.097bbf59ca89.js",
-      "sourceSha256": "097bbf59ca89e223b2b0f9995eb02894ec8e06e5c9eb28fe2a59f598201e6d4d",
-      "sha256": "097bbf59ca89e223b2b0f9995eb02894ec8e06e5c9eb28fe2a59f598201e6d4d",
-      "bytes": 44534,
-      "gzipBytes": 10442
+      "path": "static/wasteland-ui.0796e38a65ee.js",
+      "sourceSha256": "0796e38a65ee42ea7770ceb5a9701dd6821fa77a904399a181ba78cfa5a0477e",
+      "sha256": "0796e38a65ee42ea7770ceb5a9701dd6821fa77a904399a181ba78cfa5a0477e",
+      "bytes": 62961,
+      "gzipBytes": 17787
     },
     "index.html": {
       "path": "index.html",
       "sourceSha256": "322742172620450acad5a592918a3429a935cca71d3d6e35e2a83ca8631b44b8",
-      "sha256": "d328a4bc9c698576dd63a582b0aac2f557648d5218d9c55522985c9bf2377643",
+      "sha256": "303eae4bdbdb3d0a95db990677be699487aa922f4b955a978d623f42d7ee8dec",
       "bytes": 2883,
       "gzipBytes": 1505
     },
     "play.html": {
       "path": "play.html",
-      "sourceSha256": "c4f28e7cc8d90b971c06f375bf3cf2d2755985a40b0cef45c1570f7efcad8a3e",
-      "sha256": "4cbc6d442daef7e998052e14b8195cbfd1156c301938d22d8416746c0fb936bc",
-      "bytes": 54767,
-      "gzipBytes": 16875
+      "sourceSha256": "148c4dea37cc4975c62a35b1c7cdd95c655540d432f6660a771fd3331ed499c9",
+      "sha256": "bdccc709d131c9d5a9a620ad7fdf9d4eb5d829722b2b7b80603d7bea21853ace",
+      "bytes": 54929,
+      "gzipBytes": 16911
+    },
+    "wasteland.html": {
+      "path": "wasteland.html",
+      "sourceSha256": "d976777f2050fc000f09c47d99ad7df75b3af1da5bb8a8a643d1676b850c9f28",
+      "sha256": "a4da290003481d7634b69afb81b5506a8ccf3f8145d9e7ac8a338f989e17c2eb",
+      "bytes": 10439,
+      "gzipBytes": 4077
     }
   },
   "aliases": {
@@ -322,12 +1757,12 @@
       "bytes": 47919
     },
     "src/game.js": {
-      "sha256": "f5dc3358eec5840fbf4c865ca58bb02a81b8c16cc0be2497f064fa9e4dec7381",
-      "bytes": 298571
+      "sha256": "a9f983b1b8e616a3e3015ca8d7fe1265fb7953a27fe1a74e887ed9e89c6c4882",
+      "bytes": 298650
     },
     "src/styles.css": {
-      "sha256": "b3653f197a6e492b2e4555cfa37805d3f7d435f292e362e9723a586242d6541d",
-      "bytes": 194926
+      "sha256": "18487edef08226bcb388a936669946cc1bd8564cc30c5e5fc53269dde8696d74",
+      "bytes": 195017
     },
     "assets/enemy-atlas-v3.png": {
       "sha256": "6b1b37b39a1e3196f64df72bd57df7999990f4b5d124b4f5ae750f44e8ddcccd",
@@ -357,78 +1792,16 @@
       "sha256": "eac38fe842ff0ffe5765c6c9e5716501ea3df65ac9845f898aa9e12e3fcd7b73",
       "bytes": 175562
     },
+    "assets/dimensional-market-hall.svg": {
+      "sha256": "8d08fa080311fa85d5bae3c5569d4633fe07ef1d9de956953b94cd5a20a40ad3",
+      "bytes": 6818
+    },
     "assets/enemy-atlas-v2.webp": {
       "sha256": "77a7095cbc92737d24e5c5709592a6fae8ad738d5e87a8439ac7cd6313e06f9f",
       "bytes": 355828
     }
   },
   "retained": {},
-  "previousFiles": {
-    "assets/enemy-atlas-v3.6b1b37b39a1e.png": {
-      "path": "assets/enemy-atlas-v3.6b1b37b39a1e.png",
-      "sha256": "6b1b37b39a1e3196f64df72bd57df7999990f4b5d124b4f5ae750f44e8ddcccd",
-      "bytes": 1229542
-    },
-    "assets/boss-atlas-v2.c9c4c113fed8.webp": {
-      "path": "assets/boss-atlas-v2.c9c4c113fed8.webp",
-      "sha256": "c9c4c113fed82c4ea36491c2eca7103b3676b3a2e2f5706f0d1c42c8e0ee16b3",
-      "bytes": 631516
-    },
-    "assets/gear-atlas-v3.4a02728d8439.webp": {
-      "path": "assets/gear-atlas-v3.4a02728d8439.webp",
-      "sha256": "4a02728d8439c6e3cd3ca4f90a9d1089f0dcfd783560f4b8c0d5f87d806b6f45",
-      "bytes": 535550
-    },
-    "assets/player-ship-v2.3767363a890b.webp": {
-      "path": "assets/player-ship-v2.3767363a890b.webp",
-      "sha256": "3767363a890b62cd6ee936b28f05c0d92b32698dd6096de41e84e2da776e9dc2",
-      "bytes": 181458
-    },
-    "assets/hangar-backdrop-v1.e836e951df4c.webp": {
-      "path": "assets/hangar-backdrop-v1.e836e951df4c.webp",
-      "sha256": "e836e951df4c65261a7f28c395699708b0895007975a3dd7e8dc1faf86007ba3",
-      "bytes": 169882
-    },
-    "assets/sector-rainline-v1.24303aac7f2d.webp": {
-      "path": "assets/sector-rainline-v1.24303aac7f2d.webp",
-      "sha256": "24303aac7f2db7171641effaeaa770aa8bef938a88e8b8b55d390ab48859fa7b",
-      "bytes": 209332
-    },
-    "assets/sector-abyss-v1.eac38fe842ff.webp": {
-      "path": "assets/sector-abyss-v1.eac38fe842ff.webp",
-      "sha256": "eac38fe842ff0ffe5765c6c9e5716501ea3df65ac9845f898aa9e12e3fcd7b73",
-      "bytes": 175562
-    },
-    "assets/icons/expedition-v1.7b2e72347f0e.webp": {
-      "path": "assets/icons/expedition-v1.7b2e72347f0e.webp",
-      "sha256": "7b2e72347f0eb25bd0ec8a7db1c99526ba3091dbd16f722c6884b1f13cdac8d6",
-      "bytes": 75894
-    },
-    "assets/icons/border-v1.d0f42622589b.webp": {
-      "path": "assets/icons/border-v1.d0f42622589b.webp",
-      "sha256": "d0f42622589be41b571c23661d8abb7c4d309ae0feaa3739ab6a31c4556c70ef",
-      "bytes": 75346
-    },
-    "assets/icons/blackbox-v1.c85ff1ffc2b5.webp": {
-      "path": "assets/icons/blackbox-v1.c85ff1ffc2b5.webp",
-      "sha256": "c85ff1ffc2b52e502048d60db937741e00873d4e46d28fb9c65647afe0f79bfd",
-      "bytes": 58888
-    },
-    "assets/icons/salvage-v1.34e84f9a0bb5.webp": {
-      "path": "assets/icons/salvage-v1.34e84f9a0bb5.webp",
-      "sha256": "34e84f9a0bb5ca19c1c1626943bace528f3d97966461889e3fc4105ee057b62b",
-      "bytes": 71900
-    },
-    "assets/icons/lab-v1.9548724780f1.webp": {
-      "path": "assets/icons/lab-v1.9548724780f1.webp",
-      "sha256": "9548724780f19728a302b62ef2c5980cbc3ad32019622dc07aa818b95744bca5",
-      "bytes": 57918
-    },
-    "assets/icons/relay-v1.517db58ec8d0.webp": {
-      "path": "assets/icons/relay-v1.517db58ec8d0.webp",
-      "sha256": "517db58ec8d099c630f08aafe25dfbab3f08c20985cce318901d585b67b649c1",
-      "bytes": 52418
-    }
-  },
-  "hubGzipBytes": 6749
+  "previousFiles": {},
+  "hubGzipBytes": 6865
 }

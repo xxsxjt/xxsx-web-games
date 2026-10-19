@@ -13,6 +13,7 @@
   var QUALITY_NAMES={1:'损坏',2:'劣质',3:'普通',4:'良好',5:'优质'};
   var QUALITY_MULT={1:0.3,2:0.6,3:1.0,4:1.4,5:2.0};
   var ORIGIN_NAMES={salvage:'拾荒所得',auction:'集装箱拍卖',trade:'贸易',craft:'自制',unknown:'来源不明'};
+  var CATEGORY_NAMES={water:'水资源',alcohol:'酒类',chemical:'化学品',food:'食物',material:'金属材料',tech:'电子科技',medicine:'药品',equipment:'装备',illegal:'违禁品',misc:'杂项',tobacco:'烟草'};
 
   /* ─── 物品目录 ─────────────────────────────────────────────────── */
   var ITEM_CATALOG={
@@ -34,6 +35,14 @@
     wine_750:            {name:'红酒750ml',             category:'alcohol',  subtype:'wine',     basePrice:180, w:1,h:2,puritySystem:true, expiryDays:null, icon:'🍷',tags:['liquid','alcohol','aging'],agedDays:0},
     rice_wine_500:       {name:'米酒500ml陶瓷瓶',      category:'alcohol',  subtype:'wine',     basePrice:65,  w:1,h:1,puritySystem:true, expiryDays:null, icon:'🍶',tags:['liquid','alcohol','aging'],agedDays:0},
     brandy_500:          {name:'白兰地500ml',           category:'alcohol',  subtype:'spirits',  basePrice:250, w:1,h:2,puritySystem:true, expiryDays:null, icon:'🥂',tags:['liquid','alcohol','aging'],agedDays:0},
+    /* ── 烟草类 ── */
+    cigarette_pack:      {name:'香烟1包20支',           category:'tobacco',  subtype:'cigarette',basePrice:30,  w:1,h:1,puritySystem:false,expiryDays:730,  icon:'🚬',tags:['tobacco','consumer']},
+    cigarette_carton:    {name:'香烟1条10包',           category:'tobacco',  subtype:'cigarette',basePrice:260, w:1,h:2,puritySystem:false,expiryDays:730,  icon:'🚬',tags:['tobacco','consumer','bulk']},
+    rolling_tobacco:     {name:'散装烟丝100g',          category:'tobacco',  subtype:'loose',    basePrice:45,  w:1,h:1,puritySystem:false,expiryDays:365,  icon:'🚬',tags:['tobacco','loose']},
+    cigar_box:           {name:'雪茄礼盒',              category:'tobacco',  subtype:'cigar',    basePrice:320, w:1,h:2,puritySystem:false,expiryDays:730,  icon:'🚬',tags:['tobacco','cigar','luxury']},
+    chewing_tobacco:     {name:'嚼烟块',                category:'tobacco',  subtype:'chew',     basePrice:20,  w:1,h:1,puritySystem:false,expiryDays:540,  icon:'🚬',tags:['tobacco','chew']},
+    tobacco_leaf:        {name:'烟叶500g',              category:'tobacco',  subtype:'leaf',     basePrice:25,  w:1,h:1,puritySystem:false,expiryDays:null, icon:'🍂',tags:['tobacco','material','agriculture']},
+    vape_pen:            {name:'电子烟',                category:'tobacco',  subtype:'vape',     basePrice:120, w:1,h:1,puritySystem:false,expiryDays:null, icon:'💨',tags:['tobacco','device','modern']},
     /* ── 工业液体 ── */
     fuel_jerrycan_5l:    {name:'燃油5L铁桶',           category:'chemical', subtype:'fuel',     basePrice:90,  w:1,h:2,puritySystem:true, expiryDays:null, icon:'⛽',tags:['liquid','fuel','flammable']},
     acid_1l:             {name:'硫酸1L玻璃瓶',         category:'chemical', subtype:'acid',     basePrice:70,  w:1,h:1,puritySystem:true, expiryDays:null, icon:'⚗️',tags:['liquid','hazard','corrosive']},
@@ -152,6 +161,42 @@
     explosive:           {name:'炸药块',               category:'illegal',  subtype:'explosive',basePrice:600, w:1,h:1,puritySystem:false,expiryDays:null, icon:'💣',tags:['illegal','explosive','rare']},
     stolen_goods:        {name:'来历不明货物',         category:'illegal',  subtype:'unknown',  basePrice:150, w:1,h:1,puritySystem:false,expiryDays:null, icon:'📦',tags:['illegal','mystery']},
     black_market_info:   {name:'黑市情报纸条',         category:'illegal',  subtype:'document', basePrice:80,  w:1,h:1,puritySystem:false,expiryDays:null, icon:'📝',tags:['illegal','document','info']},
+    /* ── 灵霄宗门界：原料 ───────────────────────────────────────
+     * 这一批是炼丹链的上游。刻意把原料压得很便宜、成品拉得很贵——
+     * 差价就是生产系统的全部意义，也是玩家愿意花 ¤ 买机器、烧电、等天数的理由。
+     * 失败率再把这笔差价削回来一部分，成品比原料值钱，除非炼废了。
+     */
+    herb_lingcao:        {name:'灵草',                 category:'material', subtype:'herb',    basePrice:18,  w:1,h:1,puritySystem:false,expiryDays:180, icon:'🌿',tags:['herb','xianxia','alchemy']},
+    herb_huoyan:         {name:'火炎花',               category:'material', subtype:'herb',    basePrice:32,  w:1,h:1,puritySystem:false,expiryDays:180, icon:'🌺',tags:['herb','xianxia','alchemy','hot']},
+    herb_lingzhi:        {name:'灵芝',                 category:'material', subtype:'herb',    basePrice:55,  w:1,h:1,puritySystem:false,expiryDays:365, icon:'🍄',tags:['herb','xianxia','alchemy','rare']},
+    cinnabar_ore:        {name:'丹砂矿',               category:'material', subtype:'ore',     basePrice:25,  w:1,h:1,puritySystem:false,expiryDays:null, icon:'🟥',tags:['ore','xianxia','alchemy','mineral']},
+    spirit_sand:         {name:'灵砂',                 category:'material', subtype:'ore',     basePrice:30,  w:1,h:1,puritySystem:false,expiryDays:null, icon:'✨',tags:['ore','xianxia','alchemy','mineral']},
+    spirit_ore:          {name:'灵矿原石',             category:'material', subtype:'ore',     basePrice:40,  w:1,h:1,puritySystem:false,expiryDays:null, icon:'💠',tags:['ore','xianxia','mineral']},
+    spirit_stone:        {name:'灵石',                 category:'material', subtype:'crystal', basePrice:150, w:1,h:1,puritySystem:false,expiryDays:null, icon:'🔷',tags:['xianxia','crystal','currency']},
+    beast_core:          {name:'妖兽内丹',             category:'material', subtype:'core',    basePrice:380, w:1,h:1,puritySystem:false,expiryDays:null, icon:'🔮',tags:['xianxia','core','rare']},
+    /* ── 灵霄宗门界：辅料 ── */
+    spirit_essence:      {name:'灵液500ml',            category:'chemical', subtype:'essence', basePrice:110, w:1,h:1,puritySystem:true, expiryDays:null, icon:'🧫',tags:['liquid','xianxia','alchemy']},
+    toxic_extract:       {name:'毒液提取液',           category:'chemical', subtype:'toxin',   basePrice:75,  w:1,h:1,puritySystem:true, expiryDays:null, icon:'☠️',tags:['liquid','xianxia','hazard']},
+    cinnabar_ink:        {name:'朱砂墨',               category:'misc',     subtype:'ink',     basePrice:65,  w:1,h:1,puritySystem:false,expiryDays:null, icon:'🖌️',tags:['xianxia','craft','material']},
+    talisman_paper:      {name:'符纸',                 category:'misc',     subtype:'paper',   basePrice:40,  w:1,h:1,puritySystem:false,expiryDays:null, icon:'📜',tags:['xianxia','craft','paper']},
+    recipe_scroll:       {name:'丹方残卷',             category:'misc',     subtype:'document',basePrice:140, w:1,h:1,puritySystem:false,expiryDays:null, icon:'📜',tags:['xianxia','document','recipe']},
+    sect_token:          {name:'宗门令牌',             category:'misc',     subtype:'document',basePrice:200, w:1,h:1,puritySystem:false,expiryDays:null, icon:'🎴',tags:['xianxia','document','credential']},
+    /* ── 灵霄宗门界：成品丹药 ── */
+    qi_pill:             {name:'回气丹',               category:'medicine', subtype:'pill',    basePrice:120, w:1,h:1,puritySystem:false,expiryDays:null, icon:'🟠',tags:['medicine','xianxia','pill']},
+    spirit_pill:         {name:'凝神丹',               category:'medicine', subtype:'pill',    basePrice:260, w:1,h:1,puritySystem:false,expiryDays:null, icon:'🟣',tags:['medicine','xianxia','pill']},
+    healing_pill:        {name:'疗伤丹',               category:'medicine', subtype:'pill',    basePrice:380, w:1,h:1,puritySystem:false,expiryDays:null, icon:'🔴',tags:['medicine','xianxia','pill']},
+    marrow_pill:         {name:'洗髓丹',               category:'medicine', subtype:'pill',    basePrice:1200,w:1,h:1,puritySystem:false,expiryDays:null, icon:'🟡',tags:['medicine','xianxia','pill','rare']},
+    toxic_pill:          {name:'毒丹',                 category:'medicine', subtype:'pill',    basePrice:220, w:1,h:1,puritySystem:false,expiryDays:null, icon:'🟢',tags:['medicine','xianxia','pill','hazard']},
+    waste_pill:          {name:'废丹',                 category:'medicine', subtype:'pill',    basePrice:22,  w:1,h:1,puritySystem:false,expiryDays:null, icon:'⚫',tags:['medicine','xianxia','junk']},
+    jade_gourd:          {name:'玉葫芦',               category:'equipment',subtype:'xianxia', basePrice:160, w:1,h:1,puritySystem:false,expiryDays:null, icon:'🏺',tags:['xianxia','tool','container']},
+    formation_disc:      {name:'阵盘',                 category:'equipment',subtype:'xianxia', basePrice:300, w:1,h:2,puritySystem:false,expiryDays:null, icon:'🔯',tags:['xianxia','device']},
+    /* ── 核爆废土：装配台成品与废料 ─────────────────────────────
+     * 装配台把便宜零件拼成贵的整机；失败则烧成废件。
+     */
+    power_drill:         {name:'电动工具',             category:'equipment',subtype:'tool',    basePrice:240, w:1,h:1,puritySystem:false,expiryDays:null, icon:'🔩',tags:['tool','power','craft']},
+    radio_station:       {name:'自制电台',             category:'tech',     subtype:'radio',   basePrice:320, w:1,h:2,puritySystem:false,expiryDays:null, icon:'📻',tags:['tech','communication','craft']},
+    burnt_board:         {name:'烧毁电路',             category:'tech',     subtype:'junk',    basePrice:12,  w:1,h:1,puritySystem:false,expiryDays:null, icon:'🔥',tags:['tech','junk']},
+    slag:                {name:'炉渣',                 category:'misc',     subtype:'junk',    basePrice:6,   w:1,h:1,puritySystem:false,expiryDays:null, icon:'🪨',tags:['junk','metal']},
     /* ── 杂项 ── */
     junk_metal:          {name:'废铁500g',             category:'misc',     subtype:'junk',     basePrice:4,   w:1,h:1,puritySystem:false,expiryDays:null, icon:'🗑️',tags:['junk','metal']},
     junk_plastic:        {name:'废塑料',               category:'misc',     subtype:'junk',     basePrice:3,   w:1,h:1,puritySystem:false,expiryDays:null, icon:'🗑️',tags:['junk','plastic']},
@@ -202,6 +247,8 @@
       puritySystem: sku.puritySystem||false,
       icon: sku.icon||'📦',
       tags: sku.tags||[],
+      brand: overrides.brand || sku.brand || null,
+      supplier: overrides.supplier || sku.supplier || null,
       notes: ''
     };
     if(sku.puritySystem){
@@ -286,12 +333,15 @@
   }
 
   /* ─── 市场行情 ─────────────────────────────────────────────────── */
+  function categoryName(key){return CATEGORY_NAMES[key]||key;}
+
   function createMarketState(){
     return {
       day: 0,
       coefficients:{
         water:       1.0,
         alcohol:     1.0,
+        tobacco:     1.0,
         chemical:    1.0,
         food:        1.0,
         material:    1.0,
@@ -304,6 +354,7 @@
       stockout:{
         water:       0,
         alcohol:     0,
+        tobacco:     0,
         chemical:    0,
         food:        0,
         material:    0,
@@ -364,7 +415,10 @@
       count:[1,4],qualityRange:[2,4]
     },
     deepzone:{
-      skus:['water_distilled_500','canned_meat','iron_ingot_5kg','circuit_board','antibiotic','surgical_kit','first_aid_kit','voltage_meter','radio_module','fuel_jerrycan_5l','geiger','antidote','ammo_9mm','stolen_goods','recipe_card','map_fragment'],
+      // signal_jammer 是唯一没法靠商旅带上门的货（¤350 超过访客带货上限），
+      // 所以它的入口只能在这里：一台被遗弃在禁区里的干扰器。
+      // 240 的补给费加 7 天往返，换来它也不算白送。
+      skus:['water_distilled_500','canned_meat','iron_ingot_5kg','circuit_board','antibiotic','surgical_kit','first_aid_kit','voltage_meter','radio_module','fuel_jerrycan_5l','geiger','antidote','ammo_9mm','stolen_goods','recipe_card','map_fragment','signal_jammer','ammo_762','stun_grenade'],
       count:[2,5],qualityRange:[2,5]
     }
   };
@@ -397,6 +451,259 @@
   /* ─── 日推进 ─────────────────────────────────────────────────────
    * advanceDay(state) → DayResult
    ─────────────────────────────────────────────────────────────────── */
+  /* ─── 生产设施与配方 ─────────────────────────────────────────────
+   * 机器区（baseState.freeGrid）放的是机器，不是货架——它和仓库是分开的
+   * 两块地方：仓库堆货，机器区跑生产。
+   *
+   * 数值原则：成品的目录价合计 ≈ 原料合计的 2–3 倍。这个倍数就是玩家愿意
+   * 花钱买机器、烧电、等天数的全部理由。失败率再把差价削回去一部分——
+   * 所以「炼废了」是设计内的风险，不是 bug，越贵的配方废得越狠。
+   */
+  var MACHINE_DEFS={
+    smelter:{
+      key:'smelter',label:'熔炉',icon:'🔥',w:2,h:2,cost:300,world:'wasteland_nuclear',
+      desc:'把废铁废铜熔成规整的金属锭。废土上最常见的第一台机器。',
+      recipes:['melt_iron','melt_copper','melt_steel','alloy_brass']
+    },
+    workbench:{
+      key:'workbench',label:'装配台',icon:'🔧',w:2,h:1,cost:420,world:'wasteland_nuclear',
+      desc:'把零件拼成整机。单价最高的产品出在这里，也最容易烧板子。',
+      recipes:['fix_board','build_drill','build_inverter','build_radio']
+    },
+    chem_still:{
+      key:'chem_still',label:'化工台',icon:'⚗️',w:2,h:1,cost:380,world:'wasteland_nuclear',
+      desc:'提纯与合成腐蚀性药剂，气味很大，成品单价不低。',
+      recipes:['refine_acid','make_toxin','make_coolant']
+    },
+    alchemy_furnace:{
+      key:'alchemy_furnace',label:'丹炉',icon:'🏺',w:2,h:2,cost:650,world:'xianxia_sect',
+      desc:'灵霄宗门界的看家本事。原料便宜、丹药极贵，但炼制失败会出一炉废丹。',
+      recipes:['alchemy_qi','alchemy_spirit','alchemy_heal','alchemy_toxic','alchemy_marrow']
+    },
+    talisman_desk:{
+      key:'talisman_desk',label:'符箓台',icon:'🔯',w:1,h:1,cost:300,world:'xianxia_sect',
+      desc:'朱砂落纸，画得出阵盘与令牌。占地小，适合塞在角落。',
+      recipes:['make_talisman','carve_token']
+    },
+    spirit_field:{
+      key:'spirit_field',label:'灵田',icon:'🌱',w:2,h:2,cost:200,world:'xianxia_sect',
+      desc:'种下药种，几天后收一茬灵草。所有丹方的最上游。',
+      recipes:['grow_lingcao','grow_huoyan']
+    }
+  };
+
+  // 每道配方：吃 inputs、烧 days 天、出 output。failChance 命中则只出 failOutput。
+  var RECIPE_DEFS={
+    /* ── 熔炉 ── */
+    melt_iron:{
+      id:'melt_iron',machine:'smelter',label:'熔炼铁锭',days:1,failChance:0.08,
+      inputs:[{skuId:'junk_metal',qty:4}],
+      output:{skuId:'iron_ingot_1kg',qty:2,qualityRange:[2,4]},
+      failOutput:{skuId:'slag',qty:1}
+    },
+    melt_copper:{
+      id:'melt_copper',machine:'smelter',label:'熔炼铜管',days:1,failChance:0.10,
+      inputs:[{skuId:'copper_wire',qty:1},{skuId:'junk_metal',qty:2}],
+      output:{skuId:'copper_pipe_30',qty:2,qualityRange:[2,4]},
+      failOutput:{skuId:'slag',qty:1}
+    },
+    melt_steel:{
+      id:'melt_steel',machine:'smelter',label:'熔炼钢管',days:1,failChance:0.10,
+      inputs:[{skuId:'iron_ingot_1kg',qty:1},{skuId:'charcoal_bag',qty:1}],
+      output:{skuId:'steel_pipe_50',qty:2,qualityRange:[3,5]},
+      failOutput:{skuId:'slag',qty:2}
+    },
+    alloy_brass:{
+      id:'alloy_brass',machine:'smelter',label:'炼黄铜',days:2,failChance:0.15,
+      inputs:[{skuId:'copper_pipe_30',qty:1},{skuId:'tin_sheet',qty:1}],
+      output:{skuId:'brass_rod',qty:3,qualityRange:[3,5]},
+      failOutput:{skuId:'slag',qty:2}
+    },
+    /* ── 装配台 ── */
+    fix_board:{
+      id:'fix_board',machine:'workbench',label:'修复电路板',days:1,failChance:0.15,
+      inputs:[{skuId:'circuit_board_broken',qty:2},{skuId:'transistor_pack',qty:1}],
+      output:{skuId:'circuit_board',qty:2,qualityRange:[2,4]},
+      failOutput:{skuId:'burnt_board',qty:1}
+    },
+    build_drill:{
+      id:'build_drill',machine:'workbench',label:'组装电动工具',days:2,failChance:0.12,
+      inputs:[{skuId:'iron_ingot_1kg',qty:1},{skuId:'bearing_pack',qty:1},{skuId:'screw_bag',qty:1}],
+      output:{skuId:'power_drill',qty:1,qualityRange:[3,5]},
+      failOutput:{skuId:'burnt_board',qty:1}
+    },
+    build_inverter:{
+      id:'build_inverter',machine:'workbench',label:'组装逆变器',days:2,failChance:0.18,
+      inputs:[{skuId:'circuit_board',qty:1},{skuId:'capacitor_pack',qty:1},{skuId:'relay_module',qty:1}],
+      output:{skuId:'power_inverter',qty:2,qualityRange:[3,5]},
+      failOutput:{skuId:'burnt_board',qty:2}
+    },
+    build_radio:{
+      id:'build_radio',machine:'workbench',label:'组装电台',days:3,failChance:0.20,
+      inputs:[{skuId:'radio_module',qty:1},{skuId:'antenna',qty:1},{skuId:'circuit_board',qty:1}],
+      output:{skuId:'radio_station',qty:2,qualityRange:[3,5]},
+      failOutput:{skuId:'burnt_board',qty:2}
+    },
+    /* ── 化工台 ── */
+    refine_acid:{
+      id:'refine_acid',machine:'chem_still',label:'提纯硫酸',days:1,failChance:0.18,
+      inputs:[{skuId:'solvent_1l',qty:1}],
+      output:{skuId:'acid_1l',qty:2,qualityRange:[3,5],purityRange:[3,5]},
+      failOutput:{skuId:'bleach_1l',qty:1}
+    },
+    make_toxin:{
+      id:'make_toxin',machine:'chem_still',label:'调配毒液',days:2,failChance:0.22,
+      inputs:[{skuId:'acid_1l',qty:1},{skuId:'glycerin_500',qty:1}],
+      output:{skuId:'toxic_extract',qty:3,qualityRange:[3,5],purityRange:[3,5]},
+      failOutput:{skuId:'bleach_1l',qty:2}
+    },
+    make_coolant:{
+      id:'make_coolant',machine:'chem_still',label:'调和冷却液',days:1,failChance:0.12,
+      inputs:[{skuId:'bleach_1l',qty:1},{skuId:'water_industrial_10l',qty:1}],
+      output:{skuId:'coolant_2l',qty:3,qualityRange:[3,5],purityRange:[3,5]},
+      failOutput:{skuId:'bleach_1l',qty:1}
+    },
+    /* ── 丹炉 ── */
+    alchemy_qi:{
+      id:'alchemy_qi',machine:'alchemy_furnace',label:'炼回气丹',days:2,failChance:0.20,
+      inputs:[{skuId:'herb_lingcao',qty:3},{skuId:'cinnabar_ore',qty:1}],
+      output:{skuId:'qi_pill',qty:2,qualityRange:[2,4]},
+      failOutput:{skuId:'waste_pill',qty:2}
+    },
+    alchemy_spirit:{
+      id:'alchemy_spirit',machine:'alchemy_furnace',label:'炼凝神丹',days:3,failChance:0.25,
+      inputs:[{skuId:'herb_lingcao',qty:2},{skuId:'spirit_sand',qty:2},{skuId:'spirit_essence',qty:1}],
+      output:{skuId:'spirit_pill',qty:2,qualityRange:[3,5]},
+      failOutput:{skuId:'waste_pill',qty:2}
+    },
+    alchemy_heal:{
+      id:'alchemy_heal',machine:'alchemy_furnace',label:'炼疗伤丹',days:3,failChance:0.25,
+      inputs:[{skuId:'herb_lingzhi',qty:1},{skuId:'spirit_essence',qty:1}],
+      output:{skuId:'healing_pill',qty:1,qualityRange:[3,5]},
+      failOutput:{skuId:'waste_pill',qty:2}
+    },
+    alchemy_toxic:{
+      id:'alchemy_toxic',machine:'alchemy_furnace',label:'炼毒丹',days:2,failChance:0.22,
+      inputs:[{skuId:'toxic_extract',qty:2},{skuId:'herb_huoyan',qty:2}],
+      output:{skuId:'toxic_pill',qty:2,qualityRange:[3,5]},
+      failOutput:{skuId:'waste_pill',qty:2}
+    },
+    alchemy_marrow:{
+      id:'alchemy_marrow',machine:'alchemy_furnace',label:'炼洗髓丹',days:7,failChance:0.40,
+      inputs:[{skuId:'beast_core',qty:1},{skuId:'spirit_stone',qty:1},{skuId:'herb_lingzhi',qty:2}],
+      output:{skuId:'marrow_pill',qty:1,qualityRange:[3,5]},
+      failOutput:{skuId:'waste_pill',qty:3}
+    },
+    /* ── 符箓台 ── */
+    make_talisman:{
+      id:'make_talisman',machine:'talisman_desk',label:'画阵盘',days:2,failChance:0.20,
+      inputs:[{skuId:'talisman_paper',qty:2},{skuId:'cinnabar_ink',qty:1}],
+      output:{skuId:'formation_disc',qty:1,qualityRange:[3,5]},
+      failOutput:{skuId:'talisman_paper',qty:1}
+    },
+    carve_token:{
+      id:'carve_token',machine:'talisman_desk',label:'刻宗门令牌',days:1,failChance:0.15,
+      inputs:[{skuId:'cinnabar_ink',qty:1},{skuId:'spirit_sand',qty:1}],
+      output:{skuId:'sect_token',qty:1,qualityRange:[3,5]},
+      failOutput:{skuId:'talisman_paper',qty:1}
+    },
+    /* ── 灵田 ── */
+    grow_lingcao:{
+      id:'grow_lingcao',machine:'spirit_field',label:'种灵草',days:4,failChance:0.15,
+      inputs:[{skuId:'seed_herb',qty:1},{skuId:'soil_bag',qty:1}],
+      output:{skuId:'herb_lingcao',qty:6,qualityRange:[2,4]},
+      failOutput:{skuId:'soil_bag',qty:1}
+    },
+    grow_huoyan:{
+      id:'grow_huoyan',machine:'spirit_field',label:'种火炎花',days:5,failChance:0.20,
+      inputs:[{skuId:'seed_herb',qty:1},{skuId:'charcoal_bag',qty:1}],
+      output:{skuId:'herb_huoyan',qty:3,qualityRange:[3,5]},
+      failOutput:{skuId:'soil_bag',qty:1}
+    }
+  };
+
+  function machineDef(key){return MACHINE_DEFS[key]||null;}
+  function recipeDef(id){return RECIPE_DEFS[id]||null;}
+
+  // 一道配方在给定机器等级下的实际失败率：机器越好越稳
+  function recipeFailChance(recipe,machineLevel){
+    var base=recipe.failChance||0;
+    var relief=Math.max(0,(machineLevel||1)-1)*0.04;
+    return Math.max(0.02,base-relief);
+  }
+
+  function createMachine(machineKey,overrides){
+    var def=MACHINE_DEFS[machineKey];
+    if(!def)throw new Error('Unknown machine: '+machineKey);
+    overrides=overrides||{};
+    return {
+      id: overrides.id||_uid(),
+      machineKey: machineKey,
+      name: def.label,
+      icon: def.icon,
+      w: def.w,
+      h: def.h,
+      level: overrides.level||1
+    };
+  }
+
+  /* 开始一项生产：只登记任务，扣料与产出入库由调用方负责
+   * （商店侧要用自己的仓库与待领区逻辑）。 */
+  function createProductionJob(recipeId,machineId,machineLevel,startedDay){
+    var recipe=RECIPE_DEFS[recipeId];
+    if(!recipe)return null;
+    return {
+      id:_uid(),
+      recipeId:recipeId,
+      machineId:machineId,
+      machineLevel:machineLevel||1,
+      daysLeft:recipe.days,
+      totalDays:recipe.days,
+      startedDay:startedDay||1
+    };
+  }
+
+  // 判定一项完成的生产，返回 {failed, items:[...]}
+  function resolveProduction(job){
+    var recipe=RECIPE_DEFS[job&&job.recipeId];
+    if(!recipe)return {failed:false,items:[]};
+    var failed=Math.random()<recipeFailChance(recipe,job.machineLevel);
+    var spec=failed?(recipe.failOutput||recipe.output):recipe.output;
+    if(!spec)return {failed:failed,items:[]};
+    var items=[];
+    for(var i=0;i<(spec.qty||1);i++){
+      var opts={origin:'craft'};
+      if(spec.qualityRange){
+        opts.quality=_randInt(spec.qualityRange[0],spec.qualityRange[1]);
+      }
+      if(spec.purityRange){
+        opts.purity=_randInt(spec.purityRange[0],spec.purityRange[1]);
+      }
+      try{items.push(createItem(spec.skuId,opts));}catch(e){}
+    }
+    return {failed:failed,items:items};
+  }
+
+  // 仓库里有没有足够的料
+  function _countInGrid(grid,skuId){
+    var n=0;
+    Object.keys(grid.items||{}).forEach(function(id){
+      var entry=grid.items[id];
+      if(entry&&entry.item&&entry.item.skuId===skuId)n++;
+    });
+    return n;
+  }
+
+  function canStartRecipe(state,recipeId){
+    var recipe=RECIPE_DEFS[recipeId];
+    if(!recipe||!state||!state.grid)return false;
+    for(var i=0;i<recipe.inputs.length;i++){
+      var need=recipe.inputs[i];
+      if(_countInGrid(state.grid,need.skuId)<need.qty)return false;
+    }
+    return true;
+  }
+
   function advanceDay(state){
     var result={ok:true,day:state.day,expired:[],events:[],warnings:[]};
 
@@ -440,7 +747,7 @@
         if(market.stockout[cat]>0){
           market.stockout[cat]--;
           if(market.stockout[cat]===0){
-            result.events.push('「'+cat+'」类物资恢复供应。');
+            result.events.push('「'+categoryName(cat)+'」类物资恢复供应。');
             market.coefficients[cat]=Math.max(0.8,market.coefficients[cat]-0.3);
           }
         }
@@ -452,16 +759,16 @@
         if(evType===0){
           var dur0=_randInt(3,5);
           market.pendingShocks.push({category:cat,delta:0.5,duration:dur0});
-          result.events.push({type:'market',text:'「'+cat+'」类物资出现缺货，价格上涨。',category:cat,coeff:1.5});
+          result.events.push({type:'market',text:'「'+categoryName(cat)+'」类物资出现缺货，价格上涨。',category:cat,coeff:1.5});
         }else if(evType===1){
           var dur1=_randInt(2,3);
           market.pendingShocks.push({category:cat,delta:-0.4,duration:dur1});
-          result.events.push({type:'market',text:'「'+cat+'」类物资大量涌入，价格暴跌。',category:cat,coeff:0.6});
+          result.events.push({type:'market',text:'「'+categoryName(cat)+'」类物资大量涌入，价格暴跌。',category:cat,coeff:0.6});
         }else{
           var dur2=_randInt(5,7);
           market.stockout[cat]=dur2;
           market.coefficients[cat]=3.0;
-          result.events.push({type:'market',text:'「'+cat+'」类物资彻底断供，价格飙升。',category:cat,coeff:3.0});
+          result.events.push({type:'market',text:'「'+categoryName(cat)+'」类物资彻底断供，价格飙升。',category:cat,coeff:3.0});
         }
       }
     }
@@ -474,32 +781,21 @@
             dispatch.status='returned';
             var loot=_generateDispatchLoot(dispatch.destination);
             if(!state.returnedLoot)state.returnedLoot=[];
-            loot.forEach(function(it){state.returnedLoot.push(it);});
+            // 标记来源：商店侧要在同一批 returnedLoot 里区分
+            // 「派遣带回的」与「订购到货放不下而积压的」，否则空手而归的
+            // 回滚会误删订购的货。
+            loot.forEach(function(it){it.dispatchId=dispatch.id;it.origin='salvage';state.returnedLoot.push(it);});
             result.events.push('[派遣] '+dispatch.npcName+'从'+dispatch.destination+'返回，带回'+loot.length+'件物资。');
           }
         }
       });
     }
 
-    var player=state.player;
-    if(player){
-      player.hunger=(player.hunger||0)+1;
-      player.thirst=(player.thirst||0)+1;
-      if(player.thirst>=3)result.warnings.push('玩家缺水，健康下降风险提升。');
-      if(player.hunger>=3)result.warnings.push('玩家缺食物，健康下降风险提升。');
-      if(player.thirst>=4||player.hunger>=4){
-        player.health=Math.max(0,(player.health||100)-10);
-        result.events.push('因长期缺乏补给，健康值下降至 '+player.health+'。');
-      }
-    }
-
+    // 这里曾经也扣一次租金，结果同一周被扣两次（core 判 day%7===0，
+    // 而商店在 day++ 之后判 (day-1)%7===0，两个条件在同一次结算里都成立，
+    // 实际每周扣 ¤160 而不是设计的 ¤80）。租金的唯一执行放在 shop 的结算里，
+    // 那里还有声誉惩罚与拍卖刷新；core 只负责行情与天数。
     if(state.day%7===0){
-      var rent=state.rent||0;
-      if(rent>0&&player){
-        player.funds=(player.funds||0)-rent;
-        result.events.push('周租金结算：-'+rent+'。当前资金 '+player.funds+'。');
-        if(player.funds<0)result.warnings.push('资金不足，负债经营！');
-      }
       result.events.push('集装箱拍卖场次刷新，请关注本周线索。');
     }
 
@@ -561,6 +857,8 @@
     PURITY_NAMES: PURITY_NAMES,
     PURITY_MULT: PURITY_MULT,
     ORIGIN_NAMES: ORIGIN_NAMES,
+    CATEGORY_NAMES: CATEGORY_NAMES,
+    categoryName: categoryName,
     createItem: createItem,
     createGrid: createGrid,
     canPlace: canPlace,
@@ -572,6 +870,15 @@
     computePrice: computePrice,
     advanceDay: advanceDay,
     createDispatch: createDispatch,
+    MACHINE_DEFS: MACHINE_DEFS,
+    RECIPE_DEFS: RECIPE_DEFS,
+    machineDef: machineDef,
+    recipeDef: recipeDef,
+    recipeFailChance: recipeFailChance,
+    createMachine: createMachine,
+    createProductionJob: createProductionJob,
+    resolveProduction: resolveProduction,
+    canStartRecipe: canStartRecipe,
     saveGame: saveGame,
     loadGame: loadGame
   };

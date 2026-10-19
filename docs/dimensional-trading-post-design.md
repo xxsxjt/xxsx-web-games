@@ -1,6 +1,6 @@
-# 时空交易行 — 游戏设计文档 v0.1
+# 界门交易行 — 游戏设计文档 v0.1
 
-> 工作标题：时空交易行（Dimensional Trading Post）
+> 工作标题：界门交易行（Dimensional Trading Post）
 > 文档状态：概念设计阶段
 > 更新：2026-10-14
 

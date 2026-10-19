@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(orca terminal *)",
+      "Bash(orca worktree *)",
+      "Bash(orca orchestration *)",
+      "Bash(orca --help)",
+      "Bash(orca status *)",
+      "Bash(orca status)",
+      "Bash(orca account *)",
+      "Bash(orca skills *)",
+      "Bash(orca worktree list *)",
+      "Bash(npm run build)",
+      "Bash(npm run test)",
+      "Bash(npm test)"
+    ],
+    "deny": []
+  }
+}

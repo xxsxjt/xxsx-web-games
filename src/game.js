@@ -685,7 +685,7 @@ function enterArcadeGame(kind,silent){
     if(!silent)setArcadeHash('game/shell');
     return;
   }
-  if(kind==='wasteland'){
+  if(kind==='dimension'||kind==='wasteland'){
     stopArcadeSession();closeAnnouncement();showArcadeShell('arcadeGameMode');
     if(ui.arcadeGamePages)ui.arcadeGamePages.classList.remove('hidden');
     if(ui.expeditionGamePage)ui.expeditionGamePage.classList.add('hidden');
@@ -693,7 +693,7 @@ function enterArcadeGame(kind,silent){
     var shellPage2=byId('shellHeistPage');if(shellPage2)shellPage2.classList.add('hidden');
     var wlPage=byId('wastelandShopPage');if(wlPage)wlPage.classList.remove('hidden');
     if(window.WastelandShop&&typeof window.WastelandShop.enter==='function')window.WastelandShop.enter();
-    if(!silent)setArcadeHash('game/wasteland');
+    if(!silent)setArcadeHash('game/dimension');
     return;
   }
   if(kind==='border'){
@@ -715,11 +715,11 @@ function enterArcadeGame(kind,silent){
 }
 function syncArcadeRoute(){
   var hash='';try{hash=window.location&&window.location.hash||'';}catch(e){}
-  var gameMatch=/^#game\/(expedition|border|relay|lab|salvage|blackbox|shell|bridge)$/.exec(hash);
+  var gameMatch=/^#game\/(expedition|border|relay|lab|salvage|blackbox|shell|dimension|wasteland|bridge)$/.exec(hash);
   var stationMatch=/^#station\/([a-z]+)$/.exec(hash);
   if(gameMatch){
     if(gameMatch[1]==='bridge'){enterStation('bridge',true);setArcadeHash('station/bridge');}
-    else enterArcadeGame(gameMatch[1],true);
+    else enterArcadeGame(gameMatch[1]==='wasteland'?'dimension':gameMatch[1],true);
   }
   else if(stationMatch&&legacyGameStationRoutes[stationMatch[1]]){
     var legacyGame=legacyGameStationRoutes[stationMatch[1]];enterArcadeGame(legacyGame,true);setArcadeHash('game/'+legacyGame);

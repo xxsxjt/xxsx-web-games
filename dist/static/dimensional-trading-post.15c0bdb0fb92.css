@@ -1,0 +1,187 @@
+/* The standalone trading post: a quiet shop between worlds. */
+.trading-post {
+  margin: 0;
+  background: var(--wl-bg);
+  color: var(--wl-text);
+  font-family: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+  line-height: 1.55;
+}
+.trading-post *, .trading-post *::before, .trading-post *::after { box-sizing: border-box; }
+.trading-post [hidden], .trading-post .hidden { display: none !important; }
+.trading-post button, .trading-post input { font: inherit; }
+.trading-post button, .trading-post a { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.trading-post button { cursor: pointer; }
+.trading-post a { color: inherit; text-decoration: none; }
+.trading-post :is(button, a, summary, [tabindex="0"]):focus-visible { outline: 2px solid #fff3a8; outline-offset: 4px; }
+.trading-post h1, .trading-post h2, .trading-post p { margin: 0; }
+
+#wl-menu {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
+  height: 100vh;
+  height: 100svh;
+  overflow-x: clip;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 24px clamp(24px, 4.5vw, 80px);
+  background: #0b1420;
+}
+#wl-menu-scene { position: absolute; inset: 0 0 0 27%; z-index: -2; overflow: hidden; }
+#wl-scene-art { width: 100%; height: 100%; object-fit: cover; object-position: 70% 50%; }
+#wl-menu::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(90deg, #0b1420 6%, rgba(11,20,32,.98) 25%, rgba(11,20,32,.76) 43%, rgba(11,20,32,.03) 73%), linear-gradient(0deg, #0b1420 0%, transparent 25%, transparent 85%, rgba(11,20,32,.6));
+}
+.wl-menu-header { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.wl-back-link { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; font-size: 13px; color: #c8d6e2 !important; }
+.wl-back-link:hover { color: var(--wl-accent) !important; }
+.wl-local-note { color: var(--wl-muted); font-size: 12px; letter-spacing: .04em; }
+#wl-menu-panel { grid-column: 1; align-self: center; width: min(100%, 560px); padding: 48px 0 44px; }
+.wl-logo__eyebrow { margin-bottom: 22px !important; color: var(--wl-accent); font: 11px ui-monospace, monospace; letter-spacing: .19em; }
+#wl-title { font-size: clamp(48px, 5.4vw, 84px); font-weight: 750; letter-spacing: .04em; line-height: 1.14; color: #f0f1e9; }
+#wl-title span { display: block; color: #d9c49c; }
+.wl-menu-lead { margin-top: 26px !important; color: #e0e8ed; font-size: clamp(16px, 1.4vw, 19px); letter-spacing: .02em; }
+.wl-menu-copy { margin-top: 12px !important; color: var(--wl-muted); font-size: 14px; line-height: 1.95; }
+.wl-game-loop { display: flex; flex-wrap: wrap; gap: 12px 22px; list-style: none; margin: 26px 0 30px; padding: 0; color: #b2c0cb; font-size: 12px; }
+.wl-game-loop span { color: #7693a5; font: 11px ui-monospace, monospace; margin-right: 7px; }
+.wl-menu__actions { display: grid; gap: 10px; max-width: 360px; }
+.wl-menu__btn { display: flex; align-items: center; justify-content: space-between; gap: 20px; width: 100%; min-height: 68px; padding: 12px 20px; border: 1px solid var(--wl-rule); border-radius: 5px; background: rgba(19,33,46,.8); color: var(--wl-text); text-align: left; transition: background .15s, border-color .15s; }
+.wl-menu__btn b { display: block; font-size: 16px; font-weight: 650; letter-spacing: .04em; }
+.wl-menu__btn small { display: block; margin-top: 3px; color: #a7b8c6; font-size: 11px; }
+.wl-menu__btn > span:last-child { font-size: 22px; }
+.wl-menu__btn:hover { border-color: var(--wl-accent); background: #1b3442; }
+.wl-menu__btn--primary { border-color: #b5d5d1; background: #b5d5d1; color: #122c32; }
+.wl-menu__btn--primary small { color: #36595e; }
+.wl-menu__btn--primary:hover { background: #cae5df; border-color: #cae5df; }
+.wl-saves { display: flex; justify-content: space-between; align-items: center; gap: 12px; max-width: 360px; margin-top: 10px; font-size: 11px; color: var(--wl-muted); }
+.wl-saves button { min-height: 44px; padding: 8px 0 8px 10px; border: 0; background: transparent; color: #b5a7a5; font-size: 11px; }
+.wl-saves button:hover { color: var(--wl-danger); }
+.wl-storage-note { margin-top: 10px !important; color: #889dad; font-size: 11px; }
+.wl-menu-footer { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: end; gap: 32px; padding: 12px 0 4px; }
+.wl-world-atlas { position: relative; width: min(100%, 460px); }
+.wl-world-atlas summary { display: flex; align-items: center; gap: 14px; min-height: 48px; border-top: 1px solid var(--wl-rule); cursor: pointer; list-style: none; color: #d4dedf; font-size: 12px; }
+.wl-world-atlas summary::-webkit-details-marker { display: none; }
+.wl-world-atlas summary span { margin-left: auto; color: var(--wl-muted); font-size: 10px; }
+.wl-world-atlas summary i { font: 18px ui-monospace, monospace; color: var(--wl-accent); }
+.wl-world-atlas[open] summary i { transform: rotate(45deg); }
+.wl-world-atlas__body { width: 100%; margin-bottom: 14px; padding: 20px; border: 1px solid #395363; border-radius: 6px; background: #101e2c; box-shadow: 0 16px 45px #0006; font-size: 12px; color: #b5c7d3; }
+.wl-world-atlas__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 16px 0; color: #d3dedf; }
+.wl-world-atlas__grid span { border-left: 2px solid #759e9f; padding-left: 8px; }
+.wl-world-atlas__planned { padding-top: 12px; border-top: 1px solid var(--wl-rule); color: var(--wl-muted); font-size: 11px; }
+.wl-scene-caption { display: grid; gap: 5px; padding-bottom: 10px; text-align: right; font-size: 12px; color: #c6d5d8; letter-spacing: .09em; }
+.wl-scene-caption small { font: 10px ui-monospace, monospace; color: #91a6b2; letter-spacing: .03em; }
+
+#wl-game { display: none; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; outline: none; }
+#wl-game.active { display: flex; }
+/* 世界背景：render() 会插入一个 #wl-world-bg 图层并写入 background-image。
+   压得很淡，只用来区分两个世界，不抢货物格子的对比度；
+   没有图时整个图层被 display:none 关掉，不影响观感。 */
+#wl-world-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-size: cover;
+  background-position: center;
+  opacity: .3;
+  filter: saturate(.85) contrast(.95);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,.9), rgba(0,0,0,.4) 55%, transparent);
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,.9), rgba(0,0,0,.4) 55%, transparent);
+}
+#wl-game { position: relative; z-index: 1; }
+#wl-topbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; min-height: 68px; flex-shrink: 0; padding: 12px 24px; background: #101e2b; border-bottom: 1px solid var(--wl-rule); }
+#wl-topbar button { min-height: 44px; padding: 8px 12px; border: 1px solid var(--wl-rule); border-radius: 5px; background: transparent; color: #bacbd7; font-size: 12px; }
+#wl-topbar button:hover { border-color: var(--wl-accent); color: var(--wl-accent); }
+.wl-topbar__title { font-size: 16px; font-weight: 700; color: #e1e6dd; letter-spacing: .04em; }
+#wl-stat-day, #wl-stat-rep { font-size: 12px; color: var(--wl-muted); }
+#wl-stat-cash { font: 700 18px ui-monospace, monospace; color: var(--wl-amber); }
+#wl-switch-base { margin-left: auto; }
+#wl-topbar #wl-end-day-btn { background: #b5d5d1; border-color: #b5d5d1; color: #122c32; padding-inline: 18px; font-weight: 650; }
+#wl-end-day-btn span { margin-left: 16px; }
+#wl-shop-view { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(320px, 1.3fr) minmax(300px, 1fr) minmax(240px, .8fr); align-items: stretch; gap: 1px; overflow-y: auto; background: var(--wl-rule); }
+.wl-work-pane { min-width: 0; min-height: 100%; padding: 22px; background: var(--wl-bg); }
+#wl-trade-pane { background: #101d2a; padding: 0; }
+#wl-right-pane { background: #0e1925; padding: 0; }
+.wl-pane-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.wl-pane-heading h2 { font-size: 14px; font-weight: 650; color: #d7e2e7; }
+.wl-pane-heading > span { font: 11px ui-monospace, monospace; color: var(--wl-muted); }
+.wl-pane-help { margin-bottom: 18px !important; color: var(--wl-muted); font-size: 12px; line-height: 1.7; }
+#wl-grid-wrap { width: 100%; max-width: 620px; }
+.wl-price-heading { margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--wl-rule); }
+#wl-price-panel { font-size: 12px; }
+.wl-info-section { padding: 20px; border-bottom: 1px solid var(--wl-rule); }
+#wl-ticker:empty, #wl-loot:empty { display: none; }
+#wl-ticker { margin-top: 20px; }
+#wl-base-view { display: none; flex: 1; min-height: 0; overflow-y: auto; padding: 24px; }
+#wl-base-view.active { display: block; }
+.wl-base-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 16px; }
+.wl-base-header h2 { font-size: 18px; font-weight: 650; }
+#wl-loot { margin-top: 20px; }
+
+@media (min-width: 701px) and (max-height: 740px) {
+  #wl-menu { padding-block: 14px; }
+  #wl-menu-panel { padding-block: 24px; }
+  #wl-title { font-size: clamp(46px, 4.8vw, 64px); }
+  .wl-logo__eyebrow { margin-bottom: 16px !important; }
+  .wl-menu-lead { margin-top: 18px !important; }
+  .wl-game-loop { margin-block: 18px; }
+}
+@media (max-width: 1160px) {
+  #wl-shop-view { grid-template-columns: minmax(320px, 1fr) minmax(300px, 1fr); }
+  #wl-right-pane { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: 0; }
+  #wl-stat-rep { display: none; }
+}
+@media (max-width: 700px) {
+  #wl-menu { display: flex; flex-direction: column; gap: 0; padding: 14px 24px 24px; }
+  #wl-menu-scene { inset: 66px 0 auto; height: 265px; }
+  #wl-scene-art { object-position: 72% 46%; }
+  #wl-menu::before { inset: 66px 0 auto; height: 265px; background: linear-gradient(0deg, #0b1420 0%, rgba(11,20,32,.3) 50%, rgba(11,20,32,.2)); }
+  #wl-menu-panel { align-self: stretch; width: 100%; padding: 228px 0 28px; }
+  .wl-logo__eyebrow { margin-bottom: 14px !important; font-size: 9px; }
+  #wl-title { font-size: clamp(38px, 9vw, 58px); letter-spacing: .03em; }
+  #wl-title span { display: inline; }
+  .wl-menu-lead { margin-top: 18px !important; font-size: 16px; }
+  .wl-menu-copy { font-size: 13px; margin-top: 10px !important; }
+  .wl-desktop-break { display: none; }
+  .wl-game-loop { gap: 10px 16px; margin-block: 22px; font-size: 11px; }
+  .wl-menu__actions, .wl-saves { max-width: none; }
+  .wl-menu__btn { min-height: 64px; }
+  .wl-local-note { font-size: 10px; }
+  .wl-menu-footer { flex-direction: column; align-items: stretch; gap: 22px; padding: 0; }
+  .wl-world-atlas { width: 100%; }
+  .wl-world-atlas__body { position: static; box-shadow: none; padding: 16px; }
+  .wl-world-atlas__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wl-scene-caption { display: flex; justify-content: space-between; gap: 10px; text-align: left; font-size: 10px; }
+  #wl-topbar { gap: 8px 12px; padding: 10px 14px; }
+  .wl-topbar__title, #wl-stat-rep { display: none; }
+  #wl-stat-cash { font-size: 16px; }
+  #wl-stat-day { order: 4; width: 100%; font-size: 11px; }
+  #wl-topbar #wl-end-day-btn { padding-inline: 12px; }
+  #wl-end-day-btn span { margin-left: 5px; }
+  #wl-shop-view { display: flex; flex-direction: column; gap: 1px; }
+  .wl-work-pane { width: 100%; min-height: 0; padding: 18px; }
+  #wl-trade-pane { order: -1; }
+  #wl-right-pane { display: block; }
+  .wl-info-section { padding: 18px; }
+  #wl-base-view { padding: 18px; }
+  .wl-base-header h2 { font-size: 15px; }
+}
+@media (max-width: 360px) {
+  #wl-menu { padding-inline: 18px; }
+  .wl-game-loop { gap: 10px; }
+  #wl-title { font-size: 36px; }
+  #wl-topbar { gap: 6px; padding-inline: 10px; }
+  #wl-topbar button { padding-inline: 8px; font-size: 11px; }
+  #wl-topbar #wl-end-day-btn { padding-inline: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .trading-post *, .trading-post *::before, .trading-post *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

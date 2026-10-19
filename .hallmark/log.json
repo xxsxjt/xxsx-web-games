@@ -12,5 +12,6 @@
   ],
   "theme": "atmospheric technical",
   "changes": ["tokenised surfaces", "reduced decorative glow", "touch-safe controls", "mobile overflow and heading guards"],
-  "deletions": []
+  "deletions": [],
+  "latestRun": {"date":"2026-10-14","scope":"component","macrostructure":"Workbench · tactical trading console","theme":"atmospheric technical","enrichment":"inline SVG dimensional market hall","brief":"Retheme the wasteland shop into the Dimensional Trading Post while preserving its grid-trading systems."}
 }

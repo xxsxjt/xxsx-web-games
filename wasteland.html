@@ -3,743 +3,109 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>废土杂货铺</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23050805'/%3E%3Crect x='4' y='10' width='24' height='16' rx='1' stroke='%2339ff14' stroke-width='1.5' fill='none'/%3E%3Cline x1='10' y1='26' x2='10' y2='30' stroke='%2339ff14' stroke-width='1.5'/%3E%3Cline x1='22' y1='26' x2='22' y2='30' stroke='%2339ff14' stroke-width='1.5'/%3E%3C/svg%3E" />
+<meta name="theme-color" content="#0b1420" />
+<title>界门交易行</title>
+<link rel="icon" type="image/svg+xml" href="assets/icons/dimensional-trading-post.svg" />
 <link rel="stylesheet" href="src/wasteland-shop.css" />
-<style>
-/* ════════════════════════════════════════════════════════════════
-   废土杂货铺 — CRT 磷光界面
-   ════════════════════════════════════════════════════════════════ */
-:root{
-  --phosphor:#39ff14;
-  --phosphor-dim:#2da010;
-  --amber:#ffb347;
-  --red-alert:#ff3333;
-  --panel-bg:#080c06;
-  --grid-bg:#050805;
-  --border-rust:rgba(80,120,40,0.5);
-  --text-dim:#6a9a5a;
-  --text-bright:#d4f5c8;
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body{
-  height:100%;
-  background:#050805;
-  color:var(--text-bright);
-  font-family:ui-monospace,SFMono-Regular,'Cascadia Code','Courier New',monospace;
-  overflow:hidden;
-}
-/* 噪点 */
-body::before{
-  content:'';
-  position:fixed;inset:0;pointer-events:none;z-index:9999;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
-  opacity:.04;
-}
-/* 扫描线 */
-body::after{
-  content:'';
-  position:fixed;inset:0;pointer-events:none;z-index:9998;
-  background:repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0,0,0,.06) 2px,
-    rgba(0,0,0,.06) 4px
-  );
-}
-@keyframes flicker{
-  0%{opacity:1;filter:drop-shadow(0 0 8px rgba(57,255,20,.7));}
-  20%{opacity:.35;filter:drop-shadow(0 0 2px rgba(57,255,20,.2));}
-  22%{opacity:.7;filter:drop-shadow(0 0 5px rgba(57,255,20,.5));}
-  25%{opacity:1;filter:drop-shadow(0 0 8px rgba(57,255,20,.7));}
-  55%{opacity:.35;filter:drop-shadow(0 0 2px rgba(57,255,20,.2));}
-  100%{opacity:1;filter:drop-shadow(0 0 8px rgba(57,255,20,.7));}
-}
-@keyframes marquee-scroll{
-  0%{transform:translateX(100vw);}
-  100%{transform:translateX(-100%);}
-}
-@keyframes wl-ticker-scroll{
-  0%{transform:translateX(100vw);}
-  100%{transform:translateX(-100%);}
-}
-/* ════════════════
-   主菜单
-   ════════════════ */
-#wl-menu{
-  display:grid;
-  grid-template-columns:1fr 420px;
-  min-height:100vh;
-  position:relative;
-  overflow:hidden;
-  background:#060906;
-}
-#wl-menu.hidden{display:none;}
-
-/* ── 左侧：废土场景背景 ── */
-#wl-menu-scene{
-  position:relative;
-  overflow:hidden;
-  background:
-    /* 天花板暗区 */
-    linear-gradient(180deg,rgba(0,0,0,.7) 0%,transparent 20%),
-    /* 地面暗区 */
-    linear-gradient(0deg,rgba(0,0,0,.6) 0%,transparent 30%),
-    /* 环境主色：深绿褐 */
-    #0c1009;
-}
-
-/* 场景SVG：废土店铺内景 */
-#wl-scene-svg{
-  position:absolute;
-  inset:0;
-  width:100%;height:100%;
-}
-
-/* 场景上的光晕效果 */
-#wl-menu-scene::after{
-  content:'';
-  position:absolute;inset:0;
-  background:
-    radial-gradient(ellipse 40% 30% at 30% 35%, rgba(255,183,60,.08) 0%, transparent 60%),
-    radial-gradient(ellipse 20% 20% at 70% 20%, rgba(57,255,20,.04) 0%, transparent 50%);
-  pointer-events:none;
-}
-
-/* ── 右侧：菜单面板 ── */
-#wl-menu-panel{
-  display:flex;flex-direction:column;
-  justify-content:center;
-  padding:3rem 2.5rem;
-  background:
-    linear-gradient(90deg,rgba(6,9,6,.0) 0%,rgba(6,9,6,.85) 15%,rgba(6,9,6,.97) 40%),
-    transparent;
-  border-left:1px solid rgba(57,255,20,.06);
-  position:relative;
-}
-
-/* 顶部滚动公告 */
-.wl-marquee{
-  position:absolute;top:0;left:0;right:0;height:28px;
-  background:rgba(4,8,2,.95);
-  border-bottom:1px solid rgba(57,255,20,.15);
-  overflow:hidden;display:flex;align-items:center;
-  z-index:10;
-}
-.wl-marquee__track{
-  display:inline-flex;align-items:center;white-space:nowrap;
-  font-size:.6rem;color:rgba(57,255,20,.55);letter-spacing:.08em;
-  animation:marquee-scroll 40s linear infinite;
-  padding-top:2px;
-}
-.wl-marquee__track span.ev-urgent{color:var(--amber);}
-.wl-marquee__track span.ev-warn{color:var(--red-alert);}
-
-/* 标题区 */
-.wl-logo{margin-bottom:2.5rem;}
-.wl-logo__eyebrow{
-  font-size:.6rem;letter-spacing:.25em;text-transform:uppercase;
-  color:rgba(57,255,20,.45);margin-bottom:.75rem;
-  display:flex;align-items:center;gap:.5rem;
-}
-.wl-logo__eyebrow::before{
-  content:'';flex:1;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(57,255,20,.3));
-}
-.wl-logo__eyebrow::after{
-  content:'';width:24px;height:1px;
-  background:rgba(57,255,20,.3);
-}
-.wl-logo__title{
-  font-size:3.2rem;font-weight:900;letter-spacing:.04em;
-  color:var(--phosphor);line-height:.95;
-  text-shadow:
-    0 0 30px rgba(57,255,20,.5),
-    0 0 60px rgba(57,255,20,.2),
-    0 0 120px rgba(57,255,20,.08);
-}
-.wl-logo__title-en{
-  display:block;
-  font-size:.9rem;font-weight:400;letter-spacing:.15em;
-  color:rgba(57,255,20,.35);margin-top:.4rem;
-  text-shadow:none;
-}
-.wl-logo__lore{
-  font-size:.78rem;color:rgba(200,230,180,.5);margin-top:1rem;
-  line-height:1.7;max-width:320px;
-  border-left:2px solid rgba(57,255,20,.2);
-  padding-left:.8rem;
-  font-style:italic;
-}
-
-/* 菜单按钮 */
-.wl-menu__actions{
-  display:flex;flex-direction:column;gap:.5rem;
-  margin-bottom:1.5rem;
-}
-.wl-menu__btn{
-  width:100%;padding:.85rem 1.2rem;
-  border:1px solid rgba(57,255,20,.15);
-  border-radius:2px;
-  background:rgba(8,14,6,.6);
-  color:rgba(200,240,180,.8);
-  font:inherit;font-size:.88rem;
-  cursor:pointer;text-align:left;
-  display:flex;align-items:center;gap:.8rem;
-  transition:all .2s;
-  position:relative;overflow:hidden;
-  backdrop-filter:blur(4px);
-}
-.wl-menu__btn::before{
-  content:'';position:absolute;left:0;top:0;bottom:0;width:2px;
-  background:rgba(57,255,20,.35);
-  transition:width .2s,background .2s,box-shadow .2s;
-}
-.wl-menu__btn:hover{
-  border-color:rgba(57,255,20,.45);
-  background:rgba(12,22,8,.7);
-  color:var(--phosphor);
-}
-.wl-menu__btn:hover::before{
-  width:3px;background:var(--phosphor);
-  box-shadow:0 0 8px rgba(57,255,20,.6);
-}
-.wl-menu__btn--primary{
-  border-color:rgba(57,255,20,.3);
-  background:rgba(10,20,6,.7);
-  color:var(--phosphor);
-}
-.wl-menu__btn--primary::before{
-  background:var(--phosphor);
-  box-shadow:0 0 6px rgba(57,255,20,.4);
-}
-.wl-menu__btn--primary:hover{
-  border-color:rgba(57,255,20,.6);
-  background:rgba(15,30,8,.8);
-  box-shadow:0 0 20px rgba(57,255,20,.12),inset 0 0 20px rgba(57,255,20,.04);
-}
-.wl-menu__btn__icon{font-size:1rem;flex-shrink:0;opacity:.7;}
-.wl-menu__btn__text{flex:1;}
-.wl-menu__btn__title{display:block;font-weight:700;font-size:.86rem;letter-spacing:.02em;}
-.wl-menu__btn__desc{display:block;font-size:.65rem;color:rgba(150,200,130,.45);margin-top:.1rem;letter-spacing:.01em;}
-.wl-menu__btn__arrow{
-  font-size:.75rem;opacity:.25;margin-left:auto;flex-shrink:0;
-  transition:transform .2s,opacity .2s;
-}
-.wl-menu__btn:hover .wl-menu__btn__arrow{transform:translateX(5px);opacity:.6;}
-
-/* 存档区 */
-.wl-saves{margin-top:0;}
-.wl-saves__title{
-  font-size:.58rem;text-transform:uppercase;letter-spacing:.15em;
-  color:rgba(100,150,80,.4);margin-bottom:.4rem;
-}
-.wl-save-slot{
-  width:100%;padding:.5rem .9rem;
-  border:1px solid rgba(57,255,20,.1);border-radius:2px;
-  background:rgba(6,10,4,.5);color:rgba(150,200,130,.6);
-  font:inherit;font-size:.78rem;cursor:pointer;text-align:left;
-  display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem;
-  transition:all .15s;
-}
-.wl-save-slot:hover{border-color:rgba(57,255,20,.3);color:rgba(200,240,180,.8);}
-.wl-save-slot__icon{font-size:.9rem;opacity:.6;}
-.wl-save-slot__info{flex:1;}
-.wl-save-slot__day{font-weight:700;font-size:.78rem;}
-.wl-save-slot__meta{font-size:.62rem;color:rgba(100,150,80,.5);margin-top:.05rem;}
-.wl-save-slot__del{padding:.15rem .35rem;border:none;background:transparent;color:rgba(80,100,60,.4);font-size:.7rem;cursor:pointer;}
-.wl-save-slot__del:hover{color:var(--red-alert);}
-.wl-menu__divider{border:none;border-top:1px solid rgba(57,255,20,.08);margin:.8rem 0 .6rem;}
-
-/* 底部版本 */
-.wl-version{
-  position:absolute;bottom:.7rem;right:.8rem;
-  font-size:.58rem;color:rgba(57,255,20,.2);letter-spacing:.08em;
-}
-.wl-early-access{
-  position:absolute;bottom:.7rem;left:.8rem;
-  font-size:.58rem;color:rgba(57,255,20,.2);letter-spacing:.06em;text-transform:uppercase;
-}
-/* ════════════════
-   游戏区
-   ════════════════ */
-/* 背景：废土店铺场景感 */
-#wl-game{
-  display:none;flex-direction:column;height:100vh;overflow:hidden;
-  background:
-    /* 顶部管线阴影 */
-    linear-gradient(180deg,rgba(0,0,0,.6) 0%,transparent 80px),
-    /* 底部地面阴影 */
-    linear-gradient(0deg,rgba(0,0,0,.5) 0%,transparent 120px),
-    /* 左侧暗角 */
-    linear-gradient(90deg,rgba(0,0,0,.4) 0%,transparent 200px),
-    /* 右侧暗角 */
-    linear-gradient(270deg,rgba(0,0,0,.3) 0%,transparent 200px),
-    /* 基础色：暖褐绿 */
-    #0d1008;
-}
-#wl-game.active{display:flex;}
-/* 顶栏 */
-#wl-topbar{
-  display:flex;align-items:center;
-  height:44px;flex-shrink:0;
-  border-bottom:2px solid rgba(57,255,20,.15);
-  background:
-    linear-gradient(180deg,rgba(4,8,2,.98) 0%,rgba(8,14,4,.96) 100%);
-  position:relative;z-index:20;
-  box-shadow:0 2px 20px rgba(0,0,0,.8);
-}
-/* 顶栏左侧装饰线 */
-#wl-topbar::before{
-  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(57,255,20,.3),rgba(57,255,20,.5),rgba(57,255,20,.3),transparent);
-}
-#wl-switch-base{
-  height:100%;padding:0 16px;
-  border:none;border-right:1px solid rgba(57,255,20,.12);
-  background:transparent;color:rgba(57,255,20,.45);
-  font:inherit;font-size:.72rem;cursor:pointer;letter-spacing:.08em;
-  transition:color .15s,background .15s;
-}
-#wl-switch-base:hover{color:var(--phosphor);background:rgba(57,255,20,.06);}
-.wl-topbar__title{
-  padding:0 16px;font-size:.72rem;font-weight:700;
-  color:rgba(57,255,20,.3);letter-spacing:.15em;text-transform:uppercase;
-}
-#wl-stat-day{
-  padding:0 12px;font-size:.68rem;
-  border-left:1px solid rgba(57,255,20,.1);
-  color:rgba(200,240,200,.6);white-space:nowrap;
-}
-#wl-stat-cash{
-  padding:0 12px;font-size:.9rem;font-weight:900;
-  border-left:1px solid rgba(57,255,20,.1);
-  color:var(--amber);white-space:nowrap;
-  text-shadow:0 0 12px rgba(255,179,71,.4);
-}
-#wl-stat-rep{
-  padding:0 12px;font-size:.68rem;
-  border-left:1px solid rgba(57,255,20,.1);
-  color:rgba(200,240,200,.5);white-space:nowrap;
-}
-#wl-end-day-btn{
-  margin-left:auto;height:100%;padding:0 20px;
-  border:none;
-  border-left:1px solid rgba(57,255,20,.2);
-  background:linear-gradient(90deg,transparent,rgba(57,255,20,.06));
-  color:var(--phosphor);
-  font:inherit;font-size:.72rem;font-weight:700;cursor:pointer;
-  letter-spacing:.12em;text-transform:uppercase;
-  transition:all .15s;
-  text-shadow:0 0 8px rgba(57,255,20,.5);
-}
-#wl-end-day-btn:hover{
-  background:linear-gradient(90deg,transparent,rgba(57,255,20,.12));
-  text-shadow:0 0 16px rgba(57,255,20,.8);
-}
-/* 商店视图 */
-#wl-shop-view{flex:1;min-height:0;display:flex;flex-direction:row;}
-#wl-shop-view.hidden{display:none;}
-/* 左侧面板——仓库区 */
-#wl-left-pane{
-  flex:1;min-width:0;
-  display:flex;flex-direction:column;
-  padding:12px 10px 10px 12px;
-  border-right:1px solid rgba(57,255,20,.08);
-  background:
-    /* 左上角光晕模拟灯光 */
-    radial-gradient(ellipse 60% 40% at 20% 10%, rgba(57,255,20,.04) 0%, transparent 60%),
-    #0a0c07;
-  position:relative;
-}
-.wl-grid-label{
-  font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;
-  color:rgba(57,255,20,.55);flex-shrink:0;margin-bottom:8px;padding-left:2px;
-}
-#wl-grid-wrap{
-  flex-shrink:0;
-  display:flex;align-items:flex-start;justify-content:flex-start;
-}
-#wl-grid{box-shadow:0 4px 32px rgba(0,0,0,.8);}
-/* 价格快捷面板——格子下方的空白区域 */
-#wl-price-panel{
-  flex:1;min-height:0;overflow-y:auto;
-  margin-top:8px;
-  border-top:1px solid rgba(57,255,20,.08);
-  padding-top:6px;
-  scrollbar-width:thin;scrollbar-color:rgba(57,255,20,.1) transparent;
-}
-#wl-ticker{
-  flex-shrink:0;height:24px;overflow:hidden;
-  background:rgba(3,6,2,.9);
-  border-top:1px solid rgba(57,255,20,.08);
-  margin-top:8px;position:relative;
-}
-.wl-ticker__track{
-  display:inline-flex;align-items:center;white-space:nowrap;
-  height:100%;padding:0 8px;
-  font-size:.6rem;color:rgba(57,255,20,.4);letter-spacing:.07em;
-  animation:wl-ticker-scroll 22s linear infinite;
-}
-/* 右侧面板——信息区，三段不同色温 */
-#wl-right-pane{
-  width:300px;flex-shrink:0;
-  display:flex;flex-direction:column;
-  background:#0c0d09;
-  overflow-y:auto;
-  scrollbar-width:thin;
-  scrollbar-color:rgba(255,255,255,.04) transparent;
-}
-#wl-right-pane::-webkit-scrollbar{width:2px;}
-#wl-right-pane::-webkit-scrollbar-thumb{background:rgba(255,255,255,.06);}
-
-/* NPC 队列——暖色调（琥珀系） */
-#wl-npc-queue{
-  flex-shrink:0;
-  border-bottom:1px solid rgba(255,179,71,.1);
-  background:linear-gradient(180deg,rgba(40,25,5,.6) 0%,rgba(20,14,4,.4) 100%);
-}
-/* 柜台——琥珀+磷绿混合 */
-#wl-counter{
-  flex-shrink:0;
-  border-bottom:1px solid rgba(57,255,20,.08);
-  background:rgba(12,14,8,.5);
-}
-.wl-counter-slot{
-  width:56px;height:56px;
-  border:1px dashed rgba(255,179,71,.3);
-  background:rgba(255,179,71,.03);
-  display:inline-flex;align-items:center;justify-content:center;
-  transition:border-color .15s,background .15s;
-}
-.wl-counter-slot:hover{border-color:rgba(255,179,71,.6);}
-.wl-counter-slot.filled{
-  border-color:var(--amber);
-  background:rgba(255,179,71,.08);
-  box-shadow:inset 0 0 8px rgba(255,179,71,.12);
-}
-/* 物品详情——冷蓝调 */
-#wl-detail{
-  flex:1;min-height:80px;
-  border-bottom:1px solid rgba(57,255,20,.06);
-  background:rgba(8,10,14,.5);
-}
-/* 市场行情——深色紧凑 */
-#wl-market{
-  flex-shrink:0;
-  background:rgba(4,6,4,.7);
-}
-.wl-panel-title{
-  font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;
-  color:rgba(200,230,200,.55);margin-bottom:5px;
-}
-.wl-npc-card{
-  border:1px solid rgba(255,179,71,.15);
-  padding:6px 8px;cursor:pointer;
-  background:rgba(20,12,2,.6);margin-bottom:3px;
-  transition:border-color .15s,background .15s;
-}
-.wl-npc-card.active{
-  border-color:var(--amber);
-  background:rgba(40,24,4,.7);
-  box-shadow:0 0 12px rgba(255,179,71,.15);
-}
-/* 基地视图 */
-#wl-base-view{
-  flex:1;min-height:0;
-  display:none;flex-direction:column;
-  background:var(--panel-bg);
-}
-#wl-base-view.active{display:flex;}
-.wl-base-header{
-  padding:10px 14px;
-  border-bottom:1px solid var(--border-rust);
-  display:flex;align-items:center;gap:12px;flex-shrink:0;
-  background:linear-gradient(180deg,rgba(8,14,4,.95),rgba(5,8,3,.95));
-  box-shadow:inset 0 0 10px rgba(0,0,0,.5);
-}
-.wl-base-header__title{
-  font-size:.8rem;font-weight:700;color:var(--text-bright);
-  letter-spacing:.1em;text-transform:uppercase;
-}
-#wl-power-status{
-  width:8px;height:8px;border-radius:50%;
-  background:var(--phosphor);
-  box-shadow:0 0 6px rgba(57,255,20,.8);
-  flex-shrink:0;
-}
-#wl-power-status.off{background:var(--red-alert);box-shadow:0 0 6px rgba(255,51,51,.8);}
-#wl-switch-shop{
-  margin-left:auto;padding:4px 12px;
-  border:1px solid var(--border-rust);border-radius:3px;
-  background:transparent;color:var(--text-dim);
-  font:inherit;font-size:.72rem;cursor:pointer;
-  transition:all .15s;
-}
-#wl-switch-shop:hover{color:var(--phosphor);border-color:var(--phosphor);box-shadow:0 0 8px rgba(57,255,20,.2);}
-#wl-base{
-  flex:1;min-height:0;overflow-y:auto;padding:12px;
-  scrollbar-width:thin;scrollbar-color:rgba(57,255,20,.1) transparent;
-  box-shadow:inset 0 0 8px rgba(0,0,0,.5);
-}
-#wl-loot{
-  display:none;padding:10px;
-  border-top:1px solid var(--border-rust);
-  background:rgba(4,8,2,.8);
-  flex-shrink:0;
-  box-shadow:inset 0 0 8px rgba(0,0,0,.5);
-}
-#wl-loot.active{display:block;}
-.wl-empty{font-size:.72rem;color:var(--text-dim);font-style:italic;}
-@media(max-width:700px){
-  #wl-shop-view{flex-direction:column;overflow-y:auto;}
-  #wl-left-pane{border-right:none;border-bottom:1px solid var(--border-rust);}
-  #wl-right-pane{width:100%;overflow:visible;}
-  #wl-stat-day,#wl-stat-rep{display:none;}
-}
-</style>
+<link rel="stylesheet" href="src/dimensional-trading-post.css" />
 </head>
-<body>
-
-<!-- ════════════════════════════
-     主菜单
-     ════════════════════════════ -->
-<div id="wl-menu">
-  <!-- 公告条贯穿整个顶部 -->
-  <div class="wl-marquee" style="position:fixed;top:0;left:0;right:0;z-index:100;">
-    <span class="wl-marquee__track">◈ 北区水源价格上涨 30% &nbsp;·&nbsp; 东检查站封路，绕行南门 &nbsp;·&nbsp; <span class="ev-warn">辐射风暴预警 D+3</span> &nbsp;·&nbsp; 废金属收购价调整 &nbsp;·&nbsp; 新批医疗包到货 &nbsp;·&nbsp; <span class="ev-urgent">警告：流寇活动频繁</span> &nbsp;·&nbsp; 以物易物协议更新 &nbsp;·&nbsp; 南市集今日开放 &nbsp;◈&nbsp;</span>
+<body class="trading-post">
+<main id="wl-menu" aria-labelledby="wl-title">
+  <div id="wl-menu-scene" aria-hidden="true">
+    <img id="wl-scene-art" src="assets/dimensional-market-hall.svg" width="1600" height="1200" alt="" fetchpriority="high" />
   </div>
-
-  <!-- 左侧：场景 SVG -->
-  <div id="wl-menu-scene">
-    <svg id="wl-scene-svg" viewBox="0 0 700 900" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-      <!-- 天花板横梁 -->
-      <rect x="0" y="0" width="700" height="80" fill="#06090406"/>
-      <rect x="0" y="55" width="700" height="8" fill="#0e1a0a" opacity=".9"/>
-      <rect x="80" y="40" width="12" height="55" fill="#0c1608" opacity=".7"/>
-      <rect x="300" y="35" width="12" height="60" fill="#0c1608" opacity=".7"/>
-      <rect x="520" y="42" width="12" height="53" fill="#0c1608" opacity=".7"/>
-
-      <!-- 背景墙（砖纹） -->
-      <rect x="0" y="63" width="700" height="837" fill="#0a0d07"/>
-      <!-- 砖块纹理（横线） -->
-      <g opacity=".18" stroke="#1a2812" stroke-width="1">
-        <line x1="0" y1="100" x2="700" y2="100"/><line x1="0" y1="120" x2="700" y2="120"/>
-        <line x1="0" y1="140" x2="700" y2="140"/><line x1="0" y1="160" x2="700" y2="160"/>
-        <line x1="0" y1="180" x2="700" y2="180"/><line x1="0" y1="200" x2="700" y2="200"/>
-        <line x1="0" y1="220" x2="700" y2="220"/><line x1="0" y1="240" x2="700" y2="240"/>
-        <line x1="0" y1="260" x2="700" y2="260"/><line x1="0" y1="280" x2="700" y2="280"/>
-        <line x1="0" y1="300" x2="700" y2="300"/><line x1="0" y1="320" x2="700" y2="320"/>
-        <line x1="0" y1="340" x2="700" y2="340"/>
-      </g>
-      <!-- 砖缝竖线（交错） -->
-      <g opacity=".12" stroke="#1a2812" stroke-width=".8">
-        <line x1="50" y1="100" x2="50" y2="120"/><line x1="110" y1="100" x2="110" y2="120"/><line x1="170" y1="100" x2="170" y2="120"/><line x1="230" y1="100" x2="230" y2="120"/><line x1="290" y1="100" x2="290" y2="120"/><line x1="350" y1="100" x2="350" y2="120"/><line x1="410" y1="100" x2="410" y2="120"/><line x1="470" y1="100" x2="470" y2="120"/><line x1="530" y1="100" x2="530" y2="120"/><line x1="590" y1="100" x2="590" y2="120"/><line x1="650" y1="100" x2="650" y2="120"/>
-        <line x1="20" y1="120" x2="20" y2="140"/><line x1="80" y1="120" x2="80" y2="140"/><line x1="140" y1="120" x2="140" y2="140"/><line x1="200" y1="120" x2="200" y2="140"/><line x1="260" y1="120" x2="260" y2="140"/><line x1="320" y1="120" x2="320" y2="140"/><line x1="380" y1="120" x2="380" y2="140"/><line x1="440" y1="120" x2="440" y2="140"/><line x1="500" y1="120" x2="500" y2="140"/><line x1="560" y1="120" x2="560" y2="140"/><line x1="620" y1="120" x2="620" y2="140"/><line x1="680" y1="120" x2="680" y2="140"/>
-      </g>
-
-      <!-- 左侧大货架 -->
-      <rect x="20" y="90" width="180" height="400" fill="none" stroke="#1e2e14" stroke-width="1.5" opacity=".8"/>
-      <rect x="20" y="90" width="180" height="6" fill="#1e3010" opacity=".9"/>
-      <rect x="20" y="170" width="180" height="5" fill="#1a2c0e" opacity=".7"/>
-      <rect x="20" y="250" width="180" height="5" fill="#1a2c0e" opacity=".7"/>
-      <rect x="20" y="330" width="180" height="5" fill="#1a2c0e" opacity=".7"/>
-      <rect x="20" y="410" width="180" height="5" fill="#1a2c0e" opacity=".7"/>
-      <!-- 货架上的物品轮廓 -->
-      <rect x="30" y="95" width="22" height="70" rx="2" fill="#0e1c08" stroke="#2a4018" stroke-width=".8" opacity=".9"/>
-      <rect x="58" y="105" width="18" height="60" rx="2" fill="#0c1806" stroke="#243814" stroke-width=".8" opacity=".9"/>
-      <rect x="82" y="100" width="28" height="65" rx="1" fill="#101e0a" stroke="#2e4a1a" stroke-width=".8" opacity=".9"/>
-      <rect x="116" y="108" width="16" height="57" rx="2" fill="#0e1c08" stroke="#2a4018" stroke-width=".8" opacity=".9"/>
-      <rect x="138" y="95" width="24" height="70" rx="1" fill="#0c1806" stroke="#243814" stroke-width=".8" opacity=".9"/>
-      <rect x="30" y="178" width="20" height="67" rx="2" fill="#12200c" stroke="#30481c" stroke-width=".8" opacity=".9"/>
-      <rect x="56" y="182" width="30" height="63" rx="1" fill="#0e1c08" stroke="#2a4018" stroke-width=".8" opacity=".9"/>
-      <rect x="92" y="175" width="16" height="70" rx="2" fill="#101e0a" stroke="#2e4a1a" stroke-width=".8" opacity=".9"/>
-      <rect x="114" y="180" width="22" height="65" rx="2" fill="#0c1806" stroke="#243814" stroke-width=".8" opacity=".9"/>
-      <rect x="142" y="178" width="14" height="67" rx="2" fill="#0e1c08" stroke="#2a4018" stroke-width=".8" opacity=".9"/>
-
-      <!-- 中间区域：破损招牌 -->
-      <g transform="translate(230,100)">
-        <!-- 招牌框 -->
-        <rect x="0" y="0" width="220" height="90" rx="3" fill="#0c1508" stroke="#2da010" stroke-width="1.5" opacity=".85"/>
-        <!-- 破损角 -->
-        <polygon points="185,0 205,-15 220,0" fill="#0a0d07" opacity=".9"/>
-        <line x1="185" y1="0" x2="205" y2="-15" stroke="#2da010" stroke-width="1" opacity=".6"/>
-        <line x1="205" y1="-15" x2="220" y2="0" stroke="#2da010" stroke-width="1" opacity=".6"/>
-        <!-- 招牌文字区 -->
-        <rect x="12" y="12" width="196" height="20" rx="1" fill="#0e1c08" opacity=".5"/>
-        <rect x="12" y="38" width="160" height="14" rx="1" fill="#0e1c08" opacity=".4"/>
-        <rect x="12" y="58" width="120" height="10" rx="1" fill="#0e1c08" opacity=".3"/>
-        <!-- 磷光竖线装饰 -->
-        <line x1="8" y1="8" x2="8" y2="82" stroke="#39ff14" stroke-width="1.5" opacity=".7"/>
-        <!-- 螺栓 -->
-        <circle cx="4" cy="4" r="3" fill="none" stroke="#2da010" stroke-width="1" opacity=".6"/>
-        <circle cx="216" cy="4" r="3" fill="none" stroke="#2da010" stroke-width="1" opacity=".6"/>
-        <circle cx="4" cy="86" r="3" fill="none" stroke="#2da010" stroke-width="1" opacity=".6"/>
-        <circle cx="216" cy="86" r="3" fill="none" stroke="#2da010" stroke-width="1" opacity=".6"/>
-      </g>
-
-      <!-- 右侧电子设备 / 控制台 -->
-      <rect x="500" y="150" width="180" height="220" rx="4" fill="#080e06" stroke="#1e2e14" stroke-width="1.5" opacity=".9"/>
-      <rect x="510" y="160" width="160" height="90" rx="2" fill="#04080302" stroke="#243814" stroke-width="1" opacity=".8"/>
-      <!-- 控制台屏幕扫描线 -->
-      <g opacity=".3">
-        <line x1="515" y1="175" x2="665" y2="175" stroke="#39ff14" stroke-width=".5"/>
-        <line x1="515" y1="182" x2="665" y2="182" stroke="#39ff14" stroke-width=".5"/>
-        <line x1="515" y1="189" x2="665" y2="189" stroke="#39ff14" stroke-width=".5"/>
-        <line x1="515" y1="196" x2="665" y2="196" stroke="#39ff14" stroke-width=".5"/>
-        <line x1="515" y1="203" x2="665" y2="203" stroke="#39ff14" stroke-width=".5"/>
-        <line x1="515" y1="210" x2="665" y2="210" stroke="#39ff14" stroke-width=".5"/>
-        <line x1="515" y1="217" x2="665" y2="217" stroke="#39ff14" stroke-width=".5"/>
-        <line x1="515" y1="224" x2="665" y2="224" stroke="#39ff14" stroke-width=".5"/>
-        <line x1="515" y1="231" x2="665" y2="231" stroke="#39ff14" stroke-width=".5"/>
-        <line x1="515" y1="238" x2="665" y2="238" stroke="#39ff14" stroke-width=".5"/>
-        <line x1="515" y1="245" x2="665" y2="245" stroke="#39ff14" stroke-width=".5"/>
-      </g>
-      <!-- 控制台按钮 -->
-      <circle cx="530" cy="275" r="7" fill="#0e1c08" stroke="#2da010" stroke-width="1" opacity=".8"/>
-      <circle cx="555" cy="275" r="7" fill="#0e1c08" stroke="#2da010" stroke-width="1" opacity=".8"/>
-      <circle cx="580" cy="275" r="5" fill="#1a0808" stroke="#ff3333" stroke-width="1" opacity=".7"/>
-      <rect x="510" y="295" width="160" height="60" rx="2" fill="#060c04" stroke="#1e2e14" stroke-width=".8" opacity=".6"/>
-
-      <!-- 管线 / 电缆 -->
-      <path d="M0,200 Q100,190 180,210 Q280,230 400,220 Q500,210 600,225 Q650,230 700,220" fill="none" stroke="#1a2810" stroke-width="4" opacity=".7"/>
-      <path d="M0,220 Q120,212 250,228 Q380,242 500,232 Q600,224 700,238" fill="none" stroke="#12200a" stroke-width="2.5" opacity=".5"/>
-      <!-- 垂落电线 -->
-      <path d="M340,63 C340,100 330,130 345,160" fill="none" stroke="#1e2e14" stroke-width="1.5" stroke-dasharray="4,3" opacity=".6"/>
-      <path d="M460,63 C455,95 465,120 458,155" fill="none" stroke="#1e2e14" stroke-width="1" stroke-dasharray="3,4" opacity=".5"/>
-
-      <!-- 地面暗区渐变 -->
-      <defs>
-        <linearGradient id="floorGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#060906" stop-opacity="0"/>
-          <stop offset="100%" stop-color="#020402" stop-opacity=".9"/>
-        </linearGradient>
-        <linearGradient id="leftFade" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="#060906" stop-opacity=".0"/>
-          <stop offset="100%" stop-color="#040604" stop-opacity=".95"/>
-        </linearGradient>
-      </defs>
-      <rect x="0" y="500" width="700" height="400" fill="url(#floorGrad)"/>
-      <!-- 右侧渐变遮罩（和菜单面板衔接） -->
-      <rect x="400" y="0" width="300" height="900" fill="url(#leftFade)"/>
-
-      <!-- 地面装饰：散落物品轮廓 -->
-      <rect x="60" y="720" width="40" height="28" rx="2" fill="#0c1408" stroke="#1a2810" stroke-width="1" opacity=".6"/>
-      <rect x="110" y="730" width="22" height="35" rx="1" fill="#0a1206" stroke="#162210" stroke-width="1" opacity=".5"/>
-      <ellipse cx="180" cy="745" rx="28" ry="12" fill="#0e1608" stroke="#1e2e12" stroke-width="1" opacity=".55"/>
-
-      <!-- 灯光高光 -->
-      <ellipse cx="150" cy="400" rx="60" ry="200" fill="#39ff14" opacity=".012"/>
-      <ellipse cx="400" cy="250" rx="80" ry="120" fill="#ffb347" opacity=".018"/>
-    </svg>
-  </div>
-
-  <!-- 右侧：菜单面板 -->
-  <div id="wl-menu-panel">
-    <div class="wl-logo">
-      <div class="wl-logo__eyebrow">WASTELAND SHOP</div>
-      <div class="wl-logo__title">废土<br>杂货铺<span class="wl-logo__title-en">Est. Year Zero</span></div>
-      <div class="wl-logo__lore">水贵如血，信任比货更稀缺。<br>在废土的夹缝里，你开了家店。</div>
-    </div>
-
-    <div class="wl-menu__actions">
-      <button class="wl-menu__btn wl-menu__btn--primary" id="btn-new">
-        <span class="wl-menu__btn__icon">▸</span>
-        <span class="wl-menu__btn__text">
-          <span class="wl-menu__btn__title">开始新游戏</span>
-          <span class="wl-menu__btn__desc">第1天 · 资金200元 · 空仓库</span>
-        </span>
-        <span class="wl-menu__btn__arrow">→</span>
-      </button>
-      <button class="wl-menu__btn" id="btn-continue" style="display:none">
-        <span class="wl-menu__btn__icon">◎</span>
-        <span class="wl-menu__btn__text">
-          <span class="wl-menu__btn__title">继续游戏</span>
-          <span class="wl-menu__btn__desc" id="continue-desc">读取存档…</span>
-        </span>
-        <span class="wl-menu__btn__arrow">→</span>
-      </button>
-    </div>
-
-    <div class="wl-saves" id="saves-section" style="display:none">
-      <hr class="wl-menu__divider" />
-      <div class="wl-saves__title">本地存档</div>
-      <div id="saves-list"></div>
-    </div>
-
-    <div class="wl-version">V59-ALPHA</div>
-    <div class="wl-early-access">早期测试版</div>
-  </div>
-</div>
-
-<!-- ════════════════════════════
-     游戏区
-     ════════════════════════════ -->
-<div id="wl-game">
-
-  <!-- 顶栏 -->
-  <header id="wl-topbar">
-    <button id="wl-switch-base">⌂ 基地</button>
-    <span class="wl-topbar__title">废土杂货铺</span>
-    <span id="wl-stat-day">第 — 天</span>
-    <span id="wl-stat-cash">¥ —</span>
-    <span id="wl-stat-rep">声誉 —</span>
-    <button id="wl-end-day-btn">结束今天 ›</button>
+  <header class="wl-menu-header">
+    <a class="wl-back-link" href="./"><span aria-hidden="true">←</span> 所有游戏</a>
+    <span class="wl-local-note">单人经营 · 本机存档</span>
   </header>
+  <section id="wl-menu-panel">
+    <p class="wl-logo__eyebrow">DIMENSIONAL TRADING POST</p>
+    <h1 id="wl-title">界门<span>交易行</span></h1>
+    <p class="wl-menu-lead">每一位来客，都带着另一个世界。</p>
+    <p class="wl-menu-copy">在界门之间开一间小店。收好货，读懂行情，<br class="wl-desktop-break" />再和远道而来的商旅谈成一笔生意。</p>
+    <ol class="wl-game-loop" aria-label="经营流程">
+      <li><span>01</span> 整理货物</li><li><span>02</span> 接待商旅</li><li><span>03</span> 结算一天</li>
+    </ol>
+    <div class="wl-menu__actions">
+      <button class="wl-menu__btn wl-menu__btn--primary" id="btn-continue" type="button" hidden>
+        <span><b>继续营业</b><small id="continue-desc">读取本地进度</small></span><span aria-hidden="true">→</span>
+      </button>
+      <button class="wl-menu__btn wl-menu__btn--primary" id="btn-new" type="button">
+        <span><b>开一家新店</b><small>第 1 天 · ¤200 · 五件入门货物</small></span><span aria-hidden="true">→</span>
+      </button>
+    </div>
+    <div class="wl-saves" id="saves-section" hidden>
+      <span id="save-meta">进度保存在此浏览器</span>
+      <button id="btn-delete-save" type="button">删除存档</button>
+    </div>
+    <p class="wl-storage-note" id="wl-storage-note">随时回到主菜单保存进度。</p>
+  </section>
+  <footer class="wl-menu-footer">
+    <details class="wl-world-atlas">
+      <summary>商旅来自哪里 <span>两个世界已开放 / 九个开发中</span><i aria-hidden="true">+</i></summary>
+      <div class="wl-world-atlas__body">
+        <p>每天选一个世界开门，界门会开在那里的一处随机地点。今天来的客商都出自这一界。</p>
+        <div class="wl-world-atlas__grid">
+          <span>核爆废土 · 已开放</span><span>灵霄宗门界 · 已开放</span>
+        </div>
+        <p class="wl-world-atlas__planned">开发中：瘟疫荒原、机械末日、凡界集市、蒸汽帝国、赛博魔法城、中世纪王国、星际外站、古代帝国集市，以及尚未命名的第十一界。</p>
+      </div>
+    </details>
+    <div class="wl-scene-caption"><span>界门之间 · 一日开张</span><small>可玩版本 / V62</small></div>
+  </footer>
+</main>
 
-  <!-- 商店视图 -->
+<main id="wl-game" tabindex="-1" aria-label="界门交易行营业工作台">
+  <header id="wl-topbar">
+    <button id="wl-exit-btn" type="button">← 主菜单</button>
+    <span class="wl-topbar__title">界门交易行</span>
+    <span id="wl-stat-day">第 — 天</span>
+    <span id="wl-stat-cash">¤ —</span>
+    <span id="wl-stat-rep">声誉 —</span>
+    <button id="wl-switch-base" type="button">基地</button>
+    <button id="wl-end-day-btn" type="button">结束今天 <span aria-hidden="true">→</span></button>
+  </header>
   <div id="wl-shop-view">
-
-    <!-- 左侧：仓库格子 -->
-    <div id="wl-left-pane">
-      <div class="wl-grid-label">▦ 仓库 · 10×8</div>
-      <div id="wl-grid-wrap">
-        <div id="wl-grid"></div>
-      </div>
+    <section id="wl-left-pane" class="wl-work-pane" aria-label="仓库与参考价格">
+      <div class="wl-pane-heading"><h2>货物仓库</h2><span>10 × 8</span></div>
+      <p class="wl-pane-help">点击查看货物；接待商旅后，点击或拖动货物上柜台。</p>
+      <div id="wl-grid-wrap"><div id="wl-grid"></div></div>
+      <div class="wl-pane-heading wl-price-heading"><h2>货物估价</h2><span>¤ 维度通证</span></div>
       <div id="wl-price-panel"></div>
-      <div id="wl-ticker"></div>
+      <div id="wl-ticker" aria-live="polite"></div>
+    </section>
+    <section id="wl-trade-pane" class="wl-work-pane" aria-label="访客与交易柜台">
+      <div id="wl-npc-queue"></div>
+      <div id="wl-counter"></div>
+    </section>
+    <aside id="wl-right-pane" class="wl-work-pane" aria-label="物品详情与市场行情">
+      <section class="wl-info-section"><div class="wl-pane-heading"><h2>物品详情</h2></div><div id="wl-detail"><p class="wl-empty">点击仓库中的货物，查看品质与估价。</p></div></section>
+      <section class="wl-info-section"><div class="wl-pane-heading"><h2>本地行情</h2><span>相对基准价</span></div><div id="wl-market"></div></section>
+      <section class="wl-info-section"><div class="wl-pane-heading"><h2>今日记事</h2><span>情报 · 拍卖 · 成交</span></div><div id="wl-events"></div></section>
+      <section class="wl-info-section" id="wl-auction-wrap" style="display:none"><div class="wl-pane-heading"><h2>漂流物竞拍</h2></div><div id="wl-auction"></div></section>
+    </aside>
+  </div>
+  <div id="wl-over" class="wl-over" hidden role="dialog" aria-modal="true" aria-labelledby="wl-over-title">
+    <div class="wl-over__box">
+      <p class="wl-over__eyebrow">维度锚点 · 停业通知</p>
+      <h2 id="wl-over-title">经营失败</h2>
+      <p id="wl-over-body" class="wl-over__body"></p>
+      <p class="wl-over__hint">下一次记得先看今日货源：买商旅想收的类目，差价就是租金。</p>
+      <button id="wl-over-restart" class="wl-btn wl-btn--primary" type="button">重新开张</button>
     </div>
-
-    <!-- 右侧：信息面板 -->
-    <div id="wl-right-pane">
-      <div id="wl-npc-queue">
-        <div class="wl-panel-title">▸ 今日访客</div>
-        <p class="wl-empty">今日暂无访客。</p>
-      </div>
-      <div id="wl-counter">
-        <div class="wl-panel-title">▸ 柜台</div>
-        <p class="wl-empty">等待客户…</p>
-      </div>
-      <div id="wl-detail">
-        <div class="wl-panel-title">▸ 物品详情</div>
-        <p class="wl-empty">点击仓库中的物品查看。</p>
-      </div>
-      <div id="wl-market">
-        <div class="wl-panel-title">▸ 市场行情</div>
-        <p class="wl-empty">行情载入中…</p>
-      </div>
-    </div>
-
-  </div><!-- /wl-shop-view -->
-
-  <!-- 基地视图 -->
-  <div id="wl-base-view">
-    <div class="wl-base-header">
-      <div id="wl-power-status" class="off"></div>
-      <span class="wl-base-header__title">⌂ 基地设施</span>
-      <button id="wl-switch-shop">← 返回商店</button>
-    </div>
-    <div id="wl-base">
-      <p class="wl-empty">基地系统初始化中…</p>
-    </div>
-    <div id="wl-loot">
-      <div class="wl-panel-title">▸ 返回战利品</div>
-    </div>
-  </div><!-- /wl-base-view -->
-
-</div><!-- /wl-game -->
-
+  </div>
+  <section id="wl-base-view" aria-label="维度锚点基地">
+    <header class="wl-base-header"><h2>维度锚点 · 基地</h2><button id="wl-switch-shop" class="wl-btn" type="button">← 返回营业</button></header>
+    <p class="wl-pane-help">安装并维持设施，然后从这里派人外出搜刮。电力是其余设施与派遣名额的前提。</p>
+    <div id="wl-base"></div>
+    <div id="wl-dispatch"></div>
+    <section class="wl-info-section" aria-label="今日界门"><div class="wl-pane-heading"><h2>今日界门</h2><span>两个世界 / 其余开发中</span></div><p class="wl-pane-help">关店后待在空间夹层。每天开门前选一个世界，界门会开在那个世界的随机地点；今天来的客商都出自这一界。</p><div id="wl-worlds"></div></section>
+    <section class="wl-info-section" aria-label="机器区与生产"><div class="wl-pane-heading"><h2>机器区与生产</h2><span>成品比原料值钱</span></div><p class="wl-pane-help">机器放在机器区（和堆货的仓库是两块地方）。成品售价约是原料的两到三倍，但配方有失败率——炼废了只剩副产物。</p><div id="wl-machines"></div></section>
+    <section class="wl-info-section"><div class="wl-pane-heading"><h2>人脉与订购</h2><span>按批到货</span></div><p class="wl-pane-help">打通人脉后可以按批发价订购指定物资，先付款、数天后到货。</p><div id="wl-contacts"></div></section>
+  </section>
+  <section id="wl-loot" aria-label="待领战利品"></section>
+</main>
+<script src="assets/art-index.js"></script>
 <script src="src/wasteland-core.js"></script>
 <script src="src/wasteland-npc.js"></script>
 <script src="src/wasteland-ui.js"></script>
@@ -750,89 +116,56 @@ body::after{
   var SAVE_KEY='xxsxWastelandShopV1';
   var menuEl=document.getElementById('wl-menu');
   var gameEl=document.getElementById('wl-game');
-  var shopView=document.getElementById('wl-shop-view');
-  var baseView=document.getElementById('wl-base-view');
-
+  var newBtn=document.getElementById('btn-new');
+  var continueBtn=document.getElementById('btn-continue');
   function getSave(){
-    try{return JSON.parse(localStorage.getItem(SAVE_KEY));}
+    try{var save=JSON.parse(localStorage.getItem(SAVE_KEY));return save&&Number.isFinite(save.day)&&save.day>0?save:null;}
     catch(e){return null;}
   }
-  function deleteSave(){localStorage.removeItem(SAVE_KEY);refreshMenu();}
-
   function refreshMenu(){
     var save=getSave();
-    var continueBtn=document.getElementById('btn-continue');
-    var savesSection=document.getElementById('saves-section');
-    var savesList=document.getElementById('saves-list');
-    if(save&&save.day){
-      continueBtn.style.display='';
-      document.getElementById('continue-desc').textContent=
-        '第'+save.day+'天 · 第'+(save.week||1)+'周 · ¥'+(save.gold||0);
-      savesSection.style.display='';
-      savesList.innerHTML='';
-      var slot=document.createElement('div');
-      slot.className='wl-save-slot';
-      slot.innerHTML=
-        '<span class="wl-save-slot__icon">◉</span>'+
-        '<span class="wl-save-slot__info">'+
-          '<span class="wl-save-slot__day">第'+save.day+'天 · 第'+(save.week||1)+'周</span>'+
-          '<span class="wl-save-slot__meta">¥'+(save.gold||0)+
-            ' · 声誉 '+((save.reputation&&save.reputation.overall)||0)+'</span>'+
-        '</span>'+
-        '<button class="wl-save-slot__del" title="删除存档">✕</button>';
-      slot.querySelector('.wl-save-slot__del').addEventListener('click',function(e){
-        e.stopPropagation();
-        if(confirm('删除存档？此操作不可撤销。'))deleteSave();
-      });
-      slot.addEventListener('click',function(e){
-        if(e.target.classList.contains('wl-save-slot__del'))return;
-        startGame(false);
-      });
-      savesList.appendChild(slot);
-    }else{
-      continueBtn.style.display='none';
-      savesSection.style.display='none';
+    continueBtn.hidden=!save;
+    document.getElementById('saves-section').hidden=!save;
+    newBtn.classList.toggle('wl-menu__btn--primary',!save);
+    if(save){
+      document.getElementById('continue-desc').textContent='第 '+save.day+' 天 · 第 '+(save.week||1)+' 周 · ¤'+(Number(save.gold)||0).toLocaleString();
+      document.getElementById('save-meta').textContent='本机档案 · 声誉 '+(Number(save.reputation&&save.reputation.overall)||0);
     }
   }
-
   function startGame(isNew){
-    if(isNew)localStorage.removeItem(SAVE_KEY);
+    try{if(isNew)localStorage.removeItem(SAVE_KEY);}
+    catch(e){document.getElementById('wl-storage-note').textContent='浏览器未允许保存进度，请检查存储设置。';return;}
+    if(!window.WastelandShop)return;
     menuEl.classList.add('hidden');
     gameEl.classList.add('active');
-    if(window.WastelandShop&&typeof window.WastelandShop.enter==='function')
-      window.WastelandShop.enter();
+    window.WastelandShop.enter();
+    gameEl.focus({preventScroll:true});
   }
-
   function exitGame(){
-    if(window.WastelandShop&&typeof window.WastelandShop.leave==='function')
-      window.WastelandShop.leave();
+    if(window.WastelandShop)window.WastelandShop.leave();
     gameEl.classList.remove('active');
     menuEl.classList.remove('hidden');
     refreshMenu();
+    (getSave()?continueBtn:newBtn).focus({preventScroll:true});
   }
-
-  function switchToBase(){
-    shopView.classList.add('hidden');
-    baseView.classList.add('active');
-    if(window.WastelandShop&&typeof window.WastelandShop.switchView==='function')
-      window.WastelandShop.switchView('base');
-  }
-
-  function switchToShop(){
-    baseView.classList.remove('active');
-    shopView.classList.remove('hidden');
-    if(window.WastelandShop&&typeof window.WastelandShop.switchView==='function')
-      window.WastelandShop.switchView('shop');
-  }
-
-  document.getElementById('btn-new').addEventListener('click',function(){
-    if(getSave()&&!confirm('覆盖当前存档？'))return;
+  newBtn.addEventListener('click',function(){
+    if(getSave()&&!confirm('开新店将覆盖当前存档，继续吗？'))return;
     startGame(true);
   });
-  document.getElementById('btn-continue').addEventListener('click',function(){startGame(false);});
-  document.getElementById('wl-switch-base').addEventListener('click',switchToBase);
-  document.getElementById('wl-switch-shop').addEventListener('click',switchToShop);
-
+  continueBtn.addEventListener('click',function(){startGame(false);});
+  document.getElementById('wl-exit-btn').addEventListener('click',exitGame);
+  document.getElementById('wl-over-restart').addEventListener('click',function(){
+    if(window.WastelandShop)window.WastelandShop.restart();
+    refreshMenu();
+    gameEl.classList.remove('active');
+    menuEl.classList.remove('hidden');
+    newBtn.focus({preventScroll:true});
+  });
+  document.getElementById('btn-delete-save').addEventListener('click',function(){
+    if(!confirm('删除这份本机存档？此操作不可撤销。'))return;
+    try{localStorage.removeItem(SAVE_KEY);refreshMenu();newBtn.focus();}
+    catch(e){document.getElementById('wl-storage-note').textContent='无法删除存档，请检查浏览器存储设置。';}
+  });
   refreshMenu();
 }());
 </script>

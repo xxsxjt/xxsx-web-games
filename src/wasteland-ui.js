@@ -1,33 +1,55 @@
-/* wasteland-ui.js – 废土杂货铺 UI 层 v3 CRT磷绿终端风格
+/* dimensional-trading-post UI layer · cross-world market console
  * 纯原生 JS IIFE，暴露 window.WastelandUI
  */
 (function () {
   'use strict';
 
   // ── 颜色常量 ────────────────────────────────────────────────
-  var PHOSPHOR     = '#39ff14';
-  var PHOSPHOR_DIM = '#1a7a08';
-  var AMBER        = '#ffb347';
-  var PANEL_BG     = '#080c06';
-  var GRID_BG      = '#050805';
+  var PHOSPHOR     = '#79e7ee';
+  var PHOSPHOR_DIM = '#557383';
+  var AMBER        = '#ffc867';
+  var PANEL_BG     = '#0b1420';
+  var GRID_BG      = '#0c1925';
+  var MUTED        = '#9bb0c1';
+  // 商旅立绘：assets/portraits/<role>.png，由 tools/art/index.mjs 汇总到 WL_ART
+  function npcArt(npc) {
+    var art = window.WL_ART;
+    if (!npc || !art) return null;
+    return art['npc_' + npc.role] || null;
+  }
+
+  function worldForNpc(npc) {
+    return window.WastelandNPC&&window.WastelandNPC.worldForNpc
+      ? window.WastelandNPC.worldForNpc(npc)
+      : (function(){var known=WORLD_VISITORS[npc&&npc.role]||{name:'维度中转站',mark:'◇',color:'#79e7ee'};return{id:npc&&npc.worldId||'',name:npc&&npc.worldName||known.name,mark:npc&&npc.worldMark||known.mark,color:npc&&npc.worldColor||known.color};}());
+  }
+  var WORLD_VISITORS = {
+    scavenger: {name:'核爆废土',mark:'☢',color:'#ffc867'},
+    trader: {name:'蒸汽帝国',mark:'⚙',color:'#79e7ee'},
+    medic: {name:'瘟疫荒原',mark:'✚',color:'#85edbc'},
+    informant: {name:'赛博魔法城',mark:'⌘',color:'#bb9bff'},
+    collector: {name:'古代帝国集市',mark:'◇',color:'#ffc867'},
+    contractor: {name:'凡界集市',mark:'▦',color:'#a7b8ce'}
+  };
 
   // ── 物品类型配置 ──────────────────────────────────────────
   var ITEM_TYPES = {
-    weapon:     { icon: '🔫', color: '#ff4a6a', label: '武器'   },
+    weapon:     { icon: '🔫', color: '#ff7e8e', label: '武器'   },
     ammo:       { icon: '💣', color: '#ffb75c', label: '弹药'   },
-    food:       { icon: '🥫', color: '#3dcc7a', label: '食物'   },
-    water:      { icon: '💧', color: '#3abfff', label: '水'     },
-    medicine:   { icon: '💊', color: '#9a5cff', label: '药品'   },
+    food:       { icon: '🥫', color: '#85cda8', label: '食物'   },
+    water:      { icon: '💧', color: '#79c7ee', label: '水'     },
+    medicine:   { icon: '💊', color: '#bb9bff', label: '药品'   },
     chemical:   { icon: '⚗️', color: '#ff66c4', label: '化学品' },
-    metal:      { icon: '⚙️', color: '#e6b820', label: '金属'   },
-    elec:       { icon: '🔋', color: '#00d8e6', label: '电子'   },
-    electronic: { icon: '🔋', color: '#00d8e6', label: '电子'   },
-    cloth:      { icon: '🧥', color: '#9a7cff', label: '布料'   },
-    alcohol:    { icon: '🍶', color: '#ff8c20', label: '酒'     },
+    metal:      { icon: '⚙️', color: '#d9bd85', label: '金属'   },
+    elec:       { icon: '🔋', color: '#79e7ee', label: '电子'   },
+    electronic: { icon: '🔋', color: '#79e7ee', label: '电子'   },
+    cloth:      { icon: '🧥', color: '#bb9bff', label: '布料'   },
+    alcohol:    { icon: '🍶', color: '#ffc867', label: '酒'     },
+    tobacco:    { icon: '🚬', color: '#c9a97a', label: '烟草'   },
     drug:       { icon: '💉', color: '#ff718e', label: '针剂'   },
-    tool:       { icon: '🔧', color: '#6a8aaa', label: '工具'   },
+    tool:       { icon: '🔧', color: '#a7b8ce', label: '工具'   },
     junk:       { icon: '📦', color: '#7a8a9a', label: '废品'   },
-    contraband: { icon: '⚡', color: '#ff2020', label: '违禁品', blink: true },
+    contraband: { icon: '⚡', color: '#ff7e8e', label: '违禁品', blink: true },
     fake:       { icon: '🎭', color: '#ff718e', label: '假货'   },
     misc:       { icon: '📋', color: '#7a8fa8', label: '杂项'   },
   };
@@ -39,7 +61,40 @@
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
-  function typeConf(type) { return ITEM_TYPES[type] || ITEM_TYPES.misc; }
+  // Display names (purity grades, origins) live in WastelandCore
+  function coreName(table, key) {
+    var core = window.WastelandCore;
+    return core && core[table] ? core[table][key] : null;
+  }
+
+  function typeConf(type) {
+    var aliases = {material:'metal',tech:'electronic',equipment:'tool',illegal:'contraband'};
+    return ITEM_TYPES[aliases[type] || type] || ITEM_TYPES.misc;
+  }
+
+  // ── 图标：支持 "img:路径" 与 emoji 两种写法 ──────────────────
+  // 美术资源是分批生成的，可能随时缺文件。所以这里一律带兜底：
+  // 图片加载失败就换回 emoji，绝不让格子里出现破图。
+  function iconNode(icon, fallback, className) {
+    var spec = icon || '';
+    if (spec.indexOf('img:') === 0) {
+      var img = el('img', {
+        class: (className ? className + ' ' : '') + 'wl-icon-img',
+        src: spec.slice(4),
+        alt: '',
+        'aria-hidden': 'true',
+        loading: 'lazy',
+        decoding: 'async',
+      });
+      // 兜底必须在同一位置替换，不能只藏起来——藏起来格子里就空了
+      img.addEventListener('error', function () {
+        var span = el('span', {class: className || '', 'aria-hidden': 'true'}, fallback || '📦');
+        if (img.parentNode) img.parentNode.replaceChild(span, img);
+      });
+      return img;
+    }
+    return el('span', {class: className || '', 'aria-hidden': 'true'}, spec || fallback || '📦');
+  }
 
   function el(tag, attrs) {
     var node = document.createElement(tag);
@@ -69,7 +124,7 @@
     s.textContent = [
       '@keyframes wlPhosphorGlow{0%,100%{box-shadow:0 0 6px ' + PHOSPHOR + '88,inset 0 0 4px ' + PHOSPHOR + '22}50%{box-shadow:0 0 12px ' + PHOSPHOR + 'bb,inset 0 0 8px ' + PHOSPHOR + '44}}',
       '@keyframes wlAmberPulse{0%,100%{box-shadow:0 0 6px ' + AMBER + '88}50%{box-shadow:0 0 14px ' + AMBER + 'cc}}',
-      '@keyframes wlRedBlink{0%,100%{background:rgba(180,0,0,.22)}50%{background:rgba(255,0,0,.40)}}',
+      '@keyframes wlRedBlink{0%,100%{background:rgba(150,42,62,.22)}50%{background:rgba(255,78,104,.35)}}',
       '@keyframes wlContrabandBlink{50%{border-color:rgba(255,32,32,.2);box-shadow:none;}}',
       '@keyframes wlTickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}',
       '.wl-ticker{overflow:hidden;background:' + PANEL_BG + ';border:1px solid ' + PHOSPHOR_DIM + ';border-radius:3px;padding:5px 0;}',
@@ -82,7 +137,7 @@
 
   // ── CRT panel base style helper ──────────────────────────
   function crtPanel(style) {
-    return 'background:' + PANEL_BG + ';border:1px solid ' + PHOSPHOR_DIM + ';font-family:ui-monospace,SFMono-Regular,monospace;color:' + PHOSPHOR + ';' + (style || '');
+    return 'background:' + PANEL_BG + ';border:1px solid ' + PHOSPHOR_DIM + ';font-family:system-ui,sans-serif;color:#eaf6ff' + ';' + (style || '');
   }
 
   // Quality dots helper
@@ -95,7 +150,7 @@
     for (var i = 1; i <= 5; i++) {
       wrap.appendChild(el('i', {
         style: 'display:inline-block;width:' + s + 'px;height:' + s + 'px;border-radius:50%;' +
-          'background:' + (i <= qLvl ? PHOSPHOR : '#1c2a18') + ';font-style:normal;',
+          'background:' + (i <= qLvl ? PHOSPHOR : '#263b4a') + ';font-style:normal;',
       }));
     }
     return wrap;
@@ -103,489 +158,373 @@
 
   // ── 1. renderGrid ─────────────────────────────────────────
   function renderGrid(container, gridData, callbacks) {
-    ensureStyles();
-    var cells = (gridData && gridData.cells) || [];
-    var cols = gridData.cols || 10;
-    var rows = gridData.rows || 8;
-    var CELL = 48;
-    var cb = callbacks || {};
-
-    var occupied = {};
+    var data = gridData || {};
+    var cells = data.cells || [];
+    var cols = data.cols || 10, rows = data.rows || 8;
+    var cb = callbacks || {}, occupied = {};
     cells.forEach(function (item) {
-      for (var dy = 0; dy < (item.h || 1); dy++) {
-        for (var dx = 0; dx < (item.w || 1); dx++) {
-          occupied[(item.x + dx) + ',' + (item.y + dy)] = item;
-        }
+      for (var y = 0; y < (item.h || 1); y++) {
+        for (var x = 0; x < (item.w || 1); x++) occupied[(item.x + x) + ',' + (item.y + y)] = item;
       }
     });
-
+    // Every selection rebuilds the whole grid, so note where the keyboard user was standing
+    // and which cell currently holds the single tab stop, then restore both afterwards.
+    var resumeEl = document.activeElement, resumeId = null, hadFocus = false;
+    if (resumeEl && resumeEl.getAttribute && container.contains && container.contains(resumeEl)) {
+      hadFocus = true;
+      resumeId = resumeEl.getAttribute('data-id') || resumeEl.getAttribute('data-resume');
+    }
+    var lastTab = container.getAttribute('data-last-tab');
     container.innerHTML = '';
-    container.style.cssText = 'position:relative;background:' + GRID_BG + ';' +
-      'display:grid;grid-template-columns:repeat(' + cols + ',' + CELL + 'px);' +
-      'grid-template-rows:repeat(' + rows + ',' + CELL + 'px);gap:1px;' +
-      'border:1px solid ' + PHOSPHOR_DIM + ';' +
-      'background-color:' + PHOSPHOR_DIM + ';' + // gap color
-      'box-shadow:inset 0 0 20px rgba(0,0,0,.6);';
-
-    var rendered = {};
+    container.className = 'wl-inventory-grid';
+    container.style.cssText = '--wl-cols:' + cols + ';--wl-rows:' + rows + ';';
+    var liveIds = {};
+    cells.forEach(function (c) { liveIds[c.id] = true; });
+    var firstItemId = null, cellMap = {};
+    var tabOwner = (data.selectedId && liveIds[data.selectedId] && data.selectedId)
+      || (lastTab && liveIds[lastTab] && lastTab)
+      || null;
     for (var row = 0; row < rows; row++) {
       for (var col = 0; col < cols; col++) {
-        var key = col + ',' + row;
-        var item = occupied[key];
-
-        if (item && item.x === col && item.y === row && !rendered[item.id]) {
-          rendered[item.id] = true;
-          var conf = typeConf(item.type);
-          var qLvl = item.quality != null ? Math.min(5, Math.max(1, Math.round(item.quality))) : 0;
-          var itemColor = item.color || conf.color || PHOSPHOR;
-          var w = item.w || 1;
-          var h = item.h || 1;
-
-          var cellDiv = el('div', {
-            draggable: 'true',
-            'data-id': item.id,
-            tabindex: '0',
-            role: 'button',
-            'aria-label': esc(item.name || conf.label),
-            style: [
-              'position:relative',
-              'grid-column:' + (col + 1) + '/span ' + w,
-              'grid-row:' + (row + 1) + '/span ' + h,
-              'background:linear-gradient(160deg,' + itemColor + '18 0%,' + GRID_BG + ' 60%)',
-              'border-left:3px solid ' + itemColor,
-              'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px',
-              'cursor:pointer;overflow:hidden',
-              'transition:background .1s,border-color .1s',
-            ].join(';'),
+        var item = occupied[col + ',' + row];
+        if (item && (item.x !== col || item.y !== row)) continue;
+        if (item) {
+          if (!firstItemId) firstItemId = item.id;
+          var color = item.color || typeConf(item.type).color;
+          var cell = el('div', {
+            class: 'wl-inventory-cell wl-inventory-cell--item' + (data.selectedId === item.id ? ' wl-inventory-cell--selected' : ''),
+            draggable: 'true', tabindex: item.id === (tabOwner || firstItemId) ? '0' : '-1', role: 'button', 'data-id': item.id,
+            'aria-label': item.name || '货物', 'aria-pressed': String(data.selectedId === item.id),
+            style: '--wl-item-color:' + color + ';grid-column:' + (col + 1) + '/span ' + (item.w || 1) + ';grid-row:' + (row + 1) + '/span ' + (item.h || 1) + ';'
           });
-
-          // 图标
-          cellDiv.appendChild(el('span', {
-            style: 'font-size:' + (h > 1 ? '24' : '20') + 'px;line-height:1;display:block;',
-            'aria-hidden': 'true'
-          }, item.icon || conf.icon));
-
-          // 物品名（只在格子够大时显示）
-          var shortName = (item.name || conf.label || '').slice(0, w > 1 ? 8 : 5);
-          cellDiv.appendChild(el('span', {
-            style: 'font-size:9px;color:' + itemColor + ';line-height:1;' +
-                   'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;' +
-                   'max-width:' + (w * CELL - 8) + 'px;letter-spacing:.02em;'
-          }, shortName));
-
-          // 假货标记
-          if (item.genuine === false) {
-            cellDiv.appendChild(el('span', {
-              style: 'position:absolute;top:2px;right:3px;font-size:8px;color:#ff4a6a;font-weight:900;',
-            }, '⚠'));
+          cell.appendChild(iconNode(item.icon, typeConf(item.type).icon, 'wl-inventory-icon'));
+          cell.appendChild(el('span', {class:'wl-inventory-name'}, item.name || typeConf(item.type).label));
+          if (item.genuine === false) cell.appendChild(el('span', {class:'wl-inventory-warning','aria-label':'仿品'}, '⚠'));
+          if (item.quality) {
+            var q = Math.max(1, Math.min(5, Math.round(item.quality)));
+            var dots = el('span', {class:'wl-inventory-quality','aria-label':'品质 ' + q + '/5'});
+            for (var qi = 1; qi <= 5; qi++) dots.appendChild(el('i', {class:qi <= q ? 'filled' : ''}));
+            cell.appendChild(dots);
           }
-
-          // 品质点
-          if (qLvl) {
-            var dots = el('span', {
-              style: 'position:absolute;bottom:2px;right:2px;display:flex;gap:1px;',
-              'aria-label': '品质 ' + qLvl + '/5',
+          (function (captured, target) {
+            on(target, 'click', function () { if (cb.onSelect) cb.onSelect(captured.id); });
+            on(target, 'keydown', function (e) {
+              if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (cb.onSelect) cb.onSelect(captured.id); return; }
+              var step = {ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];
+              if (!step) return;
+              e.preventDefault();
+              // Step one cell at a time in the pressed direction until a real cell is reached.
+              var nx = captured.x, ny = captured.y, landing = null;
+              while (nx + step[0] >= 0 && ny + step[1] >= 0 && nx + step[0] < cols && ny + step[1] < rows) {
+                nx += step[0]; ny += step[1];
+                var candidate = cellMap[nx + ',' + ny];
+                if (candidate && candidate !== target) { landing = candidate; break; }
+              }
+              if (!landing) return;
+              if (landing.getAttribute('tabindex') === '-1') landing.setAttribute('tabindex', '0');
+              container.setAttribute('data-last-tab', landing.getAttribute('data-id') || landing.getAttribute('data-resume') || '');
+              landing.focus();
             });
-            for (var qi = 1; qi <= 5; qi++) {
-              dots.appendChild(el('i', {
-                style: 'display:inline-block;width:3px;height:3px;border-radius:50%;font-style:normal;' +
-                       'background:' + (qi <= qLvl ? itemColor : '#1c2a18') + ';',
-              }));
-            }
-            cellDiv.appendChild(dots);
+            on(target, 'dragstart', function (e) { e.dataTransfer.setData('text/plain', captured.id); e.dataTransfer.effectAllowed = 'move'; target.style.opacity = '.45'; });
+            on(target, 'dragend', function () { target.style.opacity = ''; });
+            on(target, 'dragover', function (e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+            on(target, 'drop', function (e) {
+              e.preventDefault();
+              var moved = e.dataTransfer.getData('text/plain');
+              if (!moved || moved === captured.id || !cb.onDrop) return;
+              // Occupied target: hand the move to the shop, which finds the nearest free space.
+              cb.onDrop({itemId: moved, toX: captured.x, toY: captured.y});
+            });
+          }(item, cell));
+          for (var cy = 0; cy < (item.h || 1); cy++) {
+            for (var cx2 = 0; cx2 < (item.w || 1); cx2++) cellMap[(item.x + cx2) + ',' + (item.y + cy)] = cell;
           }
-
-          (function (captured, cDiv, cColor) {
-            on(cDiv, 'click', function (e) {
-              e.stopPropagation();
-              if (cb.onSelect) cb.onSelect(captured.id);
-            });
-            on(cDiv, 'keydown', function (e) {
-              if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (cb.onSelect) cb.onSelect(captured.id); }
-            });
-            on(cDiv, 'mouseover', function () {
-              cDiv.style.background = 'linear-gradient(160deg,' + cColor + '30 0%,' + cColor + '10 60%)';
-            });
-            on(cDiv, 'mouseout', function () {
-              cDiv.style.background = 'linear-gradient(160deg,' + cColor + '18 0%,' + GRID_BG + ' 60%)';
-            });
-            on(cDiv, 'dragstart', function (e) {
-              e.dataTransfer.setData('text/plain', captured.id);
-              e.dataTransfer.effectAllowed = 'move';
-              cDiv.style.opacity = '.45';
-            });
-            on(cDiv, 'dragend', function () { cDiv.style.opacity = '1'; });
-          }(item, cellDiv, itemColor));
-
-          container.appendChild(cellDiv);
-
-        } else if (!item) {
-          var emptyDiv = el('div', {
-            'data-x': col,
-            'data-y': row,
-            style: [
-              'grid-column:' + (col + 1),
-              'grid-row:' + (row + 1),
-              'background:' + GRID_BG,
-              // subtle dot pattern
-              'background-image:radial-gradient(circle,' + PHOSPHOR_DIM + '20 1px,transparent 1px)',
-              'background-size:10px 10px',
-            ].join(';'),
-          });
-
-          (function (cx, cy) {
-            on(emptyDiv, 'dragover', function (e) {
-              e.preventDefault();
-              e.dataTransfer.dropEffect = 'move';
-              emptyDiv.style.background = PHOSPHOR + '14';
-              emptyDiv.style.backgroundImage = 'none';
-              emptyDiv.style.outline = '1px dashed ' + PHOSPHOR + '80';
-            });
-            on(emptyDiv, 'dragleave', function () {
-              emptyDiv.style.background = GRID_BG;
-              emptyDiv.style.backgroundImage = 'radial-gradient(circle,' + PHOSPHOR_DIM + '20 1px,transparent 1px)';
-              emptyDiv.style.backgroundSize = '10px 10px';
-              emptyDiv.style.outline = 'none';
-            });
-            on(emptyDiv, 'drop', function (e) {
-              e.preventDefault();
-              emptyDiv.style.background = GRID_BG;
-              emptyDiv.style.outline = 'none';
-              var itemId = e.dataTransfer.getData('text/plain');
-              if (cb.onDrop) cb.onDrop({ itemId: itemId, toX: cx, toY: cy });
-            });
-          }(col, row));
-
-          container.appendChild(emptyDiv);
+          container.appendChild(cell);
+        } else {
+          var empty = el('div', {class:'wl-inventory-cell wl-inventory-cell--empty',tabindex:'-1','data-x':col,'data-y':row,'data-resume':'cell-' + col + '-' + row,style:'grid-column:' + (col + 1) + ';grid-row:' + (row + 1) + ';'});
+          (function (cx, cy, target) {
+            on(target, 'dragover', function (e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; target.classList.add('wl-inventory-cell--dragover'); });
+            on(target, 'dragleave', function () { target.classList.remove('wl-inventory-cell--dragover'); });
+            on(target, 'drop', function (e) { e.preventDefault(); target.classList.remove('wl-inventory-cell--dragover'); if (cb.onDrop) cb.onDrop({itemId:e.dataTransfer.getData('text/plain'),toX:cx,toY:cy}); });
+          }(col, row, empty));
+          cellMap[col + ',' + row] = empty;
+          container.appendChild(empty);
         }
       }
     }
+    // If nothing holds the tab stop yet, hand it to the first free cell.
+    var restoreTarget = null;
+    for (var ci = 0; ci < (container.children.length || 0); ci++) {
+      var child = container.children[ci];
+      var key = child.getAttribute('data-id') || child.getAttribute('data-resume') || '';
+      if (!tabOwner && !firstItemId && child.getAttribute('data-resume')) child.setAttribute('tabindex', '0');
+      if (hadFocus && resumeId && key === resumeId && !restoreTarget) restoreTarget = child;
+    }
+    if (restoreTarget && restoreTarget.focus) restoreTarget.focus();
   }
 
-  // ── 2. renderCounter ─────────────────────────────────────
-  // 交易台：8×4 弹出格子区域。NPC说需求，玩家拖物品进去，NPC评估后出价。
   function renderCounter(container, counterState, callbacks) {
-    ensureStyles();
-    var s   = counterState || {};
-    var npc = s.npc || {};
-    var slots = s.slots || [];
-    var cb  = callbacks || {};
-    var COLS = 8, ROWS = 4, CELL = 42;
-
+    var s = counterState || {}, npc = s.npc || {}, slots = s.slots || [], cb = callbacks || {};
     container.innerHTML = '';
-
-    // 空闲状态：简单提示
+    container.style.cssText = '';
+    container.className = 'wl-counter-panel';
+    container.appendChild(el('h2', {class:'wl-trade-title'}, '交易柜台'));
     if (!s.npcId || s.phase === 'idle') {
-      container.style.cssText = 'padding:8px 10px;';
-      container.appendChild(el('p', {
-        style: 'font-size:.68rem;color:' + PHOSPHOR_DIM + ';font-style:italic;'
-      }, '点击访客「接待」后，将仓库物品拖到交易台。'));
+      var idle = el('div', {class:'wl-counter-empty'});
+      idle.appendChild(el('span', {'aria-hidden':'true'}, '◇'));
+      idle.appendChild(el('p', {}, '先接待一位商旅，再点击仓库货物上柜台。'));
+      container.appendChild(idle);
       return;
     }
+    var visitor = worldForNpc(npc);
+    var info = el('div', {class:'wl-counter-person'});
+    info.appendChild(el('b', {}, npc.name || '商旅'));
+    info.appendChild(el('span', {}, visitor.name + ' · 预算 ¤' + (npc.budget || 0)));
+    var wants = (npc.wants || []).map(function (w) { return typeConf(w.category || w).label + (w.qty > 1 ? ' ×' + w.qty : ''); }).join(' / ');
+    info.appendChild(el('p', {}, wants ? '想收：' + wants : '没有特别的需求'));
+    container.appendChild(info);
+    container.appendChild(el('p', {class:'wl-counter-hint'}, '点击仓库货物上柜台，再次点击台面货物可取回。'));
 
-    container.style.cssText = 'display:flex;flex-direction:column;gap:6px;padding:8px;';
+    // 他上门时自己也带货：这是前期唯一的进货来源
+    var carried = s.offers || [];
+    if (carried.length) {
+      var shelf = el('section', {class:'wl-offer-shelf'});
+      shelf.appendChild(el('h3', {class:'wl-offer-shelf__title'}, npc.name + ' 带来的货'));
+      carried.forEach(function (offer) {
+        var conf = typeConf(offer.category);
+        var margin = offer.listPrice > 0
+          ? Math.round((offer.listPrice - offer.unitCost) / offer.listPrice * 100)
+          : 0;
+        var row = el('article', {class:'wl-offer-row','data-offer':offer.id});
+        row.appendChild(iconNode(offer.icon, conf.icon, 'wl-offer-icon'));
+        var info = el('div', {class:'wl-offer-info'});
+        info.appendChild(el('b', {}, esc(offer.name)));
+        var meta = el('span', {class:'wl-offer-meta'});
+        meta.appendChild(el('i', {class:'wl-supply-tag wl-supply-tag--' + offer.category}, conf.label));
+        meta.appendChild(el('i', {}, '品质 ' + offer.quality + '/5'));
+        meta.appendChild(el('i', {}, '剩 ' + offer.qty + ' 件'));
+        if (offer.genuine === false) meta.appendChild(el('i', {class:'wl-supply-tag wl-supply-tag--fake'}, '来路可疑'));
+        info.appendChild(meta);
+        row.appendChild(info);
 
-    // NPC 信息条
-    var infoBar = el('div', {
-      style: 'display:flex;align-items:baseline;gap:8px;padding:4px 6px;' +
-             'background:rgba(255,179,71,.06);border-left:2px solid ' + AMBER + ';'
-    });
-    infoBar.appendChild(el('b', { style: 'font-size:12px;color:' + AMBER + ';' }, esc(npc.name || '??')));
-    var budgetSpan = el('span', { style: 'font-size:11px;color:rgba(255,179,71,.7);' },
-      '预算 ¥' + (npc.budget || '?'));
-    infoBar.appendChild(budgetSpan);
-    if (npc.wants && npc.wants.length) {
-      var wText = npc.wants.map(function(w){
-        return typeof w === 'object' ? (w.category || '?') + (w.qty > 1 ? '×' + w.qty : '') : String(w);
-      }).join(' / ');
-      infoBar.appendChild(el('span', { style: 'font-size:10px;color:rgba(57,255,20,.5);margin-left:4px;' },
-        '需要：' + wText));
+        var prices = el('div', {class:'wl-offer-prices'});
+        var ask = el('div', {});
+        ask.appendChild(el('small', {}, '他要价'));
+        ask.appendChild(el('b', {}, '¤ ' + offer.unitCost));
+        prices.appendChild(ask);
+        var worth = el('div', {});
+        worth.appendChild(el('small', {}, '市场价'));
+        worth.appendChild(el('b', {}, '¤ ' + offer.listPrice));
+        prices.appendChild(worth);
+        var gain = el('div', {});
+        gain.appendChild(el('small', {}, '转手'));
+        gain.appendChild(el('b', {class: margin >= 15 ? 'wl-supply-good' : margin >= 0 ? 'wl-supply-mid' : 'wl-supply-bad'},
+          (margin > 0 ? '+' : '') + margin + '%'));
+        prices.appendChild(gain);
+        row.appendChild(prices);
+
+        var btn = el('button', {type:'button',class:'wl-btn wl-btn--sm wl-btn--primary',
+          'aria-label':'收下 ' + offer.name + ' 一件，花费 ¤' + offer.unitCost}, '收下');
+        on(btn, 'click', function () { if (cb.onTakeOffer) cb.onTakeOffer(offer.id, 1); });
+        row.appendChild(btn);
+        shelf.appendChild(row);
+      });
+      container.appendChild(shelf);
     }
-    container.appendChild(infoBar);
-
-    // 交易台格子 8×4
-    var gridEl = el('div', {
-      style: 'display:grid;' +
-             'grid-template-columns:repeat(' + COLS + ',' + CELL + 'px);' +
-             'grid-template-rows:repeat(' + ROWS + ',' + CELL + 'px);' +
-             'gap:1px;background:' + PHOSPHOR_DIM + ';' +
-             'border:1px solid ' + AMBER + '44;' +
-             'box-shadow:0 0 12px rgba(255,179,71,.08);'
-    });
-
-    for (var row = 0; row < ROWS; row++) {
-      for (var col = 0; col < COLS; col++) {
-        var idx = row * COLS + col;
-        (function(slotIdx) {
-          var slotItem = slots[slotIdx] || null;
-          var slotDiv  = el('div', {
-            'data-slot': slotIdx,
-            style: 'position:relative;background:' + GRID_BG + ';' +
-                   'display:flex;flex-direction:column;align-items:center;justify-content:center;' +
-                   'cursor:pointer;overflow:hidden;transition:background .1s;'
-          });
-
-          if (slotItem) {
-            var conf = typeConf(slotItem.type);
-            var iColor = slotItem.color || conf.color || AMBER;
-            slotDiv.style.background = 'linear-gradient(160deg,' + iColor + '18 0%,' + GRID_BG + ' 60%)';
-            slotDiv.style.borderLeft = '2px solid ' + iColor;
-            slotDiv.appendChild(el('span', {
-              style: 'font-size:18px;line-height:1;display:block;',
-              'aria-hidden': 'true'
-            }, slotItem.icon || conf.icon));
-            slotDiv.appendChild(el('span', {
-              style: 'font-size:8px;color:' + iColor + ';line-height:1;' +
-                     'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:38px;'
-            }, (slotItem.name || conf.label || '').slice(0, 5)));
-            on(slotDiv, 'click', function () {
-              if (cb.onRemoveFromSlot) cb.onRemoveFromSlot(slotIdx);
-            });
-          } else {
-            slotDiv.appendChild(el('span', {
-              style: 'font-size:14px;color:rgba(255,179,71,.2);'
-            }, '+'));
-          }
-
-          // drag-enter 计数器防止子元素触发 false dragleave
-          var enterCount = 0;
-          on(slotDiv, 'dragenter', function(e) {
-            e.preventDefault(); enterCount++;
-            slotDiv.style.background = AMBER + '1a';
-            slotDiv.style.outline = '1px dashed ' + AMBER + '80';
-          });
-          on(slotDiv, 'dragover', function(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
-          on(slotDiv, 'dragleave', function() {
-            enterCount--;
-            if (enterCount <= 0) {
-              enterCount = 0;
-              slotDiv.style.background = slotItem
-                ? 'linear-gradient(160deg,' + (slotItem.color || AMBER) + '18 0%,' + GRID_BG + ' 60%)'
-                : GRID_BG;
-              slotDiv.style.outline = 'none';
-            }
-          });
-          on(slotDiv, 'drop', function(e) {
-            e.preventDefault(); enterCount = 0;
-            slotDiv.style.background = GRID_BG;
-            slotDiv.style.outline = 'none';
-            var itemId = e.dataTransfer.getData('text/plain');
-            if (cb.onSlotDrop) cb.onSlotDrop({ itemId: itemId, slotIdx: slotIdx });
-          });
-
-          gridEl.appendChild(slotDiv);
-        }(idx));
+    function renderSlots(start, end) {
+      var grid = el('div', {class:'wl-counter-slots'});
+      for (var index = start; index < end; index++) {
+        (function (slotIdx) {
+          var item = slots[slotIdx];
+          var slot = el('button', {type:'button',class:'wl-counter-slot' + (item ? ' wl-counter-slot--filled' : ''),'data-slot':slotIdx,'aria-label':item ? '取回 ' + item.name : '空柜台位 ' + (slotIdx + 1)});
+          slot.appendChild(iconNode(item ? item.icon : '', item ? typeConf(item.type).icon : '+', 'wl-counter-icon'));
+          if (item) slot.appendChild(el('small', {}, item.name || '货物'));
+          on(slot, 'click', function () { if (item && cb.onRemoveFromSlot) cb.onRemoveFromSlot(slotIdx); });
+          on(slot, 'dragover', function (e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; slot.classList.add('wl-counter-slot--dragover'); });
+          on(slot, 'dragleave', function () { slot.classList.remove('wl-counter-slot--dragover'); });
+          on(slot, 'drop', function (e) { e.preventDefault(); slot.classList.remove('wl-counter-slot--dragover'); if (cb.onSlotDrop) cb.onSlotDrop({itemId:e.dataTransfer.getData('text/plain'),slotIdx:slotIdx}); });
+          grid.appendChild(slot);
+        }(index));
       }
+      return grid;
     }
-    container.appendChild(gridEl);
-
-    // 出价 + 操作按钮
-    var footer = el('div', { style: 'display:flex;align-items:center;gap:8px;' });
-
-    if (s.offer != null) {
-      footer.appendChild(el('span', {
-        style: 'flex:1;font-size:14px;color:' + AMBER + ';font-weight:900;' +
-               'text-shadow:0 0 8px rgba(255,179,71,.4);'
-      }, '报价 ¥' + s.offer.toLocaleString()));
-
-      var confirmBtn = el('button', {
-        type: 'button',
-        style: 'padding:5px 14px;border:1px solid ' + PHOSPHOR + ';' +
-               'background:rgba(57,255,20,.1);color:' + PHOSPHOR + ';' +
-               'cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;' +
-               'letter-spacing:.06em;transition:background .15s;',
-      }, '确认成交');
-      on(confirmBtn, 'click', function () { if (cb.onConfirm) cb.onConfirm(); });
-      on(confirmBtn, 'mouseover', function() { confirmBtn.style.background = 'rgba(57,255,20,.2)'; });
-      on(confirmBtn, 'mouseout',  function() { confirmBtn.style.background = 'rgba(57,255,20,.1)'; });
-
-      var rejectBtn = el('button', {
-        type: 'button',
-        style: 'padding:5px 12px;border:1px solid rgba(255,74,106,.4);' +
-               'background:transparent;color:rgba(255,74,106,.7);' +
-               'cursor:pointer;font-family:inherit;font-size:11px;letter-spacing:.06em;',
-      }, '拒绝');
-      on(rejectBtn, 'click', function () { if (cb.onReject) cb.onReject(); });
-
-      footer.appendChild(confirmBtn);
-      footer.appendChild(rejectBtn);
-    } else if (slots.some(Boolean)) {
-      // 有物品但还没出价——等待状态
-      footer.appendChild(el('span', {
-        style: 'font-size:11px;color:rgba(255,179,71,.4);font-style:italic;'
-      }, '等待 ' + esc(npc.name || 'NPC') + ' 评估…'));
-    } else {
-      footer.appendChild(el('span', {
-        style: 'font-size:11px;color:rgba(57,255,20,.3);font-style:italic;'
-      }, '从仓库拖入物品放上台面'));
+    container.appendChild(renderSlots(0, Math.min(8, slots.length)));
+    if (slots.length > 8) {
+      var extra = el('details', {class:'wl-overflow-slots'});
+      extra.open = slots.slice(8).some(Boolean);
+      extra.appendChild(el('summary', {}, '更多台面位置 · ' + (slots.length - 8) + ' 格'));
+      extra.appendChild(renderSlots(8, slots.length));
+      container.appendChild(extra);
     }
-
-    var cancelBtn = el('button', {
-      type: 'button',
-      style: 'margin-left:auto;padding:4px 10px;border:1px solid rgba(255,255,255,.1);' +
-             'background:transparent;color:rgba(200,200,200,.3);' +
-             'cursor:pointer;font-family:inherit;font-size:10px;',
-    }, '取消');
+    var footer = el('div', {class:'wl-counter-footer'});
+    var offer = el('div', {class:'wl-counter-offer'});
+    offer.appendChild(el('small', {}, '商旅出价'));
+    offer.appendChild(el('span', {}, s.offer != null ? '¤ ' + s.offer.toLocaleString() : '等待货物'));
+    footer.appendChild(offer);
+    var confirmBtn = el('button', {type:'button',class:'wl-btn wl-btn--primary'}, '确认成交');
+    confirmBtn.disabled = s.offer == null;
+    on(confirmBtn, 'click', function () { if (s.offer != null && cb.onConfirm) cb.onConfirm(); });
+    var cancelBtn = el('button', {type:'button',class:'wl-btn wl-btn--ghost'}, '收回货物');
     on(cancelBtn, 'click', function () { if (cb.onCancel) cb.onCancel(); });
+    footer.appendChild(confirmBtn);
     footer.appendChild(cancelBtn);
     container.appendChild(footer);
   }
 
-  // ── 3. renderNpcQueue ────────────────────────────────────
-
-  // ── 3. renderNpcQueue ────────────────────────────────────
   function renderNpcQueue(container, npcs, callbacks) {
-    ensureStyles();
-    var cb = callbacks || {};
+    var list = npcs || [], cb = callbacks || {};
+    // Activation rebuilds the queue and removes the button that was pressed, so remember which
+    // visitor the keyboard user came from and put focus back on that card afterwards.
+    var resumeId = container.getAttribute ? container.getAttribute('data-focus-npc') : null;
     container.innerHTML = '';
-    container.style.cssText = 'display:flex;flex-direction:column;gap:0;';
-
-    var header = el('div', {
-      style: 'font-size:9px;color:' + PHOSPHOR_DIM + ';letter-spacing:.16em;text-transform:uppercase;' +
-             'padding:6px 10px 4px;border-bottom:1px solid ' + PHOSPHOR_DIM + ';background:' + PANEL_BG + ';'
-    }, '▸ 今日访客 · ' + (npcs || []).length + ' 人');
+    container.style.cssText = '';
+    var header = el('h2', {class:'wl-trade-title wl-visitor-heading'}, '今日商旅');
+    header.appendChild(el('span', {}, list.filter(function (npc) { return !npc.activated; }).length + ' 位待接待'));
     container.appendChild(header);
+    if (!list.length) container.appendChild(el('p', {class:'wl-empty'}, '今天还没有商旅抵达。'));
+    list.forEach(function (npc) {
+      var visitor = worldForNpc(npc), done = !!npc.activated, current = cb.activeNpcId === npc.id;
+      var card = el('div', {class:'wl-visitor' + (done ? ' wl-visitor--done' : '') + (current ? ' wl-visitor--current' : ''),'data-id':npc.id,tabindex:'-1',style:'--wl-world-color:' + visitor.color + ';'});
+      // 立绘优先，没有就退回世界标记（☢ / ☯）。立绘是 512 方图，
+      // 列表里裁成圆形头像，失败时同样退回标记，不会留空。
+      var portrait = npcArt(npc);
+      if (portrait) {
+        var portraitImg = el('img', {class:'wl-visitor-portrait', src:portrait, alt:'', 'aria-hidden':'true', loading:'lazy'});
+        portraitImg.addEventListener('error', function () {
+          if (portraitImg.parentNode) portraitImg.parentNode.replaceChild(
+            el('span', {class:'wl-visitor-mark','aria-hidden':'true'}, visitor.mark), portraitImg);
+        });
+        card.appendChild(portraitImg);
+      } else {
+        card.appendChild(el('span', {class:'wl-visitor-mark','aria-hidden':'true'}, visitor.mark));
+      }
+      var info = el('div', {class:'wl-visitor-info'});
+      info.appendChild(el('b', {}, npc.name || '商旅'));
+      info.appendChild(el('span', {class:'wl-visitor-world'}, visitor.name));
+      var wants = (npc.wants || []).map(function (w) { return typeConf(w.category || w).label; }).join('、');
+      info.appendChild(el('span', {class:'wl-visitor-budget'}, '预算 ¤' + (npc.budget || 0) + (wants ? ' · 收 ' + wants : '')));
+      card.appendChild(info);
+      if (done || current) card.appendChild(el('span', {class:'wl-visitor-status'}, done ? '已接待' : '洽谈中'));
+      else {
+        var btn = el('button', {type:'button',class:'wl-btn wl-btn--sm wl-btn--ghost','aria-label':(npc.intel ? '向 ' : '接待 ') + (npc.name || '商旅') + (npc.intel ? ' 问情报' : '')}, npc.intel ? '问情报' : '接待');
+        on(btn, 'click', function () {
+          if (container.setAttribute) container.setAttribute('data-focus-npc', npc.id);
+          if (cb.onActivate) cb.onActivate(npc.id);
+        });
+        card.appendChild(btn);
+      }
+      container.appendChild(card);
+    });
+    if (resumeId) {
+      var back = null;
+      for (var qi = 0; qi < (container.children.length || 0); qi++) {
+        if (container.children[qi].getAttribute && container.children[qi].getAttribute('data-id') === resumeId) back = container.children[qi];
+      }
+      if (back && back.focus) back.focus();
+    }
+    if (container.removeAttribute) container.removeAttribute('data-focus-npc');
+  }
 
-    if (!(npcs || []).length) {
-      container.appendChild(el('p', { style: 'font-size:11px;color:' + PHOSPHOR_DIM + ';padding:10px;font-style:italic;' }, '今日暂无访客。'));
+  // ── 人脉订购：后期解锁的稳定供货渠道 ─────────────────
+  function renderContacts(container, contacts, offers, callbacks) {
+    var list = contacts || [], byContact = offers || {}, cb = callbacks || {};
+    container.innerHTML = '';
+    container.className = 'wl-contacts';
+    if (!list.length) {
+      container.appendChild(el('p', {class:'wl-empty'}, '还没有可以联系的人脉。'));
       return;
     }
+    list.forEach(function (contact) {
+      var def = byContact[contact.id];
+      var card = el('article', {class:'wl-contact' + (contact.unlocked ? '' : ' wl-contact--locked')});
+      var head = el('div', {class:'wl-contact__head'});
+      head.appendChild(el('span', {class:'wl-contact__icon','aria-hidden':'true'}, contact.icon || '\u{1F3ED}'));
+      var title = el('div', {});
+      title.appendChild(el('b', {}, esc(contact.name)));
+      title.appendChild(el('small', {}, contact.unlocked
+        ? '可订购 · 约 ' + contact.leadDays + ' 天到货'
+        : '尚未打通 · 需要更高声誉与更多成交'));
+      head.appendChild(title);
+      card.appendChild(head);
 
-    (npcs || []).forEach(function (npc) {
-      var isActive = npc.activated || npc.active;
-      var card = el('div', {
-        'data-id': npc.id,
-        tabindex: '0',
-        role: 'button',
-        'aria-label': esc(npc.name),
-        style: 'display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;' +
-               'border-bottom:1px solid rgba(57,255,20,.08);' +
-               'background:' + (isActive ? 'rgba(57,255,20,.05)' : GRID_BG) + ';' +
-               'opacity:' + (isActive ? '0.5' : '1') + ';' +
-               'transition:background .15s;',
-      });
-
-      // 角色 emoji（按类型）
-      var roleEmoji = { scavenger:'🧟', trader:'🤝', medic:'⚕️', informant:'🕵️', collector:'🍷', contractor:'👷' };
-      card.appendChild(el('span', {
-        style: 'font-size:20px;flex:0 0 auto;filter:grayscale(' + (isActive ? '80%' : '0') + ');',
-        'aria-hidden': 'true'
-      }, npc.emoji || roleEmoji[npc.role] || '👤'));
-
-      var info = el('div', { style: 'flex:1;min-width:0;' });
-      info.appendChild(el('b', {
-        style: 'display:block;font-size:12px;color:' + AMBER + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'
-      }, esc(npc.name || '??')));
-
-      var tags = el('div', { style: 'display:flex;gap:4px;margin-top:2px;flex-wrap:wrap;' });
-      if (npc.label || npc.role) {
-        tags.appendChild(el('span', {
-          style: 'font-size:9px;padding:1px 4px;border:1px solid ' + PHOSPHOR_DIM + ';color:' + PHOSPHOR_DIM + ';letter-spacing:.05em;'
-        }, esc(npc.label || npc.role)));
+      if (contact.unlocked && def && def.items && def.items.length) {
+        def.items.forEach(function (entry) {
+          var row = el('div', {class:'wl-contact-order'});
+          var label = el('div', {class:'wl-contact-order__label'});
+          label.appendChild(el('b', {}, esc(entry.name)));
+          label.appendChild(el('small', {}, '预付 \u00A4' + entry.unitCost + ' / 件 · 市价 \u00A4' + entry.listPrice));
+          row.appendChild(label);
+          // 注意：不能写成 disabled: true/false —— el() 走 setAttribute，
+          // 传入 null 会落成字符串 "null"，而只要该属性存在按钮就是禁用的。
+          var btn = el('button', {type:'button',class:'wl-btn wl-btn--sm',
+            'aria-label':'向 ' + contact.name + ' 订购 ' + entry.name}, '订购 1');
+          btn.disabled = entry.unitCost > def.gold;
+          on(btn, 'click', function () { if (cb.onOrder) cb.onOrder(contact.id, entry.skuId, 1); });
+          row.appendChild(btn);
+          card.appendChild(row);
+        });
       }
-      if (npc.intel) {
-        tags.appendChild(el('span', {
-          style: 'font-size:9px;padding:1px 4px;border:1px solid ' + AMBER + ';color:' + AMBER + ';'
-        }, '情报'));
-      }
-      info.appendChild(tags);
-
-      if (!isActive && npc.budget != null && npc.budget > 0) {
-        info.appendChild(el('span', {
-          style: 'display:block;font-size:10px;color:' + PHOSPHOR_DIM + ';margin-top:2px;'
-        }, '预算 ¥' + npc.budget + (npc.wants && npc.wants.length
-          ? ' · 需要 ' + npc.wants.map(function (w) { return w.category || w; }).join('/')
-          : '')));
-      }
-      card.appendChild(info);
-
-      if (!isActive) {
-        var btn = el('button', {
-          style: 'flex:0 0 auto;padding:3px 8px;border:1px solid ' + PHOSPHOR_DIM + ';' +
-                 'background:transparent;color:' + PHOSPHOR + ';font-size:10px;cursor:pointer;' +
-                 'font-family:inherit;letter-spacing:.05em;',
-          type: 'button'
-        }, npc.intel ? '问情报' : '接待');
-        (function (captured) {
-          on(btn, 'click', function (e) {
-            e.stopPropagation();
-            if (cb.onActivate) cb.onActivate(captured.id);
-          });
-        }(npc));
-        card.appendChild(btn);
-      } else {
-        card.appendChild(el('span', { style: 'font-size:10px;color:' + PHOSPHOR_DIM + ';flex:0 0 auto;' }, '已处理'));
-      }
-
-      (function (captured) {
-        on(card, 'click', function () { if (!captured.activated && cb.onActivate) cb.onActivate(captured.id); });
-      }(npc));
-
       container.appendChild(card);
     });
   }
 
-  // ── 4. renderMarketBoard ─────────────────────────────────
-  function renderMarketBoard(container, marketState) {
-    ensureStyles();
-    var s = marketState || {};
-    var categories = [
-      { key: 'water',     label: '水资源',   icon: '💧' },
-      { key: 'food',      label: '食物',     icon: '🥫' },
-      { key: 'material',  label: '材料',     icon: '⚙️'  },
-      { key: 'tech',      label: '科技',     icon: '🔋' },
-      { key: 'medicine',  label: '药品',     icon: '💊' },
-      { key: 'equipment', label: '装备',     icon: '🔫' },
-    ];
-
+  function renderEventLog(container, events) {
+    var list = (events || []).slice().reverse().slice(0, 12);
     container.innerHTML = '';
-    container.style.cssText = crtPanel('padding:8px;display:grid;grid-template-columns:repeat(2,1fr);gap:6px;');
-
-    categories.forEach(function (cat) {
-      var data = (s[cat.key] || s.prices && s.prices[cat.key]) || {};
-      var coef = data.coef != null ? data.coef : 1.0;
-      var trend = data.trend || 0;   // positive = rising, negative = falling
-      var shortage = !!data.shortage;
-
-      var trendStr, trendColor;
-      if (trend >= 2)       { trendStr = '++'; trendColor = '#ff4a6a'; }
-      else if (trend === 1) { trendStr = '+';  trendColor = '#ff8080'; }
-      else if (trend === 0) { trendStr = '─';  trendColor = PHOSPHOR_DIM; }
-      else if (trend === -1){ trendStr = '-';  trendColor = '#50e080'; }
-      else                  { trendStr = '--'; trendColor = PHOSPHOR; }
-
-      var cell = el('div', {
-        style: [
-          'border:1px solid ' + (shortage ? '#ff2020' : PHOSPHOR_DIM),
-          'background:' + (shortage ? 'rgba(180,0,0,.22)' : PANEL_BG),
-          'padding:6px 8px',
-          'display:flex;align-items:center;gap:6px',
-          shortage ? 'animation:wlRedBlink 1.2s ease-in-out infinite;' : '',
-        ].join(';'),
-      });
-
-      cell.appendChild(el('span', { style: 'font-size:16px;flex:0 0 auto;', 'aria-hidden': 'true' }, cat.icon));
-      var info = el('div', { style: 'flex:1;min-width:0;' });
-      info.appendChild(el('span', { style: 'display:block;font-size:10px;color:' + PHOSPHOR_DIM + ';' }, esc(cat.label)));
-      info.appendChild(el('b', { style: 'font-size:13px;color:' + PHOSPHOR + ';' },
-        'x' + coef.toFixed(2)));
-      if (shortage) {
-        info.appendChild(el('span', { style: 'display:block;font-size:9px;color:#ff4a6a;' }, '断供'));
-      }
-      cell.appendChild(info);
-      cell.appendChild(el('span', { style: 'font-size:14px;font-weight:bold;color:' + trendColor + ';flex:0 0 auto;' }, trendStr));
-      container.appendChild(cell);
+    container.className = 'wl-event-log';
+    if (!list.length) {
+      container.appendChild(el('p', {class:'wl-empty'}, '今天还没有记事。'));
+      return;
+    }
+    list.forEach(function (ev) {
+      var row = el('article', {class:'wl-event wl-event--' + (ev.type || 'note')});
+      var head = el('div', {class:'wl-event__head'});
+      head.appendChild(el('b', {}, ev.label || '记事'));
+      if (ev.hour != null) head.appendChild(el('span', {}, ev.hour + ':00'));
+      row.appendChild(head);
+      if (ev.desc) row.appendChild(el('p', {class:'wl-event__desc'}, ev.desc));
+      container.appendChild(row);
     });
   }
 
-  // ── 5. renderItemDetail ──────────────────────────────────
+  function renderMarketBoard(container, marketState) {
+    var s = marketState || {};
+    // Every category createMarketState() tracks, labelled the same way the item badges are.
+    var categories = [
+      {key:'water',label:ITEM_TYPES.water.label}, {key:'food',label:ITEM_TYPES.food.label},
+      {key:'material',label:'金属'}, {key:'tech',label:'电子'},
+      {key:'medicine',label:ITEM_TYPES.medicine.label}, {key:'equipment',label:ITEM_TYPES.tool.label},
+      {key:'alcohol',label:ITEM_TYPES.alcohol.label}, {key:'chemical',label:ITEM_TYPES.chemical.label},
+      {key:'illegal',label:ITEM_TYPES.contraband.label}, {key:'misc',label:ITEM_TYPES.misc.label},
+      {key:'tobacco',label:ITEM_TYPES.tobacco.label},
+    ];
+    container.innerHTML = '';
+    container.style.cssText = '';
+    container.className = 'wl-market-board';
+    categories.forEach(function (cat) {
+      var legacy = s[cat.key] || s.prices && s.prices[cat.key] || {};
+      var value = s.coefficients && s.coefficients[cat.key];
+      var coef = Number.isFinite(value) ? value : legacy.coef != null ? legacy.coef : 1;
+      var shortage = !!(s.stockout && s.stockout[cat.key] > 0 || legacy.shortage);
+      var delta = Math.round((coef - 1) * 100);
+      var suffix = shortage ? 'scarce' : delta > 0 ? 'up' : delta < 0 ? 'down' : 'steady';
+      var card = el('div', {class:'wl-market-card wl-market-card--' + suffix,'data-category':cat.key});
+      card.appendChild(el('span', {}, cat.label));
+      card.appendChild(el('span', {}, shortage ? '断供' : '基准比'));
+      card.appendChild(el('b', {}, '×' + coef.toFixed(2)));
+      card.appendChild(el('small', {}, shortage ? '供应紧张' : delta === 0 ? '持平' : (delta > 0 ? '+' : '') + delta + '%'));
+      container.appendChild(card);
+    });
+  }
+
   function renderItemDetail(container, item, tools, playerSkill, marketPrice) {
     ensureStyles();
     if (!item) { container.innerHTML = ''; return; }
-    var conf = typeConf(item.type);
+    var conf = typeConf(item.type || item.category);
 
     container.innerHTML = '';
-    container.style.cssText = crtPanel('padding:10px;display:flex;flex-direction:column;gap:8px;');
+    container.style.cssText = '';
+    container.className = 'wl-detail-content';
 
     // Header
     var hdr = el('div', { style: 'display:flex;align-items:center;gap:10px;' });
@@ -594,13 +533,13 @@
       'aria-hidden': 'true',
     }, item.icon || conf.icon));
     var titleWrap = el('div', {});
-    titleWrap.appendChild(el('b', { style: 'display:block;font-size:15px;color:' + PHOSPHOR + ';' }, esc(item.name || conf.label)));
+    titleWrap.appendChild(el('b', {class:'wl-detail-title',style:'display:block;font-size:15px;'}, esc(item.name || conf.label)));
     titleWrap.appendChild(el('span', {
       style: 'font-size:10px;padding:1px 6px;border:1px solid ' + conf.color + ';color:' + conf.color + ';',
     }, conf.icon + ' ' + conf.label));
     if (item.genuine === false) {
       titleWrap.appendChild(el('span', {
-        style: 'margin-left:4px;font-size:10px;padding:1px 6px;border:1px solid #ff4a6a;color:#ff4a6a;',
+        style: 'margin-left:4px;font-size:10px;padding:1px 6px;border:1px solid #ff7e8e;color:#ff7e8e;',
       }, '仿品'));
     }
     hdr.appendChild(titleWrap);
@@ -608,13 +547,13 @@
 
     // Attribute list
     var attrs = [
-      item.purity  != null ? ['纯度',     item.purity + '%'] : null,
+      item.purity  != null ? ['纯度',     coreName('PURITY_NAMES', item.purity) || item.purity] : null,
       item.quality != null ? ['品质',     item.quality + (typeof item.quality === 'number' && item.quality <= 5 ? '/5' : '%')] : null,
       item.capacity!= null ? ['容量',     item.capacity] : null,
       item.container!=null ? ['容器',     item.container] : null,
       item.expiry  != null ? ['保质期',   item.expiry + ' 天'] : null,
-      item.origin  != null ? ['来源',     item.origin] : null,
-      item.ageDays != null ? ['陈年天数', item.ageDays + ' 天'] : null,
+      item.origin  != null ? ['来源',     coreName('ORIGIN_NAMES', item.origin) || item.origin] : null,
+      item.agedDays != null ? ['陈年天数', item.agedDays + ' 天'] : null,
     ].filter(Boolean);
 
     if (attrs.length) {
@@ -623,7 +562,7 @@
       });
       attrs.forEach(function (pair) {
         var row = el('div', { style: 'display:flex;gap:4px;font-size:11px;' });
-        row.appendChild(el('span', { style: 'color:' + PHOSPHOR_DIM + ';' }, pair[0] + ':'));
+        row.appendChild(el('span', { style: 'color:' + MUTED + ';' }, pair[0] + ':'));
         row.appendChild(el('b', { style: 'color:' + PHOSPHOR + ';' }, esc(String(pair[1]))));
         attrGrid.appendChild(row);
       });
@@ -641,9 +580,9 @@
         { label: '建议收购', value: Math.round(marketPrice * 0.65), color: PHOSPHOR_DIM },
       ].forEach(function (p) {
         var col = el('div', { style: 'text-align:center;' });
-        col.appendChild(el('span', { style: 'display:block;font-size:9px;color:' + PHOSPHOR_DIM + ';letter-spacing:.06em;' }, p.label));
+        col.appendChild(el('span', { style: 'display:block;font-size:9px;color:' + MUTED + ';letter-spacing:.06em;' }, p.label));
         col.appendChild(el('b', { style: 'display:block;font-size:13px;color:' + p.color + ';' },
-          p.value.toLocaleString() + ' ¥'));
+          '¤ ' + p.value.toLocaleString()));
         priceBlock.appendChild(col);
       });
       container.appendChild(priceBlock);
@@ -680,11 +619,11 @@
     container.style.cssText = crtPanel('padding:8px;display:flex;flex-direction:column;gap:6px;');
 
     container.appendChild(el('span', {
-      style: 'font-size:10px;color:' + PHOSPHOR_DIM + ';letter-spacing:.1em;',
+      style: 'font-size:10px;color:' + MUTED + ';letter-spacing:.1em;',
     }, '▶ 战利品'));
 
     if (!items.length) {
-      container.appendChild(el('p', { style: 'color:' + PHOSPHOR_DIM + ';font-size:12px;margin:4px 0;' }, '暂无战利品'));
+      container.appendChild(el('p', { style: 'color:' + MUTED + ';font-size:12px;margin:4px 0;' }, '暂无战利品'));
       return;
     }
 
@@ -695,10 +634,10 @@
       var row = el('div', {
         style: 'display:flex;align-items:center;gap:8px;padding:5px 8px;border:1px solid ' + PHOSPHOR_DIM + ';',
       });
-      row.appendChild(el('span', { style: 'font-size:18px;', 'aria-hidden': 'true' }, loot.icon || conf.icon));
+      row.appendChild(iconNode(loot.icon, conf.icon, 'wl-loot-icon'));
       var info = el('div', { style: 'flex:1;min-width:0;' });
       info.appendChild(el('b', { style: 'display:block;font-size:12px;color:' + PHOSPHOR + ';' }, esc(loot.name || conf.label)));
-      info.appendChild(el('span', { style: 'font-size:10px;color:' + PHOSPHOR_DIM + ';' },
+      info.appendChild(el('span', { style: 'font-size:10px;color:' + MUTED + ';' },
         conf.label + (loot.qty > 1 ? ' ×' + loot.qty : '')));
       row.appendChild(info);
       if (qLvl) {
@@ -706,7 +645,7 @@
         for (var i = 1; i <= 5; i++) {
           dotWrap.appendChild(el('i', {
             style: 'display:inline-block;width:5px;height:5px;border-radius:50%;font-style:normal;' +
-              'background:' + (i <= qLvl ? PHOSPHOR : '#1c2a18') + ';',
+              'background:' + (i <= qLvl ? PHOSPHOR : '#263b4a') + ';',
           }));
         }
         row.appendChild(dotWrap);
@@ -728,22 +667,35 @@
   }
 
   // ── 7. renderBaseView ────────────────────────────────────
-  function renderBaseView(container, baseState, callbacks) {
+  function renderBaseView(container, baseState, callbacks, options) {
     ensureStyles();
     var s = baseState || {};
+    var opt = options || {};
+    var facDefs = opt.defs || {};
+    var facActive = opt.active || {};
+    var timers = (s.timers) || {};
     var fixed = s.fixedSlots || {};
-    var freeGrid = s.freeGrid || [];
+    var freeGrid = Array.isArray(s.freeGrid)
+      ? s.freeGrid
+      : s.freeGrid && s.freeGrid.items
+        // Core grids store {item, x, y} entries keyed by item ID
+        ? Object.keys(s.freeGrid.items).map(function (id) {
+          var entry = s.freeGrid.items[id];
+          return entry && entry.item ? Object.assign({}, entry.item, {x:entry.x, y:entry.y}) : null;
+        }).filter(Boolean)
+        : (s.facilities || []);
     var cb = callbacks || {};
 
     container.innerHTML = '';
-    container.style.cssText = crtPanel('padding:10px;display:flex;gap:12px;');
+    container.style.cssText = '';
+    container.className = 'wl-base-layout';
 
     // Left: 4 fixed slots
     var leftPanel = el('div', {
       style: 'display:flex;flex-direction:column;gap:8px;min-width:160px;',
     });
     leftPanel.appendChild(el('span', {
-      style: 'font-size:10px;color:' + PHOSPHOR_DIM + ';letter-spacing:.1em;margin-bottom:2px;',
+      style: 'font-size:10px;color:' + MUTED + ';letter-spacing:.1em;margin-bottom:2px;',
     }, '■ 固定设施'));
 
     var fixedDefs = [
@@ -756,33 +708,71 @@
       var slot = fixed[def.key] || {};
       var installed = !!slot.installed;
       var level = slot.level || 0;
-      var statusColor = installed ? PHOSPHOR : (slot.installed === false ? '#ff4a6a' : '#4a4a4a');
-      var statusLabel = installed ? '运行' : (slot.installed === false ? '关闭' : '未装');
+      var def2 = facDefs[def.key] || {};
+      // 电力本身只要通电就算运行；其余设施被断电拖累时显示为待机
+      var running = installed && (facActive[def.key] !== false);
+      var statusColor = running ? PHOSPHOR : (installed ? AMBER : MUTED);
+      var statusLabel = !installed ? '未安装' : (running ? '运行' : '待机·断电');
 
-      var row = el('div', {
-        style: 'display:flex;align-items:center;gap:8px;padding:5px 8px;border:1px solid ' + PHOSPHOR_DIM + ';',
-      });
+      var card = el('div', {class:'wl-facility-card'});
+      var row = el('div', {class:'wl-facility-card__head'});
       var led = el('i', {
         style: 'display:inline-block;width:8px;height:8px;border-radius:50%;background:' + statusColor + ';' +
-          'flex:0 0 auto;font-style:normal;' + (installed ? 'box-shadow:0 0 5px ' + statusColor + ';' : ''),
+          'flex:0 0 auto;font-style:normal;' + (running ? 'box-shadow:0 0 5px ' + statusColor + ';' : ''),
       });
       row.appendChild(led);
-      row.appendChild(el('span', { style: 'font-size:14px;flex:0 0 auto;' }, def.icon));
-      var info = el('div', { style: 'flex:1;' });
+      row.appendChild(iconNode(def.icon, '🏗', 'wl-facility-icon'));
+      var info = el('div', { style: 'flex:1;min-width:0;' });
       info.appendChild(el('b', { style: 'display:block;font-size:11px;color:' + PHOSPHOR + ';' }, def.label));
       info.appendChild(el('span', { style: 'font-size:9px;color:' + statusColor + ';' },
-        statusLabel + (level > 0 ? ' LV' + level : '')));
+        statusLabel + (level > 0 ? ' LV' + level : '') +
+        (def.key === 'power' && installed ? ' · 燃料 ' + (slot.fuel || 0) + ' 天' : '')));
       row.appendChild(info);
-      leftPanel.appendChild(row);
+      card.appendChild(row);
+
+      if (def2.desc) card.appendChild(el('p', {class:'wl-facility-card__desc'}, def2.desc));
+
+      var actions = el('div', {class:'wl-facility-card__actions'});
+      if (!installed) {
+        var installBtn = el('button', {type:'button',class:'wl-btn wl-btn--sm'},
+          '安装 ¤' + (def2.installCost || 0));
+        installBtn.disabled = (opt.gold || 0) < (def2.installCost || 0);
+        on(installBtn, 'click', function () { if (cb.onInstall) cb.onInstall(def.key); });
+        actions.appendChild(installBtn);
+      } else {
+        if (level < 3 && def2.upgradeCost) {
+          var upCost = def2.upgradeCost[level - 1];
+          var upBtn = el('button', {type:'button',class:'wl-btn wl-btn--sm'},
+            '升级 LV' + (level + 1) + ' ¤' + upCost);
+          upBtn.disabled = (opt.gold || 0) < upCost;
+          on(upBtn, 'click', function () { if (cb.onUpgrade) cb.onUpgrade(def.key); });
+          actions.appendChild(upBtn);
+        } else if (level >= 3) {
+          actions.appendChild(el('small', {class:'wl-facility-card__max'}, '已达最高等级'));
+        }
+        if (def.key === 'power' && opt.fuelSkus && opt.fuelSkus.length) {
+          opt.fuelSkus.forEach(function (fuel) {
+            var count = opt.fuelStock && opt.fuelStock[fuel.skuId] ? opt.fuelStock[fuel.skuId] : 0;
+            var fBtn = el('button', {type:'button',class:'wl-btn wl-btn--sm',
+              'aria-label':'消耗' + fuel.label + '补充燃料，可维持 ' + fuel.days + ' 天'},
+              '加' + fuel.label + '（' + count + '）');
+            fBtn.disabled = count <= 0;
+            on(fBtn, 'click', function () { if (cb.onRefuel) cb.onRefuel(fuel.skuId); });
+            actions.appendChild(fBtn);
+          });
+        }
+      }
+      card.appendChild(actions);
+      leftPanel.appendChild(card);
     });
     container.appendChild(leftPanel);
 
     // Right: 4x3 free grid (80px cells)
     var FCELL = 80;
     var FCOLS = 4, FROWS = 3;
-    var rightPanel = el('div', { style: 'display:flex;flex-direction:column;gap:4px;' });
+    var rightPanel = el('div', {class:'wl-facility-panel',style:'display:flex;flex-direction:column;gap:8px;'});
     rightPanel.appendChild(el('span', {
-      style: 'font-size:10px;color:' + PHOSPHOR_DIM + ';letter-spacing:.1em;',
+      style: 'font-size:10px;color:' + MUTED + ';letter-spacing:.1em;',
     }, '□ 自由设施格'));
 
     var fOccupied = {};
@@ -794,11 +784,7 @@
       }
     });
 
-    var fGrid = el('div', {
-      style: 'display:grid;grid-template-columns:repeat(' + FCOLS + ',' + FCELL + 'px);' +
-        'grid-template-rows:repeat(' + FROWS + ',' + FCELL + 'px);background:' + GRID_BG + ';' +
-        'border:1px solid ' + PHOSPHOR_DIM + ';',
-    });
+    var fGrid = el('div', {class:'wl-facility-grid'});
 
     var fRendered = {};
     for (var row = 0; row < FROWS; row++) {
@@ -820,7 +806,14 @@
               'box-shadow:0 0 5px ' + PHOSPHOR + '55',
             ].join(';'),
           });
-          facDiv.appendChild(el('span', { style: 'font-size:24px;', 'aria-hidden': 'true' }, fac.icon || '🏗'));
+          // 机器摆进自由格后，走的是「设施网格」这条渲染路径，
+          // 而机器对象自带的只是 catalog 里的 emoji。这里按 machineKey 补一次美术索引，
+          // 否则同一个熔炉在机器区有图、在网格里是 emoji。
+          var slotIcon = fac.icon;
+          if (fac.machineKey && window.WL_ART && window.WL_ART['machine_' + fac.machineKey]) {
+            slotIcon = 'img:' + window.WL_ART['machine_' + fac.machineKey];
+          }
+          facDiv.appendChild(iconNode(slotIcon, '🏗', 'wl-facility-slot-icon'));
           facDiv.appendChild(el('span', { style: 'font-size:9px;text-align:center;max-width:' + (FCELL * (fac.w || 1) - 8) + 'px;overflow:hidden;' },
             esc(fac.name || '设施')));
           fGrid.appendChild(facDiv);
@@ -866,61 +859,108 @@
       class: 'wl-ticker__track',
       style: 'animation:wlTickerScroll ' + dur + 's linear infinite;',
     });
-    track.appendChild(el('span', { class: 'wl-ticker__text', 'aria-live': 'polite' }, full));
+    // The container already carries aria-live; a second nested region made every event announce twice.
+    track.appendChild(el('span', { class: 'wl-ticker__text', 'aria-hidden': 'true' }, full));
     container.appendChild(track);
   }
 
   // ── Legacy: renderDispatchPanel ───────────────────────────
-  function renderDispatchPanel(container, dispatches, onDispatch) {
+  // ── renderDispatchPanel：派遣 —— 先选人，再选去处 ──────────
+  // data: { dispatches, tiers, cap, inFlight, gold, powerOnline, visitors }
+  // callbacks: { onSend(destinationKey, npcId) }
+  function renderDispatchPanel(container, data, callbacks) {
     ensureStyles();
+    var d = data || {}, cb = callbacks || {};
+    var list  = d.dispatches || [];
+    var tiers = d.tiers || {};
+    var visitors = d.visitors || [];
+
     container.innerHTML = '';
-    container.style.cssText = crtPanel('padding:8px;display:flex;flex-direction:column;gap:6px;');
-    container.appendChild(el('span', { style: 'font-size:10px;color:' + PHOSPHOR_DIM + ';letter-spacing:.1em;' }, '🗺 在途派遣'));
+    container.style.cssText = '';
+    container.className = 'wl-dispatch';
 
-    var list = dispatches || [];
-    var statusColors = { active: PHOSPHOR, returned: '#75ffb2', failed: '#ff718e', waiting: AMBER };
-    var statusLabels = { active: '行进中', returned: '已归来', failed: '任务失败', waiting: '待命' };
+    var head = el('div', {class:'wl-dispatch__head'});
+    head.appendChild(el('h3', {class:'wl-dispatch__title'}, '派遣队'));
+    head.appendChild(el('span', {class:'wl-dispatch__cap'},
+      '在途 ' + (d.inFlight || 0) + ' / ' + (d.cap || 1) +
+      (d.powerOnline ? '' : ' · 电力下线，名额受限')));
+    container.appendChild(head);
 
-    if (!list.length) {
-      container.appendChild(el('p', { style: 'color:' + PHOSPHOR_DIM + ';font-size:12px;' }, '暂无在途派遣。'));
-    } else {
-      list.forEach(function (d) {
-        var sc = statusColors[d.status] || PHOSPHOR_DIM;
-        var sl = statusLabels[d.status] || (d.status || '—');
-        var row = el('div', {
-          style: 'display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid ' + PHOSPHOR_DIM + ';',
-        });
-        row.appendChild(el('span', { style: 'font-size:16px;' }, '🧭'));
-        var info = el('div', { style: 'flex:1;min-width:0;' });
-        info.appendChild(el('b', { style: 'display:block;font-size:12px;color:' + PHOSPHOR + ';' },
-          esc(d.npcName || '未知') + ' → ' + esc(d.destination || '?')));
-        info.appendChild(el('span', { style: 'font-size:10px;color:' + PHOSPHOR_DIM + ';' },
-          '剩余 ' + (d.daysLeft != null ? d.daysLeft + ' 天' : '—')));
+    // 在途
+    if (list.length) {
+      var statusLabels = { out: '行进中', returned: '已归来', failed: '失败', waiting: '待命', active: '行进中' };
+      list.forEach(function (trip) {
+        if (!trip) return;
+        var row = el('article', {class:'wl-dispatch-row'});
+        row.appendChild(el('span', {class:'wl-dispatch-row__icon','aria-hidden':'true'}, '🧭'));
+        var info = el('div', {class:'wl-dispatch-row__info'});
+        info.appendChild(el('b', {}, esc(trip.npcName || '商旅') + ' → ' +
+          esc((tiers[trip.destination] && tiers[trip.destination].label) || trip.destination || '?')));
+        var days = trip.daysRemaining != null ? trip.daysRemaining : trip.daysLeft;
+        info.appendChild(el('small', {}, days != null ? '还剩 ' + days + ' 天' : '行程未知'));
         row.appendChild(info);
-        row.appendChild(el('span', {
-          style: 'padding:2px 7px;border:1px solid ' + sc + ';color:' + sc + ';font-size:10px;',
-        }, sl));
+        row.appendChild(el('span', {class:'wl-dispatch-row__status'}, statusLabels[trip.status] || trip.status || '—'));
         container.appendChild(row);
       });
+    } else {
+      container.appendChild(el('p', {class:'wl-empty'}, '目前没有在途的派遣队。'));
     }
 
-    var btnRow = el('div', { style: 'display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;' });
-    [
-      { key: '近郊',    label: '近郊',    color: PHOSPHOR },
-      { key: '中距离',  label: '中距离',  color: AMBER },
-      { key: '深入禁区', label: '深入禁区', color: '#ff718e' },
-    ].forEach(function (dest) {
-      var btn = el('button', {
-        type: 'button',
-        style: 'flex:1;min-width:70px;padding:4px 8px;border:1px solid ' + dest.color + '66;' +
-          'background:transparent;color:' + dest.color + ';cursor:pointer;font-family:inherit;font-size:11px;',
-      }, dest.label);
-      on(btn, 'click', function (d) {
-        return function () { if (onDispatch) onDispatch(d.key); };
-      }(dest));
-      btnRow.appendChild(btn);
+    // 选人
+    var picker = el('div', {class:'wl-dispatch__picker'});
+    picker.appendChild(el('span', {class:'wl-dispatch__label'}, '派谁去'));
+    if (!visitors.length) {
+      picker.appendChild(el('p', {class:'wl-empty'}, '今天没有空闲的商旅可以出行。'));
+      container.appendChild(picker);
+      return;
+    }
+    var chosenId = visitors[0].id;
+    var chips = el('div', {class:'wl-dispatch__chips'});
+    visitors.forEach(function (visitor, index) {
+      var chip = el('button', {type:'button','data-npc':visitor.id,
+        class:'wl-chip' + (index === 0 ? ' wl-chip--on' : ''),
+        'aria-pressed': index === 0 ? 'true' : 'false'}, visitor.name || '商旅');
+      on(chip, 'click', function () {
+        chosenId = visitor.id;
+        // 单选：把选中态收敛到这一颗
+        var all = chips.children || [];
+        for (var k = 0; k < all.length; k++) {
+          var node = all[k];
+          if (!node.classList || !node.classList.contains('wl-chip')) continue;
+          var isThis = node === chip;
+          node.classList.toggle('wl-chip--on', isThis);
+          node.setAttribute('aria-pressed', isThis ? 'true' : 'false');
+        }
+      });
+      chips.appendChild(chip);
     });
-    container.appendChild(btnRow);
+    picker.appendChild(chips);
+    container.appendChild(picker);
+
+    // 选去处
+    var destRow = el('div', {class:'wl-dispatch__dests'});
+    ['suburb', 'midrange', 'deepzone'].forEach(function (key) {
+      var tier = tiers[key];
+      if (!tier) return;
+      var affordable = (d.gold || 0) >= tier.fee;
+      var full = (d.inFlight || 0) >= (d.cap || 1);
+      var btn = el('button', {type:'button',class:'wl-btn wl-btn--sm wl-dispatch__dest',
+        'aria-label':'派遣前往' + tier.label + '，补给费 ¤' + tier.fee}, tier.label);
+      // 同 disabled 的坑：el() 走 setAttribute，用属性赋值才不会落成字符串 "null"
+      btn.disabled = !affordable || full;
+      on(btn, 'click', function () {
+        if (cb.onSend) cb.onSend(key, chosenId);
+      });
+      var meta = el('small', {class:'wl-dispatch__dest-meta'},
+        '¤' + tier.fee + ' · ' + tier.days + '天');
+      var wrap = el('div', {class:'wl-dispatch__dest-wrap'});
+      wrap.appendChild(btn);
+      wrap.appendChild(meta);
+      destRow.appendChild(wrap);
+    });
+    container.appendChild(destRow);
+    container.appendChild(el('p', {class:'wl-dispatch__hint'},
+      '派遣是补贴：近郊风险低、收益薄；深入禁区利润高但空手概率也高，且要先付得起补给费。'));
   }
 
   // ── Legacy: renderLootPanel ───────────────────────────────
@@ -936,7 +976,7 @@
 
     var topbar = el('div', { style: 'display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid ' + PHOSPHOR_DIM + ';padding-bottom:6px;' });
     topbar.appendChild(el('span', { style: 'font-size:13px;color:' + PHOSPHOR + ';' }, '第 ' + (state.day || 1) + ' 天'));
-    topbar.appendChild(el('span', { style: 'font-size:13px;color:' + AMBER + ';' }, '¥ ' + (state.cash || 0).toLocaleString()));
+    topbar.appendChild(el('span', { style: 'font-size:13px;color:' + AMBER + ';' }, '¤ ' + (state.cash || 0).toLocaleString()));
     container.appendChild(topbar);
 
     var footer = el('div', { style: 'display:flex;justify-content:flex-end;' });
@@ -955,21 +995,22 @@
     var cb = callbacks || {};
     var s = auctionState || {};
     container.innerHTML = '';
-    container.style.cssText = crtPanel('padding:10px;display:flex;flex-direction:column;gap:8px;');
+    container.style.cssText = '';
+    container.className = 'wl-auction-content';
 
     container.appendChild(el('b', { style: 'font-size:14px;color:' + PHOSPHOR + ';' },
       esc(s.containerName || '未知集装箱')));
 
-    var statusBar = el('div', { style: 'display:flex;gap:12px;font-size:11px;color:' + AMBER + ';' });
-    statusBar.appendChild(el('span', {}, '最高价: ' + (s.currentBid != null ? s.currentBid.toLocaleString() + ' ¥' : '—')));
+    var statusBar = el('div', { style: 'display:flex;flex-wrap:wrap;gap:8px 12px;font-size:12px;color:' + AMBER + ';' });
+    statusBar.appendChild(el('span', {}, '最高价: ' + (s.currentBid != null ? s.currentBid.toLocaleString() + ' ¤' : '—')));
     statusBar.appendChild(el('span', {}, '出价方: ' + esc(s.currentBidder || '—')));
     statusBar.appendChild(el('span', {}, '回合: ' + (s.round || 1) + '/' + (s.maxRound || '?')));
     container.appendChild(statusBar);
 
     if (s.ended) {
       container.appendChild(el('b', {
-        style: 'color:' + (s.won ? PHOSPHOR : '#ff4a6a') + ';font-size:13px;',
-      }, s.won ? '拍得！成交 ' + (s.currentBid || 0).toLocaleString() + ' ¥' : '未能拍到'));
+        style: 'color:' + (s.won ? PHOSPHOR : '#ff7e8e') + ';font-size:13px;',
+      }, s.won ? '拍得！成交 ¤' + (s.currentBid || 0).toLocaleString() : '未能拍到'));
     } else {
       var minBid = (s.currentBid || 0) + (s.minIncrement || 1);
       var bidRow = el('div', { style: 'display:flex;gap:6px;align-items:center;' });
@@ -978,12 +1019,13 @@
         min: String(minBid),
         step: String(s.minIncrement || 1),
         value: s.myBid != null ? String(s.myBid) : String(minBid),
-        style: 'flex:1;padding:4px 8px;border:1px solid ' + AMBER + ';background:' + GRID_BG + ';color:' + AMBER + ';font-family:inherit;font-size:12px;',
+        'aria-label': '竞拍出价',
+        style: 'flex:1;min-width:0;min-height:44px;padding:8px;border:1px solid ' + AMBER + ';background:' + GRID_BG + ';color:' + AMBER + ';font-family:inherit;font-size:12px;',
       });
       bidRow.appendChild(bidInput);
       var bidBtn = el('button', {
         type: 'button',
-        style: 'padding:4px 12px;border:1px solid ' + AMBER + ';background:' + AMBER + '18;color:' + AMBER + ';cursor:pointer;font-family:inherit;font-size:12px;',
+        style: 'min-height:44px;padding:8px 12px;border:1px solid ' + AMBER + ';background:' + AMBER + '18;color:' + AMBER + ';cursor:pointer;font-family:inherit;font-size:12px;',
       }, '出价');
       on(bidBtn, 'click', function () {
         var amount = parseFloat(bidInput.value);
@@ -991,6 +1033,174 @@
       });
       bidRow.appendChild(bidBtn);
       container.appendChild(bidRow);
+    }
+  }
+
+  // ── 8. renderMachineZone：机器区 + 生产排产 ───────────────
+  /* data: {
+   *   machines: [{id, machineKey, name, icon, w, h, level, running:{recipeId,daysLeft,totalDays}|null}],
+   *   available: {machineKey: def},          // 本世界能买的机器
+   *   recipes: {recipeId: def},              // 全部配方
+   *   craftable: {recipeId: enabled},        // 料够不够
+   *   gold, powerOnline, worldName,
+   *   cols, rows, cells                      // 机器区格位（用于显示空位）
+   * }
+   * callbacks: { onBuy(machineKey), onProduce(machineId, recipeId) }
+   */
+  function renderMachineZone(container, data, callbacks) {
+    ensureStyles();
+    var d = data || {}, cb = callbacks || {};
+    var machines = d.machines || [];
+    var available = d.available || {};
+    var recipes = d.recipes || {};
+    var craftable = d.craftable || {};
+    var cat = (window.WastelandCore && window.WastelandCore.ITEM_CATALOG) || {};
+
+    container.innerHTML = '';
+    container.className = 'wl-machines';
+
+    // 标题由页面的 pane-heading 提供，这里只放这一节的实时状态，避免出现两个「机器区」
+    var head = el('div', {class:'wl-machines__head'});
+    head.appendChild(el('span', {class:'wl-machines__world'},
+      esc(d.worldName || '') + ' · ' + machines.length + ' 台在架'));
+    container.appendChild(head);
+
+    var power = el('p', {class:'wl-machines__power' + (d.powerOnline ? '' : ' wl-machines__power--off')},
+      d.powerOnline ? '⚡ 电力在线，机器可以开工' : '⚠ 断电：机器停工，批次原地等待，不消耗原料');
+    container.appendChild(power);
+
+    // 在架机器
+    if (!machines.length) {
+      container.appendChild(el('p', {class:'wl-empty'},
+        '机器区还是空的。生产要在这里放机器——下面「可添置」里选一台。'));
+    }
+    machines.forEach(function (m) {
+      var card = el('article', {class:'wl-machine'});
+      var chead = el('div', {class:'wl-machine__head'});
+      chead.appendChild(iconNode(m.icon, '🏗', 'wl-machine__icon'));
+      var title = el('div', {class:'wl-machine__title'});
+      title.appendChild(el('b', {}, esc(m.name)));
+      title.appendChild(el('small', {}, 'LV' + (m.level || 1) + ' · ' + (m.w || 1) + '×' + (m.h || 1) + ' 格'));
+      chead.appendChild(title);
+      if (m.running) {
+        chead.appendChild(el('span', {class:'wl-machine__busy'},
+          '运行中 ' + (m.running.totalDays - m.running.daysLeft) + '/' + m.running.totalDays + ' 天'));
+      }
+      card.appendChild(chead);
+
+      var list = el('div', {class:'wl-machine__recipes'});
+      var def = (window.WastelandCore && window.WastelandCore.machineDef)
+        ? window.WastelandCore.machineDef(m.machineKey) : null;
+      var ids = (def && def.recipes) || [];
+      ids.forEach(function (rid) {
+        var recipe = recipes[rid];
+        if (!recipe) return;
+        var canDo = !m.running && d.powerOnline && craftable[rid];
+        var row = el('div', {class:'wl-machine__recipe'});
+        var label = el('div', {class:'wl-machine__recipe-label'});
+        label.appendChild(el('b', {}, esc(recipe.label)));
+        var ins = (recipe.inputs || []).map(function (need) {
+          var sku = cat[need.skuId];
+          return (sku ? sku.name : need.skuId) + '×' + need.qty;
+        }).join(' + ');
+        var outSku = cat[recipe.output.skuId];
+        label.appendChild(el('small', {},
+          ins + ' → ' + (outSku ? outSku.name : recipe.output.skuId) + '×' + recipe.output.qty +
+          ' · ' + recipe.days + ' 天 · 失败率 ' + Math.round((recipe.failChance || 0) * 100) + '%'));
+        row.appendChild(label);
+        var btn = el('button', {type:'button',class:'wl-btn wl-btn--sm',
+          'aria-label':'在' + m.name + '上开始' + recipe.label}, '开工');
+        btn.disabled = !canDo;
+        on(btn, 'click', function () { if (cb.onProduce) cb.onProduce(m.id, rid); });
+        row.appendChild(btn);
+        list.appendChild(row);
+      });
+      card.appendChild(list);
+      container.appendChild(card);
+    });
+
+    // 可添置的机器
+    var keys = Object.keys(available);
+    if (keys.length) {
+      var shop = el('div', {class:'wl-machines__shop'});
+      shop.appendChild(el('span', {class:'wl-machines__shop-title'}, '■ 可添置（本世界）'));
+      keys.forEach(function (k) {
+        var def = available[k];
+        var card = el('div', {class:'wl-machine-buy'});
+        var info = el('div', {class:'wl-machine-buy__info'});
+        var buyHead = el('b', {});
+        buyHead.appendChild(iconNode(def.icon, '🏗', 'wl-machine-buy__icon'));
+        buyHead.appendChild(document.createTextNode(' ' + def.label));
+        info.appendChild(buyHead);
+        info.appendChild(el('small', {}, def.desc || ''));
+        info.appendChild(el('small', {class:'wl-machine-buy__cost'},
+          '¤' + def.cost + ' · ' + def.w + '×' + def.h + ' 格'));
+        card.appendChild(info);
+        var btn = el('button', {type:'button',class:'wl-btn wl-btn--sm'}, '添置 ¤' + def.cost);
+        btn.disabled = (d.gold || 0) < def.cost;
+        on(btn, 'click', function () { if (cb.onBuy) cb.onBuy(k); });
+        card.appendChild(btn);
+        shop.appendChild(card);
+      });
+      container.appendChild(shop);
+    }
+
+    // 在跑的批次
+    var running = machines.filter(function (m) { return m.running; });
+    if (running.length) {
+      var prod = el('div', {class:'wl-machines__running'});
+      prod.appendChild(el('span', {class:'wl-machines__shop-title'}, '■ 在跑'));
+      running.forEach(function (m) {
+        var recipe = recipes[m.running.recipeId];
+        prod.appendChild(el('div', {class:'wl-machine-run'},
+          esc(m.name) + ' · ' + esc(recipe ? recipe.label : m.running.recipeId) +
+          ' · 还剩 ' + m.running.daysLeft + ' 天'));
+      });
+      container.appendChild(prod);
+    }
+  }
+
+  // ── 9. renderWorldPicker：今天在哪一界开张 ────────────────
+  /* data: { worldId, worldPlace, locked, worlds:[{id,name,mark,color,status}], day }
+   * callbacks: { onPickWorld(worldId) }
+   */
+  function renderWorldPicker(container, data, callbacks) {
+    ensureStyles();
+    var d = data || {}, cb = callbacks || {};
+    var worlds = d.worlds || [];
+
+    container.innerHTML = '';
+    container.className = 'wl-worlds';
+
+    // 同上：标题交给 pane-heading，这里只说今天开在哪
+    var head = el('div', {class:'wl-worlds__head'});
+    head.appendChild(el('span', {class:'wl-worlds__place'},
+      '第 ' + (d.day || 1) + ' 天 · 开在' + esc(d.worldPlace || '空间夹层')));
+    container.appendChild(head);
+
+    var grid = el('div', {class:'wl-worlds__grid'});
+    worlds.forEach(function (w) {
+      var playable = w.status === 'playable';
+      var active = w.id === d.worldId;
+      var card = el('button', {
+        type: 'button',
+        class: 'wl-world' + (active ? ' wl-world--active' : '') + (playable ? '' : ' wl-world--wip'),
+        'aria-pressed': active ? 'true' : 'false',
+      });
+      card.appendChild(el('span', {class:'wl-world__mark','aria-hidden':'true'}, w.mark || '◇'));
+      card.appendChild(el('b', {class:'wl-world__name'}, esc(w.name)));
+      card.appendChild(el('small', {class:'wl-world__status'},
+        !playable ? '开发中' : (active ? '今天在这里' : '可转场')));
+      // 开发中的世界是死按钮，但保留在那里，让玩家看得见规划
+      card.disabled = !playable || active || d.locked;
+      on(card, 'click', function () { if (cb.onPickWorld) cb.onPickWorld(w.id); });
+      grid.appendChild(card);
+    });
+    container.appendChild(grid);
+
+    if (d.locked) {
+      container.appendChild(el('p', {class:'wl-worlds__note'},
+        '今天已经开张接客，换世界要等明天结束营业。'));
     }
   }
 
@@ -1002,13 +1212,18 @@
   window.WastelandUI = {
     VERSION: '3',
     // New CRT functions
+    worldForNpc: worldForNpc,
     renderGrid: renderGrid,
     renderCounter: renderCounter,
     renderNpcQueue: renderNpcQueue,
     renderMarketBoard: renderMarketBoard,
+    renderEventLog: renderEventLog,
+    renderContacts: renderContacts,
     renderItemDetail: renderItemDetail,
     renderLootClaim: renderLootClaim,
     renderBaseView: renderBaseView,
+    renderMachineZone: renderMachineZone,
+    renderWorldPicker: renderWorldPicker,
     // Legacy compat
     renderShopFloor: renderShopFloor,
     renderAuction: renderAuction,

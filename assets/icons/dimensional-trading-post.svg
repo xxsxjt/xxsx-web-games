@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+<title id="title">时空交易行</title>
+<desc id="desc">维度裂隙连接两座异界市场，中央展示跨界货箱</desc>
+<defs>
+  <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#101b27"/><stop offset="1" stop-color="#07101a"/></linearGradient>
+  <linearGradient id="rift" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#79e7ee"/><stop offset=".52" stop-color="#bb9bff"/><stop offset="1" stop-color="#ffc867"/></linearGradient>
+</defs>
+<rect width="512" height="512" rx="76" fill="url(#paper)"/>
+<path d="M256 44 390 100v123c0 112-55 178-134 228-79-50-134-116-134-228V100z" fill="none" stroke="#24394a" stroke-width="8"/>
+<path d="m267 78-52 145 63 34-59 155 101-177-65-35 53-122z" fill="url(#rift)" stroke="#eaf6ff" stroke-width="5"/>
+<path d="M96 295h115l30 24h-145zM271 319h145l30-24H301z" fill="#142638" stroke="#79e7ee" stroke-width="5"/>
+<path d="M105 319h126v89H105zM281 319h126v89H281z" fill="#0b1420" stroke="#ffc867" stroke-width="5"/>
+<path d="M129 319v89m78-89v89m99-89v89m79-89v89" stroke="#24394a" stroke-width="5"/>
+<circle cx="157" cy="279" r="10" fill="#ffc867"/><circle cx="355" cy="278" r="10" fill="#85edbc"/>
+<path d="M157 257v-29m198 29v-29" stroke="#a7b8ce" stroke-width="5" stroke-linecap="round"/>
+</svg>

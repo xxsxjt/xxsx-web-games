@@ -1,4 +1,4 @@
-/* 废土杂货铺 · NPC与交易博弈系统 · v1 */
+/* 界门交易行 · NPC与跨界商旅系统 · v1 */
 (function(root){
   'use strict';
 
@@ -32,6 +32,40 @@
     '批发买家','批发卖家','急于出手','急于购买',
     '只买套装','指定规格','分期付款'
   ];
+  // 世界表。顺序绝对不能重排——旧存档里的访客世界是用下标存的
+  // （LEGACY_VISITOR_WORLD_ORDER），挪一下位置就会把老档的商旅送到错的世界。
+  // status: 'playable' = 已实现完整内容；'wip' = 规划中，菜单里标注「开发中」。
+  var WORLD_ORDER=[
+    {id:'wasteland_nuclear',name:'核爆废土',mark:'☢',color:'#ffc867',status:'playable'},
+    {id:'wasteland_plague',name:'瘟疫荒原',mark:'✚',color:'#85edbc',status:'wip'},
+    {id:'wasteland_ai',name:'机械末日',mark:'⚙',color:'#ff7e8e',status:'wip'},
+    {id:'xianxia_sect',name:'灵霄宗门界',mark:'☯',color:'#bb9bff',status:'playable'},
+    {id:'xianxia_mortal',name:'凡界集市',mark:'▦',color:'#a7b8ce',status:'wip'},
+    {id:'steampunk',name:'蒸汽帝国',mark:'⚙',color:'#79e7ee',status:'wip'},
+    {id:'cybermage',name:'赛博魔法城',mark:'⌘',color:'#bb9bff',status:'wip'},
+    {id:'medieval',name:'中世纪王国',mark:'⚗',color:'#85edbc',status:'wip'},
+    {id:'stellar',name:'星际外站',mark:'✦',color:'#79e7ee',status:'wip'},
+    {id:'ancient_empire',name:'古代帝国集市',mark:'◇',color:'#ffc867',status:'wip'},
+    {id:'unknown',name:'第十一界 · 未知',mark:'?',color:'#a7b8ce',status:'wip'}
+  ];
+  var LEGACY_VISITOR_WORLD_ORDER=[WORLD_ORDER[0],WORLD_ORDER[5],WORLD_ORDER[1],WORLD_ORDER[6],WORLD_ORDER[9],WORLD_ORDER[4]];
+  // 商旅角色 → 出身世界。只有两个世界是完整实现的，其余角色都属于这两界中的一个；
+  // informant（情报贩子）不属于任何一界，他从维度中转站来，所以在下面退回默认值。
+  var VISITOR_WORLDS={
+    scavenger:WORLD_ORDER[0],
+    trader:WORLD_ORDER[0],
+    medic:WORLD_ORDER[0],
+    contractor:WORLD_ORDER[0],
+    herbalist:WORLD_ORDER[3],
+    alchemist:WORLD_ORDER[3],
+    cultivator:WORLD_ORDER[3],
+    collector:WORLD_ORDER[3]
+  };
+  var WORLD_BY_ID={};
+  WORLD_ORDER.forEach(function(w){WORLD_BY_ID[w.id]=w;});
+  // 已实现完整内容的世界——玩家只能在这两个里选，其余标注开发中
+  var PLAYABLE_WORLDS=WORLD_ORDER.filter(function(w){return w.status==='playable';});
+  function worldById(id){return WORLD_BY_ID[id]||null;}
 
   // 互斥规则（11.3节）
   var MUTEX=[
@@ -71,6 +105,21 @@
   var GIVEN=['铁','锋','义','柱','仓','漠','砂','荒','沛','烛','砾','尘','卯','壬'];
   function randomName(){
     return pick(SURNAMES)+pick(GIVEN)+(Math.random()<0.5?pick(GIVEN):'');
+  }
+
+  function worldForNpc(npc){
+    var known=VISITOR_WORLDS[npc&&npc.role]||{id:'',name:'维度中转站',mark:'◇',color:'#79e7ee'};
+    var rawWorldId=npc&&npc.worldId;
+    var legacyId=typeof rawWorldId==='number'?rawWorldId:typeof rawWorldId==='string'&&/^\d+$/.test(rawWorldId)?Number(rawWorldId):0;
+    var legacy=legacyId>0&&legacyId%1===0
+      ? LEGACY_VISITOR_WORLD_ORDER[legacyId-1]||WORLD_ORDER[legacyId-1]
+      : null;
+    return {
+      id:legacy&&legacy.id||typeof rawWorldId==='string'&&!/^\d+$/.test(rawWorldId)&&rawWorldId||known.id,
+      name:npc&&npc.worldName||legacy&&legacy.name||known.name,
+      mark:npc&&npc.worldMark||legacy&&legacy.mark||known.mark,
+      color:npc&&npc.worldColor||legacy&&legacy.color||known.color
+    };
   }
 
   // ── 1. generateNPC(role) ──────────────────────────────────────────────────
@@ -119,8 +168,8 @@
   //   verdict: 'authentic' | 'fake' | 'uncertain'
   //   confidence: 0-1
   function evaluateTrade(npc,item,playerSkill){
-    var tags=npc.tags;
-    var itemType=item&&item.type||'unknown';
+    var tags=npc.tags||[];
+    var itemType=(item&&(item.category||item.type))||'unknown';
 
     // 工具检测：npc携带对应鉴定专家标签即视为有工具
     var expertTag='鉴定专家:'+itemType;
@@ -129,7 +178,7 @@
     if(hasTool){
       return {
         confidence:1,
-        verdict:item.authentic?'authentic':'fake',
+        verdict:item.genuine===false?'fake':'authentic',
         method:'tool'
       };
     }
@@ -155,7 +204,7 @@
 
     // 技能估算：越高越准
     var noise=(1-skill)*0.6;
-    var trueConf=item.authentic?0.8+skill*0.15:0.2-skill*0.15;
+    var trueConf=item.genuine===false?0.2-skill*0.15:0.8+skill*0.15;
     var conf=clamp(trueConf+(Math.random()-0.5)*noise,0.05,0.95);
     var verdict=conf>0.5?'authentic':'fake';
     if(Math.abs(conf-0.5)<0.15)verdict='uncertain';
@@ -166,7 +215,7 @@
   // ── 3. negotiatePrice(npc, item, basePrice) ──────────────────────────────
   // 返回NPC出价（number）
   function negotiatePrice(npc,item,basePrice){
-    var tags=npc.tags;
+    var tags=npc.tags||[];
     var price=basePrice;
 
     // 急于购买：接受高价
@@ -201,7 +250,7 @@
   function resolveOutcome(npc,item,verdict){
     if(verdict==='authentic')return'nothing';
 
-    var tags=npc.tags;
+    var tags=npc.tags||[];
     // 当场发现（工具鉴定或多疑型高概率）
     var immediateChance=tags.indexOf('多疑')!==-1?0.6:0.3;
     if(Math.random()<immediateChance)return'face';
@@ -266,6 +315,13 @@
   // ── 暴露 ──────────────────────────────────────────────────────────────────
   root.WastelandNPC={
     generateNPC:generateNPC,
+    worldForNpc:worldForNpc,
+    // 世界表必须导出：界门选择器靠 WORLD_ORDER 渲染，
+    // 商店侧靠 worldById 判断某个世界能不能开张。
+    // 漏掉任何一个，都会变成「面板在、里面是空的」这种静默失败。
+    WORLD_ORDER:WORLD_ORDER,
+    PLAYABLE_WORLDS:PLAYABLE_WORLDS,
+    worldById:worldById,
     evaluateTrade:evaluateTrade,
     negotiatePrice:negotiatePrice,
     resolveOutcome:resolveOutcome,

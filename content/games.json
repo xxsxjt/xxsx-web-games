@@ -77,14 +77,14 @@
     "format": "固定关卡"
   },
   {
-    "id": "wasteland",
-    "name": "废土杂货铺",
+    "id": "dimension",
+    "name": "界门交易行",
     "type": "经营",
-    "description": "在资源匮乏的废土世界经营二手杂货铺：格子仓库、集装箱拍卖、鉴定造假、派遣搜查，在执法与黑市之间求生。",
+    "description": "在维度交汇处经营跨界商栈：整理格子库存、接待各界商旅、追踪供需行情，并竞拍裂隙漂流物。",
     "controls": "点击 / 触屏",
     "save": "每日结算自动存档",
-    "status": "早期版本",
-    "cover": "assets/icons/shell-heist.svg",
+    "status": "原型",
+    "cover": "assets/icons/dimensional-trading-post.svg",
     "format": "经营模拟"
   }
 ]

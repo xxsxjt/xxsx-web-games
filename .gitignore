@@ -1,2 +1,9 @@
 node_modules/
 
+
+# 美术生成的原始大图（可用 tools/art/generate.mjs 重新生成）
+tools/art/.raw/
+# 无头浏览器截图用的临时 profile
+.claude/tmp-shot/
+.claude/wf/
+*.tmp

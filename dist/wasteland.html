@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0b1420" />
+<title>界门交易行</title>
+<link rel="icon" type="image/svg+xml" href="assets/icons/dimensional-trading-post.c705f6686e88.svg" />
+<link rel="stylesheet" href="static/wasteland-shop.c3e1974ea2d1.css" />
+<link rel="stylesheet" href="static/dimensional-trading-post.15c0bdb0fb92.css" />
+</head>
+<body class="trading-post">
+<main id="wl-menu" aria-labelledby="wl-title">
+  <div id="wl-menu-scene" aria-hidden="true">
+    <img id="wl-scene-art" src="assets/dimensional-market-hall.8d08fa080311.svg" width="1600" height="1200" alt="" fetchpriority="high" />
+  </div>
+  <header class="wl-menu-header">
+    <a class="wl-back-link" href="./"><span aria-hidden="true">←</span> 所有游戏</a>
+    <span class="wl-local-note">单人经营 · 本机存档</span>
+  </header>
+  <section id="wl-menu-panel">
+    <p class="wl-logo__eyebrow">DIMENSIONAL TRADING POST</p>
+    <h1 id="wl-title">界门<span>交易行</span></h1>
+    <p class="wl-menu-lead">每一位来客，都带着另一个世界。</p>
+    <p class="wl-menu-copy">在界门之间开一间小店。收好货，读懂行情，<br class="wl-desktop-break" />再和远道而来的商旅谈成一笔生意。</p>
+    <ol class="wl-game-loop" aria-label="经营流程">
+      <li><span>01</span> 整理货物</li><li><span>02</span> 接待商旅</li><li><span>03</span> 结算一天</li>
+    </ol>
+    <div class="wl-menu__actions">
+      <button class="wl-menu__btn wl-menu__btn--primary" id="btn-continue" type="button" hidden>
+        <span><b>继续营业</b><small id="continue-desc">读取本地进度</small></span><span aria-hidden="true">→</span>
+      </button>
+      <button class="wl-menu__btn wl-menu__btn--primary" id="btn-new" type="button">
+        <span><b>开一家新店</b><small>第 1 天 · ¤200 · 五件入门货物</small></span><span aria-hidden="true">→</span>
+      </button>
+    </div>
+    <div class="wl-saves" id="saves-section" hidden>
+      <span id="save-meta">进度保存在此浏览器</span>
+      <button id="btn-delete-save" type="button">删除存档</button>
+    </div>
+    <p class="wl-storage-note" id="wl-storage-note">随时回到主菜单保存进度。</p>
+  </section>
+  <footer class="wl-menu-footer">
+    <details class="wl-world-atlas">
+      <summary>商旅来自哪里 <span>两个世界已开放 / 九个开发中</span><i aria-hidden="true">+</i></summary>
+      <div class="wl-world-atlas__body">
+        <p>每天选一个世界开门，界门会开在那里的一处随机地点。今天来的客商都出自这一界。</p>
+        <div class="wl-world-atlas__grid">
+          <span>核爆废土 · 已开放</span><span>灵霄宗门界 · 已开放</span>
+        </div>
+        <p class="wl-world-atlas__planned">开发中：瘟疫荒原、机械末日、凡界集市、蒸汽帝国、赛博魔法城、中世纪王国、星际外站、古代帝国集市，以及尚未命名的第十一界。</p>
+      </div>
+    </details>
+    <div class="wl-scene-caption"><span>界门之间 · 一日开张</span><small>可玩版本 / V62</small></div>
+  </footer>
+</main>
+
+<main id="wl-game" tabindex="-1" aria-label="界门交易行营业工作台">
+  <header id="wl-topbar">
+    <button id="wl-exit-btn" type="button">← 主菜单</button>
+    <span class="wl-topbar__title">界门交易行</span>
+    <span id="wl-stat-day">第 — 天</span>
+    <span id="wl-stat-cash">¤ —</span>
+    <span id="wl-stat-rep">声誉 —</span>
+    <button id="wl-switch-base" type="button">基地</button>
+    <button id="wl-end-day-btn" type="button">结束今天 <span aria-hidden="true">→</span></button>
+  </header>
+  <div id="wl-shop-view">
+    <section id="wl-left-pane" class="wl-work-pane" aria-label="仓库与参考价格">
+      <div class="wl-pane-heading"><h2>货物仓库</h2><span>10 × 8</span></div>
+      <p class="wl-pane-help">点击查看货物；接待商旅后，点击或拖动货物上柜台。</p>
+      <div id="wl-grid-wrap"><div id="wl-grid"></div></div>
+      <div class="wl-pane-heading wl-price-heading"><h2>货物估价</h2><span>¤ 维度通证</span></div>
+      <div id="wl-price-panel"></div>
+      <div id="wl-ticker" aria-live="polite"></div>
+    </section>
+    <section id="wl-trade-pane" class="wl-work-pane" aria-label="访客与交易柜台">
+      <div id="wl-npc-queue"></div>
+      <div id="wl-counter"></div>
+    </section>
+    <aside id="wl-right-pane" class="wl-work-pane" aria-label="物品详情与市场行情">
+      <section class="wl-info-section"><div class="wl-pane-heading"><h2>物品详情</h2></div><div id="wl-detail"><p class="wl-empty">点击仓库中的货物，查看品质与估价。</p></div></section>
+      <section class="wl-info-section"><div class="wl-pane-heading"><h2>本地行情</h2><span>相对基准价</span></div><div id="wl-market"></div></section>
+      <section class="wl-info-section"><div class="wl-pane-heading"><h2>今日记事</h2><span>情报 · 拍卖 · 成交</span></div><div id="wl-events"></div></section>
+      <section class="wl-info-section" id="wl-auction-wrap" style="display:none"><div class="wl-pane-heading"><h2>漂流物竞拍</h2></div><div id="wl-auction"></div></section>
+    </aside>
+  </div>
+  <div id="wl-over" class="wl-over" hidden role="dialog" aria-modal="true" aria-labelledby="wl-over-title">
+    <div class="wl-over__box">
+      <p class="wl-over__eyebrow">维度锚点 · 停业通知</p>
+      <h2 id="wl-over-title">经营失败</h2>
+      <p id="wl-over-body" class="wl-over__body"></p>
+      <p class="wl-over__hint">下一次记得先看今日货源：买商旅想收的类目，差价就是租金。</p>
+      <button id="wl-over-restart" class="wl-btn wl-btn--primary" type="button">重新开张</button>
+    </div>
+  </div>
+  <section id="wl-base-view" aria-label="维度锚点基地">
+    <header class="wl-base-header"><h2>维度锚点 · 基地</h2><button id="wl-switch-shop" class="wl-btn" type="button">← 返回营业</button></header>
+    <p class="wl-pane-help">安装并维持设施，然后从这里派人外出搜刮。电力是其余设施与派遣名额的前提。</p>
+    <div id="wl-base"></div>
+    <div id="wl-dispatch"></div>
+    <section class="wl-info-section" aria-label="今日界门"><div class="wl-pane-heading"><h2>今日界门</h2><span>两个世界 / 其余开发中</span></div><p class="wl-pane-help">关店后待在空间夹层。每天开门前选一个世界，界门会开在那个世界的随机地点；今天来的客商都出自这一界。</p><div id="wl-worlds"></div></section>
+    <section class="wl-info-section" aria-label="机器区与生产"><div class="wl-pane-heading"><h2>机器区与生产</h2><span>成品比原料值钱</span></div><p class="wl-pane-help">机器放在机器区（和堆货的仓库是两块地方）。成品售价约是原料的两到三倍，但配方有失败率——炼废了只剩副产物。</p><div id="wl-machines"></div></section>
+    <section class="wl-info-section"><div class="wl-pane-heading"><h2>人脉与订购</h2><span>按批到货</span></div><p class="wl-pane-help">打通人脉后可以按批发价订购指定物资，先付款、数天后到货。</p><div id="wl-contacts"></div></section>
+  </section>
+  <section id="wl-loot" aria-label="待领战利品"></section>
+</main>
+<script src="assets/art-index.84912b3fefe4.js"></script>
+<script src="static/wasteland-core.2a7911352e51.js"></script>
+<script src="static/wasteland-npc.73641662a115.js"></script>
+<script src="static/wasteland-ui.0796e38a65ee.js"></script>
+<script src="static/wasteland-shop.b98b6c0d925f.js"></script>
+<script>
+(function(){
+  'use strict';
+  var SAVE_KEY='xxsxWastelandShopV1';
+  var menuEl=document.getElementById('wl-menu');
+  var gameEl=document.getElementById('wl-game');
+  var newBtn=document.getElementById('btn-new');
+  var continueBtn=document.getElementById('btn-continue');
+  function getSave(){
+    try{var save=JSON.parse(localStorage.getItem(SAVE_KEY));return save&&Number.isFinite(save.day)&&save.day>0?save:null;}
+    catch(e){return null;}
+  }
+  function refreshMenu(){
+    var save=getSave();
+    continueBtn.hidden=!save;
+    document.getElementById('saves-section').hidden=!save;
+    newBtn.classList.toggle('wl-menu__btn--primary',!save);
+    if(save){
+      document.getElementById('continue-desc').textContent='第 '+save.day+' 天 · 第 '+(save.week||1)+' 周 · ¤'+(Number(save.gold)||0).toLocaleString();
+      document.getElementById('save-meta').textContent='本机档案 · 声誉 '+(Number(save.reputation&&save.reputation.overall)||0);
+    }
+  }
+  function startGame(isNew){
+    try{if(isNew)localStorage.removeItem(SAVE_KEY);}
+    catch(e){document.getElementById('wl-storage-note').textContent='浏览器未允许保存进度，请检查存储设置。';return;}
+    if(!window.WastelandShop)return;
+    menuEl.classList.add('hidden');
+    gameEl.classList.add('active');
+    window.WastelandShop.enter();
+    gameEl.focus({preventScroll:true});
+  }
+  function exitGame(){
+    if(window.WastelandShop)window.WastelandShop.leave();
+    gameEl.classList.remove('active');
+    menuEl.classList.remove('hidden');
+    refreshMenu();
+    (getSave()?continueBtn:newBtn).focus({preventScroll:true});
+  }
+  newBtn.addEventListener('click',function(){
+    if(getSave()&&!confirm('开新店将覆盖当前存档，继续吗？'))return;
+    startGame(true);
+  });
+  continueBtn.addEventListener('click',function(){startGame(false);});
+  document.getElementById('wl-exit-btn').addEventListener('click',exitGame);
+  document.getElementById('wl-over-restart').addEventListener('click',function(){
+    if(window.WastelandShop)window.WastelandShop.restart();
+    refreshMenu();
+    gameEl.classList.remove('active');
+    menuEl.classList.remove('hidden');
+    newBtn.focus({preventScroll:true});
+  });
+  document.getElementById('btn-delete-save').addEventListener('click',function(){
+    if(!confirm('删除这份本机存档？此操作不可撤销。'))return;
+    try{localStorage.removeItem(SAVE_KEY);refreshMenu();newBtn.focus();}
+    catch(e){document.getElementById('wl-storage-note').textContent='无法删除存档，请检查浏览器存储设置。';}
+  });
+  refreshMenu();
+}());
+</script>
+</body>
+</html>
