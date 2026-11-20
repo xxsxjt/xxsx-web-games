@@ -28,6 +28,8 @@
 
 完整开发源 QA：`build/qa/20261120-141839-887561/summary.json`；13/13 项检查通过、错误与警告为 0，源码指纹未变。完整摘要含模型 69 项、应用/存档 28 项边界旅程日志。
 
+总仓库镜像 QA：`desktop/stormline-black-tide/build/qa/20261120-142007-306012/summary.json`；同样 13/13 通过，模型 69 项、应用/存档 28 项结果一致，26 项代码/配置指纹与开发源及候选 manifest 相同。
+
 v0.1.1 Windows x64 本机候选位于 `build/releases/20261120-141903-478497/Stormline-Black-Tide-v0.1.1-windows-x64/`，ZIP 在同级目录。PE、Godot 4.3 PCK 18 项校验、ZIP CRC 与逐文件 round-trip 哈希通过；manifest 与上述 QA 同指纹。
 
 | 文件 | SHA-256 |
@@ -38,6 +40,10 @@ v0.1.1 Windows x64 本机候选位于 `build/releases/20261120-141903-478497/Sto
 
 PCK-only 仓外探针：`C:/Users/xxsx/AppData/Local/Temp/opencode/stormline-stage10/stormline-pck-probe-2o1419s6/smoke.json`。18 项静态条目校验、7 个编译脚本加载、入口 PackedScene 资源读取、模型单步和隔离用户目录检查通过；没有写入最佳成绩。未执行导出 EXE、未实例化主场景。
 
-GitHub 源码同步及镜像 QA 完成后，在“同步状态”补录远端回读结果；同步仅指源码，不等于 Windows 二进制发布或网页部署。
+## 同步状态
+
+已同步至 `xxsxjt/xxsx-web-games` 的 `main`，实现提交 `3b4fbd45e2a3b945ff06a3c34516cc414b1920f3`。GitHub 整仓 396 个 blob 与提交树一致，44 个桌面项目文件逐 blob 匹配开发源；最终收尾提交和回读证据以本机忽略文件 `build/sync/stage-10.json` 为准。
+
+网页总站 `npm run build` / `npm test` 通过，`dist/index.html` blob 仍为 `f084b47f24ad3ca00c4bb1dd3f4a115b36da83c9`；未部署网页。headless 应用测试实例化的是开发源场景，候选 PCK 探针只读取场景资源，没有实例化包内主场景。
 
 不执行导出 EXE、不实例化候选包主场景、不发布二进制、不部署网页；图形、实际音频及真人试玩均未验证。
