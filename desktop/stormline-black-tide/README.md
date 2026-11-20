@@ -17,6 +17,7 @@
 - 阶段 07（碰撞冷却窗恢复与合同重置）：`docs/stage-07-collision-cooldown-boundaries.md`
 - 阶段 08（持续擦礁与双体分时复碰）：`docs/stage-08-continuous-contact.md`
 - 阶段 09（高风暴、低储备复合受损返航）：`docs/stage-09-compound-risk-recovery.md`
+- 阶段 10（低资源成功/失败对照与存档保护）：`docs/stage-10-resource-boundaries.md`
 - 持续开发和验证计划：`docs/task-plan.md`
 - 本机无窗口证据：`build/qa/<时间戳>/summary.json` 及相邻日志。
 - Windows 候选包：`build/releases/<时间戳>/`；EXE、独立 PCK、说明和校验随包放置。

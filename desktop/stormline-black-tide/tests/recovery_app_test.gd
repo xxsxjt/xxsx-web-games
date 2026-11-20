@@ -82,6 +82,37 @@ func _run() -> void:
 		_check(RecordsStore.new(record_path).records == saved_records,
 			"fatal retry leaves reloaded best scores unchanged")
 
+	# Use the stage-09 physical recovery route with stage-10 near-exhaustion
+	# resources. Every failed route must travel through the app's normal debrief
+	# boundary and leave the earlier successful record and its bytes unchanged.
+	var exhausted_cases: Array[Dictionary] = [
+		{"name": "hull", "hull": 15.0, "cargo": 42.0, "battery": 24.0,
+			"reason": "船体耐久归零", "kind": "collision"},
+		{"name": "cargo", "hull": 40.0, "cargo": 12.2, "battery": 24.0,
+			"reason": "回收舱破损", "kind": "collision"},
+		{"name": "battery", "hull": 40.0, "cargo": 42.0, "battery": 16.0,
+			"reason": "电量耗尽", "kind": "power_lost"},
+	]
+	for scenario: Dictionary in exhausted_cases:
+		app.call("_on_restart_requested")
+		sim = app.get("sim")
+		_stage_compound_impact(app, sim, hazard, scenario)
+		_check(app.get("screen") == "running" and sim.phase == "return"
+			and sim.hull > 0.0 and sim.cargo_integrity > 0.0 and sim.battery > 0.0,
+			String(scenario.name) + " exhaustion route starts alive after a real dual-body impact")
+		var exhausted_route := await _pilot_to_dock(app, sim)
+		_check(not exhausted_route["success"] and sim.phase == "failed"
+			and app.get("screen") == "debrief" and sim.report.is_empty(),
+			String(scenario.name) + " exhaustion reaches failed debrief without a success report")
+		_check(sim.fail_reason.contains(String(scenario.reason)) and sim.event_kind == scenario.kind,
+			String(scenario.name) + " exhaustion keeps its specific app failure reason")
+		_check(FileAccess.get_file_as_bytes(record_path) == saved_bytes
+			and RecordsStore.new(record_path).records == saved_records
+			and String(app.get("_record_status")).is_empty(),
+			String(scenario.name) + " failed route leaves stored best bytes and rankings unchanged")
+		print("APP recovery_exhaustion/%s: phase=%s ticks=%d hull=%.1f cargo=%.1f battery=%.1f reason=%s" % [
+			scenario.name, sim.phase, exhausted_route["ticks"], sim.hull, sim.cargo_integrity, sim.battery, sim.fail_reason])
+
 	await _finish(app)
 	print("Stormline post-impact app recovery: %d checks, %d failures; headless scene/input/record integration only, no rendered route play." % [_checks, _failures])
 	quit(0 if _failures == 0 else 1)
@@ -129,6 +160,31 @@ func _stage_fatal_pod_impact(app: Node, sim: Variant, hazard: Dictionary) -> boo
 	app.call("_publish", 0.0, true)
 	app.call("_advance_simulation", DT, {"power": 2})
 	return sim.phase == "failed" and app.get("screen") == "debrief"
+
+
+func _stage_compound_impact(app: Node, sim: Variant, hazard: Dictionary, scenario: Dictionary) -> void:
+	sim.phase = "return"
+	sim.scanned = true
+	sim.tow_attached = true
+	sim.mission_time = 80.0
+	sim._update_weather()
+	sim.hull = scenario.hull
+	sim.cargo_integrity = scenario.cargo
+	sim.battery = scenario.battery
+	sim.power_profile = 2
+	var center: Vector2 = hazard.position
+	var tug_margin := float(hazard.radius) + 1.55
+	var cargo_margin := float(hazard.radius) + 1.10
+	var tug_normal := Vector2.UP
+	var cargo_normal := Vector2.UP.rotated(0.68)
+	sim.heading = PI
+	sim.position = center + tug_normal * (tug_margin - 0.05)
+	sim.velocity = -tug_normal * 2.0
+	sim.cargo_position = center + cargo_normal * (cargo_margin - 0.05)
+	sim.cargo_velocity = -cargo_normal * 2.0
+	sim.rope_length = Sim.ROPE_MIN
+	sim._apply_reefs(DT)
+	app.call("_publish", 0.0, true)
 
 
 func _pilot_to_dock(app: Node, sim: Variant) -> Dictionary:

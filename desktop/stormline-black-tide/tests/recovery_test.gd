@@ -11,6 +11,10 @@ var _failures := 0
 
 
 func _init() -> void:
+	if DisplayServer.get_name() != "headless":
+		printerr("recovery_test.gd requires --headless")
+		quit(1)
+		return
 	_run_recovery()
 	_run_compound_recovery()
 	print("Stormline post-impact recovery: %d checks, %d failures; deterministic controls/model only, not a full interactive route." % [_checks, _failures])
@@ -95,6 +99,21 @@ func _run_recovery() -> void:
 
 
 func _run_compound_recovery() -> void:
+	var scenarios: Array[Dictionary] = [
+		{"name": "standard", "hull": 40.0, "cargo": 42.0, "battery": 24.0, "success": true},
+		{"name": "hull-edge", "hull": 16.0, "cargo": 42.0, "battery": 24.0, "success": true},
+		{"name": "cargo-edge", "hull": 40.0, "cargo": 13.0, "battery": 24.0, "success": true},
+		{"name": "battery-edge", "hull": 40.0, "cargo": 42.0, "battery": 17.0, "success": true},
+		{"name": "hull-exhausted", "hull": 15.0, "cargo": 42.0, "battery": 24.0, "success": false},
+		{"name": "cargo-exhausted", "hull": 40.0, "cargo": 12.2, "battery": 24.0, "success": false},
+		{"name": "battery-exhausted", "hull": 40.0, "cargo": 42.0, "battery": 16.0, "success": false},
+	]
+	for scenario: Dictionary in scenarios:
+		_run_compound_case(scenario)
+
+
+func _run_compound_case(scenario: Dictionary) -> void:
+	var label: String = scenario.name
 	var sim := Sim.new()
 	sim.reset("black-tide")
 	var reef: Dictionary = {}
@@ -113,9 +132,9 @@ func _run_compound_recovery() -> void:
 	sim.tow_attached = true
 	sim.mission_time = 80.0
 	sim._update_weather()
-	sim.hull = 40.0
-	sim.cargo_integrity = 42.0
-	sim.battery = 24.0
+	sim.hull = scenario.hull
+	sim.cargo_integrity = scenario.cargo
+	sim.battery = scenario.battery
 	sim.power_profile = 2
 	var center: Vector2 = reef.position
 	var tug_margin := float(reef.radius) + 1.55
@@ -131,13 +150,13 @@ func _run_compound_recovery() -> void:
 	var hull_before_contact := sim.hull
 	var cargo_before_contact := sim.cargo_integrity
 	sim._apply_reefs(DT)
-	_check(sim.hull < hull_before_contact and sim.hull > 0.0
-		and sim.cargo_integrity < cargo_before_contact and sim.cargo_integrity > 0.0,
-		"compound-risk fixture receives real, survivable tug and pod reef impact damage")
-	_check(sim.battery == 24.0 and sim.tow_attached and sim.phase == "return",
-		"compound-risk setup preserves its low reserve and active tow after impact")
+	_check(sim.hull < hull_before_contact and sim.cargo_integrity < cargo_before_contact,
+		label + " fixture receives real tug and pod reef-impact damage")
+	_check(sim.hull > 0.0 and sim.cargo_integrity > 0.0 and sim.battery == scenario.battery
+		and sim.tow_attached and sim.phase == "return",
+		label + " setup starts the route with live resources and an active tow")
 	_check(sim.event_kind == "collision" and sim.event_message.contains(REEF_NAME),
-		"compound-risk reef impact retains a concrete collision event")
+		label + " reef impact retains a concrete collision event")
 	if sim.hull <= 0.0 or sim.cargo_integrity <= 0.0 or not sim.tow_attached:
 		return
 
@@ -176,19 +195,33 @@ func _run_compound_recovery() -> void:
 		if sim.phase in ["success", "failed"]:
 			break
 
-	_check(sim.phase == "success", "partially damaged tow recovers under low battery and late-time flow; phase=%s leg=%d ticks=%d hull=%.1f pod=%.1f battery=%.1f reason=%s" % [sim.phase, leg, ticks, sim.hull, sim.cargo_integrity, sim.battery, sim.fail_reason])
-	print("MODEL compound_recovery: phase=%s ticks=%d t=%.2fs hull=%.1f pod=%.1f battery=%.1f peak_storm=%.3f peak_wind=%.3f peak_tension=%.3f" % [sim.phase, ticks, sim.mission_time, sim.hull, sim.cargo_integrity, sim.battery, peak_storm, peak_wind, sim.peak_tension])
-	if sim.phase == "success":
+	var expect_success: bool = scenario.success
+	_check((sim.phase == "success") == expect_success,
+		label + " reaches the expected success/failure boundary; phase=%s leg=%d ticks=%d hull=%.1f pod=%.1f battery=%.1f reason=%s" % [sim.phase, leg, ticks, sim.hull, sim.cargo_integrity, sim.battery, sim.fail_reason])
+	print("MODEL compound_recovery/%s: phase=%s ticks=%d t=%.2fs hull=%.1f pod=%.1f battery=%.1f peak_storm=%.3f peak_wind=%.3f peak_tension=%.3f reason=%s" % [label, sim.phase, ticks, sim.mission_time, sim.hull, sim.cargo_integrity, sim.battery, peak_storm, peak_wind, sim.peak_tension, sim.fail_reason])
+	if expect_success and sim.phase == "success":
 		_check(sim.hull > 0.0 and sim.cargo_integrity > 0.0 and sim.battery > 0.0,
-			"compound-risk recovery reaches harbor before any survival resource is exhausted")
+			label + " recovery reaches harbor before any survival resource is exhausted")
 		_check(peak_storm >= 0.70 and peak_wind >= 2.4,
-			"compound-risk recovery traverses a measured high-storm wind phase; peak=%.3f/%.3f" % [peak_storm, peak_wind])
+			label + " recovery traverses a measured high-storm wind phase; peak=%.3f/%.3f" % [peak_storm, peak_wind])
 		_check(sim.report.has("score") and not sim.report.is_empty()
 			and sim.position.distance_to(harbor) <= radius
 			and sim.cargo_position.distance_to(harbor) <= radius,
-			"compound-risk success and score require an actual two-body harbor transition")
+			label + " success and score require an actual two-body harbor transition")
 		_check(dock_hold >= 60 and sim.dock == 1.0,
-			"compound-risk delivery still observes the full stable docking hold")
+			label + " delivery still observes the full stable docking hold")
+	if not expect_success:
+		_check(sim.phase == "failed" and sim.report.is_empty() and not sim.fail_reason.is_empty(),
+			label + " resource exhaustion fails safely without creating a success report")
+		var expected_reason := "电量耗尽" if label == "battery-exhausted" else (
+			"船体耐久归零" if label == "hull-exhausted" else "回收舱破损")
+		var expected_kind := "power_lost" if label == "battery-exhausted" else "collision"
+		_check(sim.fail_reason.contains(expected_reason) and sim.event_kind == expected_kind,
+			label + " retains the specific exhausted-resource failure classification")
+		var terminal: Dictionary = sim.snapshot()
+		sim.step(DT, {"throttle": 1.0, "tow_pressed": true})
+		_check(sim.snapshot() == terminal,
+			label + " terminal failure cannot advance, resume or manufacture a later score")
 
 
 func _pilot(state: Dictionary, goal: Vector2, cruise: float, power: int, slow: bool) -> Dictionary:

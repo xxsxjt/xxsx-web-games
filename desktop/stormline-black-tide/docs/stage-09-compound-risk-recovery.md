@@ -12,7 +12,7 @@
 
 ## 验证与候选
 
-- 开发源完整 QA：`build/qa/20261120-140632-491600/summary.json`，Godot 4.3 headless 共 13 项检查通过，无错误/警告，源码指纹未变；`recovery.log` 留有完整指标。
+- 开发源最终 QA：`build/qa/20261120-140854-882015/summary.json`，对应 24% 电量的本阶段最终源码与候选；Godot 4.3 headless 共 13 项检查通过，无错误/警告，源码指纹未变。镜像 QA 为 `desktop/stormline-black-tide/build/qa/20261120-141004-672825/summary.json`，同样 13/13 通过、指纹一致。早期 `20261120-140632-491600` 摘要只对应此前的 48% 电量设置，不能作为最终候选指纹。
 - Windows x64 v0.1.1 本机候选以同源码指纹构建；不运行 EXE，只做静态包校验和独立 PCK-only 仓外探针。
 
 | 文件 | SHA-256 |
