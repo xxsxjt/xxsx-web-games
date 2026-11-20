@@ -28,7 +28,7 @@ EXE 是与 v0.1.0 相同的未修改官方模板，游戏资源在独立 PCK；�
 
 `tools/package_probe.gd` 加载 standalone PCK、七个编译脚本和入口 PackedScene 资源、实例化不含场景/磁盘依赖的模拟器并推进一个 tick；它显式不启动主场景，也不启动导出 EXE。`tools/smoke_export.py` 仅启动本机官方 Godot 编辑器的 `--headless` 资源探针；各用户配置目录位于指定 scratch，每次新建隔离用户档。完整 PCK / remap 和 ZIP 读回由构建器校验。
 
-阶段 04 候选的 PCK-only 探针报告已保留为本机忽略文件 `build/evidence/stage-04-pck.json`；原始日志在 `C:/Users/xxsx/AppData/Local/Temp/opencode/stormline-pck-probe-stage04-release/stormline-pck-probe-j2uc9t6e/`。18 项静态校验、七个脚本、入口资源和模拟器单步均通过；退出 0、无诊断、未生成成绩文件。临时 Godot 项目位于仓库外。
+阶段 04 候选的 PCK-only 探针报告已保留为本机忽略文件 `build/evidence/stage-04-pck.json`；原始日志在 `C:/Users/xxsx/AppData/Local/Temp/opencode/stormline-pck-probe-stage04-release/stormline-pck-probe-j2uc9t6e/`。它不含阶段 05 冷却修复；最新源码候选见 `docs/stage-05-impact-cooldown.md`。临时 Godot 项目位于仓库外。
 
 探针成功只能证明 PCK 内脚本和入口资源可由相同 Godot 版本读取，并确认无场景模拟器能执行一步。它**不**等价于 EXE 运行，不测试 Windows 导出模板实际加载、不创建图形窗口、不作 GPU 渲染、不载入字体绘制、不播声音、不作真人输入或关卡体验验收。真实桌面实测仍待人工按 `docs/manual-acceptance.md` 执行。
 

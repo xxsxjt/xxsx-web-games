@@ -80,7 +80,9 @@ var event_kind := ""
 var report: Dictionary = {}
 
 var _notice_until := 0.0
-var _collision_at := -3.0
+var _collision_notice_at := -3.0
+var _tug_impact_at := -3.0
+var _cargo_impact_at := -3.0
 var _danger := false
 
 
@@ -120,7 +122,9 @@ func reset(id: String = "black-tide") -> void:
 	event_kind = ""
 	report = {}
 	_notice_until = 0.0
-	_collision_at = -3.0
+	_collision_notice_at = -3.0
+	_tug_impact_at = -3.0
+	_cargo_impact_at = -3.0
 	_danger = false
 
 
@@ -290,10 +294,12 @@ func _apply_reefs(dt: float) -> void:
 			position = center + normal * margin
 			velocity += normal * inbound_speed * 1.18
 			hull = maxf(0.0, hull - dt * 7.0)
-			if mission_time - _collision_at > 0.54 and inbound_speed > 0.6:
-				_collision_at = mission_time
+			if mission_time - _tug_impact_at > 0.54 and inbound_speed > 0.6:
+				_tug_impact_at = mission_time
 				hull = maxf(0.0, hull - inbound_speed * 4.3)
-				_emit("collision", "船体碰撞：%s。倒车脱离，再绕标线。" % hazard.name)
+				if mission_time - _collision_notice_at > 0.54:
+					_collision_notice_at = mission_time
+					_emit("collision", "船体碰撞：%s。倒车脱离，再绕标线。" % hazard.name)
 		if not tow_attached:
 			continue
 		var cargo_margin: float = float(hazard.radius) + 1.10
@@ -304,10 +310,12 @@ func _apply_reefs(dt: float) -> void:
 			cargo_position = center + normal * cargo_margin
 			cargo_velocity += normal * inbound_speed * 1.13
 			cargo_integrity = maxf(0.0, cargo_integrity - dt * 10.5)
-			if mission_time - _collision_at > 0.54 and inbound_speed > 0.6:
-				_collision_at = mission_time
+			if mission_time - _cargo_impact_at > 0.54 and inbound_speed > 0.6:
+				_cargo_impact_at = mission_time
 				cargo_integrity = maxf(0.0, cargo_integrity - inbound_speed * 6.0)
-				_emit("collision", "舱体擦碰：%s。留更大的外弯。" % hazard.name)
+				if mission_time - _collision_notice_at > 0.54:
+					_collision_notice_at = mission_time
+					_emit("collision", "舱体擦碰：%s。留更大的外弯。" % hazard.name)
 
 
 func _update_docking(dt: float) -> void:

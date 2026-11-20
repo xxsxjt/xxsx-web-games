@@ -12,6 +12,7 @@
 - 阶段 02（HUD / 键盘）：`docs/stage-02-interface-input.md`
 - 阶段 03（规则边界 / 包资源加载）：`docs/stage-03-package-smoke.md`
 - 阶段 04（六处礁石尾舱接触 / 探针路径防护）：`docs/stage-04-cargo-tow.md`
+- 阶段 05（拖船/尾舱独立碰撞冷却）：`docs/stage-05-impact-cooldown.md`
 - 持续开发和验证计划：`docs/task-plan.md`
 - 本机无窗口证据：`build/qa/<时间戳>/summary.json` 及相邻日志。
 - Windows 候选包：`build/releases/<时间戳>/`；EXE、独立 PCK、说明和校验随包放置。
