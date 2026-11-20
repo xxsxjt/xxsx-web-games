@@ -31,4 +31,6 @@
 
 ## 源码同步状态
 
-源码及本阶段验证文档的同步提交和 GitHub 完整树、41 个桌面项目文件逐 blob 回读结果，以本机忽略证据 `build/sync/stage-08.json` 为准。源码同步不是 Windows 二进制发布或总站部署。
+已同步至 `xxsxjt/xxsx-web-games` 的 `main`。源码提交、GitHub 完整树和 42 个桌面项目文件逐 blob 回读结果，以本机忽略证据 `build/sync/stage-08.json` 为准；网页总站构建/测试通过且 `dist/index.html` 未变化。
+
+Windows 候选只留存在本机，未发布；网页未部署；未执行导出 EXE、未实例化主游戏场景，未验证图形、音频或真人操作。源码同步不等于二进制发布、网页部署或试玩验收。
