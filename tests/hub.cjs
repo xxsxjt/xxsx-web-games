@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const {FakeDocument} = require('./support/dom.cjs');
 
 const root = path.join(__dirname, '..');
 const key = 'xxsxWebGamesHubV1';
@@ -18,7 +19,8 @@ const fixture = [
   {id: 'expedition', name: '月面前哨', type: '动作', description: '自由移动、自动瞄准，挑战 Boss。', controls: 'WASD / 触屏', save: '本机成长记录', format: '短局', status: '测试版', cover: 'assets/icons/expedition-v1.webp', tags: ['生存']},
   {id: 'lab', name: '回声牌局', type: '卡牌', description: '构筑卡组，规划攻击与屏障。', controls: '点击 / 触屏', save: '每步保存', format: '战役', status: '测试版', cover: 'assets/icons/lab-v1.webp', keywords: ['Build']},
   {id: 'shell', name: '寄壳行动', type: '解谜', description: '借用壳体能力穿过设施。', controls: '方向键 / 触屏按钮', save: '竖切片记录', format: '固定关卡', entry: 'games/shell-heist.html', cover: 'assets/icons/shell-heist.svg'},
-  {id: 'borrowed-seconds', name: '借来的十秒', type: '动作', description: '借用时间突围，规划短暂的行动。', controls: '点击 / 触屏', save: '本机记录', format: '短局', entry: 'games/borrowed-seconds.html', cover: 'assets/icons/borrowed-seconds.svg'}
+  {id: 'borrowed-seconds', name: '借来的十秒', type: '动作', description: '借用时间突围，规划短暂的行动。', controls: '点击 / 触屏', save: '本机记录', format: '短局', entry: 'games/borrowed-seconds.html', cover: 'assets/icons/borrowed-seconds.svg'},
+  {id: 'overprint', name: '叠印工单', type: '解谜', description: '复原样张，后印覆盖先印，空格要留白。', controls: '点击 / 键盘 / 触屏', save: '无存档', format: '单关 A01', entry: 'games/overprint.html', cover: 'assets/icons/overprint.svg'}
 ];
 
 class MemoryStorage {
@@ -50,7 +52,7 @@ class MemoryStorage {
 
 function testPathsAndCatalog() {
   const base = 'https://games.example/catalog/';
-  for (const value of ['games/borrowed-seconds.html', 'games/shell-heist.html', './games/shell-heist.html', 'play.html', 'games/demo.v2.html']) {
+  for (const value of ['games/borrowed-seconds.html', 'games/shell-heist.html', 'games/overprint.html', './games/shell-heist.html', 'play.html', 'games/demo.v2.html']) {
     const entry = hub.safeEntry(value);
     assert.equal(entry, value.replace(/^\.\//, ''));
     assert.equal(new URL(entry, base).origin, new URL(base).origin);
@@ -69,6 +71,7 @@ function testPathsAndCatalog() {
   assert.equal(games[0].href, 'play.html#game/expedition');
   assert.equal(games[2].href, 'games/shell-heist.html');
   assert.equal(games[3].href, 'games/borrowed-seconds.html');
+  assert.equal(games[4].href, 'games/overprint.html');
   assert.equal(hub.normalizeCatalog([{...fixture[0], entry: '//remote.example/game.html', cover: 'javascript:evil'}])[0].href, 'play.html#game/expedition');
   assert.equal(hub.normalizeCatalog([{...fixture[0], cover: 'assets/../private.svg'}])[0].cover, '');
   assert.equal(hub.safe('&<>"\''), '&amp;&lt;&gt;&quot;&#39;');
@@ -76,7 +79,7 @@ function testPathsAndCatalog() {
 
   const registered = JSON.parse(fs.readFileSync(path.join(root, 'content/games.json'), 'utf8'));
   const catalog = hub.normalizeCatalog(registered);
-  for (const id of ['expedition', 'border', 'blackbox', 'salvage', 'lab', 'relay', 'shell']) {
+  for (const id of ['expedition', 'border', 'blackbox', 'salvage', 'lab', 'relay', 'shell', 'seconds', 'overprint']) {
     const game = catalog.find(item => item.id === id);
     assert(game, 'existing entry missing: ' + id);
     const original = registered.find(item => item.id === id);
@@ -89,7 +92,8 @@ function testSearch() {
   const find = (query, type = '', favoritesOnly = false, favorites = []) => plain(hub.filterGames(games, {query, type, favoritesOnly}, favorites).map(game => game.id));
   assert.deepEqual(find('月面'), ['expedition']);
   assert.deepEqual(find('自动瞄准'), ['expedition']);
-  assert.deepEqual(find('解谜'), ['shell']);
+  assert.deepEqual(find('解谜'), ['shell', 'overprint']);
+  assert.deepEqual(find('复原样张', '解谜'), ['overprint']);
   assert.deepEqual(find('ＷＡＳＤ BOSS'), ['expedition']);
   assert.deepEqual(find('  自动   触屏  '), ['expedition']);
   assert.deepEqual(find('每步保存'), ['lab']);
@@ -177,103 +181,8 @@ function testDecodeAndStore() {
   corruptMemory.verifyScope();
 }
 
-// A small DOM/event model exercises the real renderer and handlers without a
-// browser, server, dependency installation, or production-only test globals.
-function decodeEntities(value) {
-  return value.replace(/&(amp|lt|gt|quot|#39);/g, (_, entity) => ({amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'"})[entity]);
-}
-
-class FakeNode {
-  constructor(doc, tagName, content = '') {
-    this.doc = doc;
-    this.tagName = tagName;
-    this.content = content;
-    this.parentNode = null;
-    this.children = [];
-    this.attributes = {};
-    this.dataset = {};
-    this.listeners = {};
-    this.hidden = false;
-    this.disabled = false;
-    this.value = '';
-  }
-  setAttribute(name, value) {
-    this.attributes[name] = String(value);
-    if (name.startsWith('data-')) this.dataset[name.slice(5).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())] = String(value);
-    if (name === 'hidden') this.hidden = true;
-    if (name === 'disabled') this.disabled = true;
-    if (name === 'value') this.value = String(value);
-  }
-  getAttribute(name) { return Object.prototype.hasOwnProperty.call(this.attributes, name) ? this.attributes[name] : null; }
-  hasAttribute(name) { return this.getAttribute(name) !== null; }
-  appendChild(child) { child.parentNode = this; this.children.push(child); return child; }
-  contains(node) { return Boolean(node) && (this === node || this.children.some(child => child.contains(node))); }
-  get textContent() { return this.tagName === '#text' ? this.content : this.children.map(child => child.textContent).join(''); }
-  set textContent(value) { this.clear(); this.appendChild(new FakeNode(this.doc, '#text', String(value))); }
-  clear() {
-    if (this.doc.activeElement && this.contains(this.doc.activeElement)) this.doc.activeElement = this.doc.body;
-    this.children.forEach(child => { child.parentNode = null; });
-    this.children = [];
-  }
-  set innerHTML(value) { this.clear(); parseInto(this, value); }
-  matches(selector) {
-    return selector.split(',').some(part => {
-      part = part.trim();
-      const attr = part.match(/^\[([^=\]]+)(?:="([^"]*)")?\]$/);
-      if (attr) return this.hasAttribute(attr[1]) && (attr[2] === undefined || this.getAttribute(attr[1]) === attr[2]);
-      if (part.startsWith('#')) return this.getAttribute('id') === part.slice(1);
-      if (part.startsWith('.')) return (this.getAttribute('class') || '').split(/\s+/).includes(part.slice(1));
-      return this.tagName === part.toLowerCase();
-    });
-  }
-  querySelectorAll(selector) {
-    const found = [];
-    const visit = node => node.children.forEach(child => { if (child.matches(selector)) found.push(child); visit(child); });
-    visit(this);
-    return found;
-  }
-  querySelector(selector) { return this.querySelectorAll(selector)[0] || null; }
-  closest(selector) { for (let node = this; node; node = node.parentNode) if (node.matches(selector)) return node; return null; }
-  addEventListener(type, listener) { (this.listeners[type] ||= []).push(listener); }
-  dispatch(type, details = {}) {
-    const event = {type, target: this, defaultPrevented: false, preventDefault() { this.defaultPrevented = true; }, ...details};
-    for (let node = this; node; node = node.parentNode) for (const listener of node.listeners[type] || []) listener(event);
-    return event;
-  }
-  click() { this.focus(); return this.dispatch('click', {button: 0}); }
-  focus() { this.doc.activeElement = this; }
-}
-
-function parseInto(container, markup) {
-  const stack = [container];
-  const voids = new Set(['meta', 'link', 'input', 'img', 'br', 'hr', 'source']);
-  for (const token of String(markup).match(/<!--[\s\S]*?-->|<[^>]*>|[^<]+/g) || []) {
-    if (/^<!/.test(token)) continue;
-    if (/^<\//.test(token)) { stack.pop(); continue; }
-    if (token[0] !== '<') { stack[stack.length - 1].appendChild(new FakeNode(container.doc, '#text', decodeEntities(token))); continue; }
-    const match = token.match(/^<([a-z0-9]+)\b([^>]*)>/i);
-    assert(match, 'test DOM received malformed markup');
-    const element = new FakeNode(container.doc, match[1].toLowerCase());
-    const attributes = match[2].replace(/\/$/, '');
-    for (const attribute of attributes.matchAll(/([^\s=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s]+)))?/g)) element.setAttribute(attribute[1], decodeEntities(attribute[2] ?? attribute[3] ?? attribute[4] ?? ''));
-    stack[stack.length - 1].appendChild(element);
-    if (!voids.has(element.tagName) && !/\/>$/.test(token)) stack.push(element);
-  }
-}
-
-class FakeDocument extends FakeNode {
-  constructor() {
-    super(null, '#document');
-    this.doc = this;
-    parseInto(this, html);
-    this.body = this.querySelector('body');
-    this.activeElement = this.body;
-  }
-  getElementById(id) { return this.querySelectorAll('[id]').find(element => element.getAttribute('id') === id) || null; }
-}
-
 function harness(options = {}) {
-  const doc = new FakeDocument();
+  const doc = new FakeDocument(html);
   const storage = options.storage || new MemoryStorage({favorites: [], recent: []});
   const listeners = {}, timers = new Map();
   const fetches = [];
@@ -316,12 +225,13 @@ async function testDomInteractions() {
   assert.equal(h.timers.size, 0);
   assert.equal(h.byId('catalogControls').disabled, false);
   assert.equal(h.byId('games').getAttribute('aria-busy'), 'false');
-  assert.equal(h.elements('article').length, 4);
-  assert.equal(h.byId('resultsSummary').textContent, '显示 4 / 4 款作品');
+  assert.equal(h.elements('article').length, fixture.length);
+  assert.equal(h.byId('resultsSummary').textContent, `显示 ${fixture.length} / ${fixture.length} 款作品`);
   assert.equal(h.byId('favoriteCount').textContent, '1');
   assert.deepEqual(h.byId('recentGames').querySelectorAll('[data-open]').map(node => node.dataset.open), ['expedition', 'lab', 'shell']);
   assert.equal(h.one('data-open', 'shell').getAttribute('href'), 'games/shell-heist.html');
   assert.equal(h.one('data-open', 'borrowed-seconds').getAttribute('href'), 'games/borrowed-seconds.html');
+  assert.equal(h.one('data-open', 'overprint').getAttribute('href'), 'games/overprint.html');
   assert.equal(h.one('data-open', 'expedition').getAttribute('href'), 'play.html#game/expedition');
   assert.equal(h.elements('script').length, 1);
   assert.equal(h.elements('script')[0].getAttribute('src'), 'src/hub.js', 'home must load only the hub script, not a legacy game bundle');
@@ -330,7 +240,7 @@ async function testDomInteractions() {
 
   h.input('ＢＯＳＳ 触屏');
   assert.equal(h.elements('article').length, 1);
-  assert.equal(h.byId('resultsSummary').textContent, '显示 1 / 4 款作品 · 搜索「ＢＯＳＳ 触屏」');
+  assert.equal(h.byId('resultsSummary').textContent, `显示 1 / ${fixture.length} 款作品 · 搜索「ＢＯＳＳ 触屏」`);
   h.one('data-type', '卡牌').click();
   assert.equal(h.elements('article').length, 0);
   assert.equal(h.byId('games').querySelector('h2').textContent, '没有找到匹配的作品');
@@ -339,7 +249,7 @@ async function testDomInteractions() {
   assert.equal(h.one('data-type', '卡牌').getAttribute('aria-pressed'), 'true', 'clearing search must retain the type filter');
   assert.equal(h.doc.activeElement, h.byId('gameSearch'));
   h.byId('resetFilters').click();
-  assert.equal(h.elements('article').length, 4);
+  assert.equal(h.elements('article').length, fixture.length);
   assert.equal(h.byId('resetFilters').hidden, true);
 
   h.one('data-favorite', 'expedition').click();
@@ -364,7 +274,7 @@ async function testDomInteractions() {
   assert.equal(h.doc.activeElement, h.byId('favoritesFilter'), 'removing the last visible favorite must leave a keyboard destination');
   assert.deepEqual(memory.saved().favorites, ['old-unlisted', 'expedition']);
   h.one('data-reset').click();
-  assert.equal(h.elements('article').length, 4);
+  assert.equal(h.elements('article').length, fixture.length);
 
   h.input('时间');
   const composing = h.byId('gameSearch').dispatch('keydown', {key: 'Escape', isComposing: true});
@@ -373,7 +283,7 @@ async function testDomInteractions() {
   const escape = h.byId('gameSearch').dispatch('keydown', {key: 'Escape', isComposing: false});
   assert.equal(escape.defaultPrevented, true);
   assert.equal(h.byId('gameSearch').value, '');
-  assert.equal(h.elements('article').length, 4);
+  assert.equal(h.elements('article').length, fixture.length);
 
   const open = h.one('data-open', 'borrowed-seconds', h.byId('games'));
   const event = open.click();
@@ -443,7 +353,7 @@ async function testStorageEventsAndFailures() {
   unreadable.readError = true;
   const blocked = harness({storage: unreadable});
   await settle();
-  assert.equal(blocked.elements('article').length, 4, 'unreadable storage must not prevent loading games');
+  assert.equal(blocked.elements('article').length, fixture.length, 'unreadable storage must not prevent loading games');
   assert.equal(blocked.byId('storageMessage').hidden, false);
   blocked.one('data-favorite', 'lab').click();
   blocked.input('牌');
@@ -497,7 +407,7 @@ async function testLoadingAndLegacyRoutes() {
   fail = false;
   h.one('data-retry-catalog').click();
   await settle();
-  assert.equal(h.elements('article').length, 4);
+  assert.equal(h.elements('article').length, fixture.length);
   assert.equal(h.doc.activeElement, h.byId('gameSearch'));
   assert.equal(h.byId('catalogControls').disabled, false);
 

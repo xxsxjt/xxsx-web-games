@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="叠印工单">
+  <rect width="128" height="128" rx="24" fill="#0d1425"/>
+  <path d="M24 24h32v32H24zm48 0h32v32H72zM24 72h32v32H24zm48 0h32v32H72z" fill="#17243a" stroke="#304059" stroke-width="4"/>
+  <path d="M72 24h32v8H72zM72 40h32v8H72zM40 72h8v32h-8z" fill="#bb9bff"/>
+  <circle cx="88" cy="88" r="12" fill="#ffc867"/>
+  <path d="M88 80v16M80 88h16" stroke="#070b18" stroke-width="4"/>
+</svg>

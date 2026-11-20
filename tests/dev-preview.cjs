@@ -6,6 +6,8 @@ const http = require('node:http');
 const path = require('node:path');
 
 const projectRoot = path.resolve(__dirname, '..');
+const v58CatalogPath = '/content/games.0756d5004458.json';
+const v58HubPath = '/static/hub.df59a9ef57b7.js';
 
 async function start(modeArgs) {
   const child = spawn(process.execPath, ['scripts/dev.mjs', '--no-vite', '--port', '0', ...modeArgs], {
@@ -75,6 +77,25 @@ async function distPreviewChecks() {
     assert.equal((await request(server.port, '/')).status, 200);
     assert.equal((await request(server.port, '/index.html')).status, 200);
     assert.equal((await request(server.port, `/static/${publishedAsset}`)).status, 200);
+    const release = await request(server.port, '/release-manifest.json');
+    assert.equal(release.status, 200);
+    const {files} = JSON.parse(release.body);
+    const page = await request(server.port, '/games/overprint.html');
+    assert.equal(page.status, 200);
+    assert.match(page.body, /id="work-board"/);
+    for (const [source, type] of [['src/overprint.js', /javascript/], ['src/overprint.css', /text\/css/], ['assets/icons/overprint.svg', /image\/svg\+xml/]]) {
+      const {path: url} = files[source];
+      assert.ok(page.body.includes(`"../${url}"`), `${url} must be referenced by the served entry`);
+      const asset = await request(server.port, '/' + url);
+      assert.equal(asset.status, 200, url);
+      assert.match(asset.type, type);
+    }
+    const previousHub = await request(server.port, v58HubPath);
+    const previousCatalog = await request(server.port, v58CatalogPath);
+    assert.equal(previousHub.status, 200, 'cached V58 home pages can still load their script');
+    assert.equal(previousCatalog.status, 200, 'the V58 script can still fetch its own catalogue');
+    assert.ok(previousHub.body.includes(v58CatalogPath.slice(1)));
+    assert.equal(JSON.parse(previousCatalog.body).length, 8);
     assert.equal((await request(server.port, '/tests/game-viewports.html')).status, 404);
     assert.equal((await request(server.port, '/package.json')).status, 404);
     assert.equal((await request(server.port, '/not-a-published-page')).status, 404, 'dist preview must not use SPA fallback');

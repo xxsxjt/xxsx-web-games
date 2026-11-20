@@ -88,5 +88,17 @@
     "cover": "assets/icons/borrowed-seconds.svg",
     "format": "4 个房间",
     "entry": "games/borrowed-seconds.html"
+  },
+  {
+    "id": "overprint",
+    "name": "叠印工单",
+    "type": "解谜",
+    "description": "先看落印预览，再用有限的横纹版与实点版复原 A01 样张；后印覆盖先印，空格要留白。",
+    "controls": "点击 / 触屏 / 键盘",
+    "save": "无存档 · 每次从空板开始",
+    "status": "实验切片",
+    "cover": "assets/icons/overprint.svg",
+    "format": "A01 单关",
+    "entry": "games/overprint.html"
   }
 ]

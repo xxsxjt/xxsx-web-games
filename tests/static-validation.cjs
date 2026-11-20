@@ -18,7 +18,12 @@ check(!/src\/(game|catalog|styles|border|arcade)\./.test(hubHtml),'homepage must
 const games=JSON.parse(fs.readFileSync(path.join(root,'content/games.json'),'utf8'));
 const gameIds=new Set(games.map(g=>g.id));
 const legacyGameIds=['expedition','border','relay','lab','salvage','blackbox'];
-check(gameIds.size===games.length&&legacyGameIds.concat('shell','seconds').every(id=>gameIds.has(id)),'catalogue IDs must be unique and include all supported games');
+check(gameIds.size===games.length&&legacyGameIds.concat('shell','seconds','overprint').every(id=>gameIds.has(id)),'catalogue IDs must be unique and include all supported games');
+const overprintPage=fs.readFileSync(path.join(root,'games/overprint.html'),'utf8');
+const overprintJs=fs.readFileSync(path.join(root,'src/overprint.js'),'utf8');
+new Function(overprintJs);
+check(overprintPage.includes('href="../"')&&overprintPage.includes('id="work-board"')&&overprintPage.includes('id="target-board"'),'overprint prototype needs a standalone entry, target and work boards');
+check(!overprintPage.includes('user-scalable=no'),'browser zoom must remain enabled in overprint');
 const manifest=JSON.parse(fs.readFileSync(path.join(root,'dist/release-manifest.json'),'utf8'));
 const pinned=JSON.parse(fs.readFileSync(path.join(root,'scripts/published-assets.json'),'utf8'));
 const hash=bytes=>require('node:crypto').createHash('sha256').update(bytes).digest('hex');

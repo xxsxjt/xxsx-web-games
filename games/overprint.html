@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#070b18">
+  <meta name="description" content="叠印工单 A01：先看落印预览，再用有限印版把样张完整复原。">
+  <title>叠印工单 · XXSX 游戏站</title>
+  <link rel="icon" href="../assets/icons/overprint.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../src/overprint.css">
+  <script defer src="../src/overprint.js"></script>
+</head>
+<body>
+  <header class="mast">
+    <div class="wrap mast-inner">
+      <a class="back" href="../">← 所有游戏</a>
+      <span class="signal">WORK ORDER A01 <i></i> OVERPRINT</span>
+    </div>
+  </header>
+  <main class="wrap" id="overprint-game">
+    <div class="intro">
+      <div>
+        <p class="eyebrow">V59 PLAYABLE PROTOTYPE</p>
+        <h1>叠印工单</h1>
+        <p>用有限的印版复原样张。先预览落点，再确认压印。</p>
+      </div>
+      <div class="level-readout"><span>A01 / 搭版</span><strong id="phase-label">进行中</strong></div>
+    </div>
+
+    <div class="workbench">
+      <section class="panel sheet-panel" aria-labelledby="sheet-title">
+        <div class="sheet-layout">
+          <header class="section-head">
+            <p class="eyebrow">PRINT BED / 01</p>
+            <h2 id="sheet-title">工作印面</h2>
+            <p class="stats"><span>差异 <strong id="difference-count">8</strong> 格</span><span>已印 <strong id="history-count">0</strong> 笔</span></p>
+            <p class="caption">中央是印迹，右下角是样张。</p>
+          </header>
+          <div class="sample-wrap">
+            <h3 id="target-title">目标样张</h3>
+            <div id="target-board" class="board target-board" role="table" aria-labelledby="target-title"></div>
+          </div>
+          <div class="board-wrap">
+            <span id="work-keys" class="sr-only">方向键移动，Enter 或空格预览；激活「压印」才会提交。</span>
+            <div id="work-board" class="board work-board" role="grid" aria-labelledby="sheet-title" aria-describedby="work-keys"></div>
+            <p id="preview-note" class="board-note" role="status" aria-atomic="true">点工作印面的一格预览，再按「压印」。</p>
+          </div>
+        </div>
+        <p class="legend"><span><b>D</b> 实点</span><span><b>H</b> 横纹</span><span><b>·</b> 留白</span><span><b>+</b> 新印</span><span><b>→</b> 覆盖</span><span><b>!</b> 误印</span></p>
+      </section>
+
+      <section class="panel controls-panel" aria-labelledby="controls-title">
+        <p class="eyebrow">PRINT CONTROL</p>
+        <h2 id="controls-title">选择印版</h2>
+        <p id="selected-plate" class="selected-plate">实点版：盖本格与下格。</p>
+        <div class="plate-list" role="group" aria-label="印版选择">
+          <button type="button" id="plate-D" aria-pressed="true" disabled><b>实点版 D</b><span>余 <strong id="plate-D-stock">4</strong> 张</span></button>
+          <button type="button" id="plate-H" aria-pressed="false" disabled><b>横纹版 H</b><span>余 <strong id="plate-H-stock">1</strong> 张</span></button>
+        </div>
+        <div class="actions">
+          <button class="primary" type="button" id="stamp" aria-describedby="preview-note" disabled>压印</button>
+          <button type="button" id="undo" disabled>撤销</button>
+          <button type="button" id="restart" disabled>重开</button>
+        </div>
+        <p id="feedback" class="feedback" role="status" aria-atomic="true">后印覆盖先印；空格要留白。</p>
+        <details>
+          <summary>规则速查</summary>
+          <ul>
+            <li>实点版盖本格和下格；横纹版盖本格、右格和下格，右下角不印。</li>
+            <li>预览出现在格子左上角；符号说明怎么印，字母说明将印成什么。</li>
+            <li>确认后消耗一张版，后印覆盖先印。留白误印会立即失败，可以撤销。</li>
+            <li>方向键在工作印面移动，Enter / 空格只预览。用 Tab 找到「压印」，再确认。</li>
+          </ul>
+        </details>
+      </section>
+    </div>
+    <p class="save-note">A01 无存档；刷新或离开后再进入都会从空印面开始。</p>
+    <noscript><p class="save-note">本工单需要启用 JavaScript 才能游玩。</p></noscript>
+  </main>
+</body>
+</html>
