@@ -24,6 +24,8 @@
 
 ## 同步状态
 
-待将本阶段显式白名单文件镜像至 `xxsxjt/xxsx-web-games` 的 `desktop/stormline-black-tide/`，镜像重跑相同 13 项 QA 后提交推送。只有 GitHub 分支、完整树及逐文件 blob 回读成功后，才写入本机忽略文件 `build/sync/stage-07.json` 并将本节更新为完成。
+已同步至 `xxsxjt/xxsx-web-games` `main`。GitHub 完整树、41 个项目文件逐 blob 匹配、镜像 13 项 QA 与源码指纹的最终读回结果保存在本机忽略文件 `build/sync/stage-07.json`。
+
+阶段 07 本机候选未发布；未部署网页、未运行导出 EXE、未实例化主游戏场景，亦未进行图形或真人试玩。
 
 不启动图形窗口或导出 EXE、不实例化包内主场景；这不是渲染、音频或真人试玩验证。
