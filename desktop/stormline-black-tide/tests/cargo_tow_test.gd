@@ -26,6 +26,9 @@ func _run() -> void:
 			_test_unattached_pod_is_not_towed_into_reef(contract_id, hazard)
 			_test_simultaneous_tug_and_pod_impact(contract_id, hazard)
 			_test_impact_cooldowns_do_not_repeat_within_window(contract_id, hazard)
+			_test_slow_contact_causes_no_impact_hit(contract_id, hazard)
+			_test_impact_damage_cooldown_expires(contract_id, hazard)
+			_test_reset_clears_impact_cooldowns(contract_id, hazard)
 	_check(reef_count == 6, "both routes expose the six expected static reef hazards")
 	_test_damaged_pod_ends_the_contract()
 	print("Stormline cargo tow / reef cases: %d checks, %d failures across %d reefs; deterministic model checks only, no rendered route play." % [_checks, _failures, reef_count])
@@ -151,6 +154,92 @@ func _test_impact_cooldowns_do_not_repeat_within_window(contract_id: String, haz
 		label + " repeat pod contact before cooldown adds gradual damage without a second impact hit")
 	_check(sim.event_id == event_after_impact,
 		label + " repeated contacts keep collision feedback debounced")
+
+
+func _test_slow_contact_causes_no_impact_hit(contract_id: String, hazard: Dictionary) -> void:
+	var sim := _fixture(contract_id, hazard)
+	var center: Vector2 = hazard.position
+	var tug_margin := float(hazard.radius) + 1.55
+	var cargo_margin := float(hazard.radius) + 1.10
+	sim.position = center + Vector2.RIGHT * (tug_margin - 0.05)
+	sim.cargo_position = center + Vector2.RIGHT * (cargo_margin - 0.05)
+	# Inward speed below the 0.6 m/s impact threshold still applies ongoing contact damage.
+	sim.velocity = Vector2.LEFT * 0.3
+	sim.cargo_velocity = Vector2.LEFT * 0.3
+	sim._apply_reefs(DT)
+	var label := contract_id + "/" + String(hazard.name)
+	_check(is_equal_approx(sim.hull, 100.0 - DT * 7.0),
+		label + " sub-threshold tug contact receives gradual damage but no impact hit")
+	_check(is_equal_approx(sim.cargo_integrity, 100.0 - DT * COLLISION_DPS),
+		label + " sub-threshold pod contact receives gradual damage but no impact hit")
+	_check(sim.event_id == 0 and sim.event_kind.is_empty(),
+		label + " sub-threshold contact does not show a misleading impact notice")
+
+
+func _test_impact_damage_cooldown_expires(contract_id: String, hazard: Dictionary) -> void:
+	var sim := _fixture(contract_id, hazard)
+	var center: Vector2 = hazard.position
+	var tug_margin := float(hazard.radius) + 1.55
+	var cargo_margin := float(hazard.radius) + 1.10
+	sim.position = center + Vector2.RIGHT * (tug_margin - 0.05)
+	sim.cargo_position = center + Vector2.RIGHT * (cargo_margin - 0.05)
+	sim.velocity = Vector2.LEFT * 2.0
+	sim.cargo_velocity = Vector2.LEFT * 2.0
+	sim._apply_reefs(DT)
+	var hull_after_first := sim.hull
+	var cargo_after_first := sim.cargo_integrity
+	var event_after_first := sim.event_id
+	# Advance real fixed model ticks away from all reefs beyond the per-body cooldown.
+	sim.phase = "approach"
+	sim.tow_attached = false
+	sim.position = Vector2(-100.0, 120.0)
+	sim.velocity = Vector2.ZERO
+	sim.cargo_position = Vector2(100.0, 120.0)
+	sim.cargo_velocity = Vector2.ZERO
+	for _tick in range(40):
+		sim.step(DT, {"power": 2})
+	sim.phase = "return"
+	sim.tow_attached = true
+	sim.position = center + Vector2.RIGHT * (tug_margin - 0.05)
+	sim.cargo_position = center + Vector2.RIGHT * (cargo_margin - 0.05)
+	sim.velocity = Vector2.LEFT * 2.0
+	sim.cargo_velocity = Vector2.LEFT * 2.0
+	sim._apply_reefs(DT)
+	var label := contract_id + "/" + String(hazard.name)
+	_check(hull_after_first - sim.hull > DT * 7.0,
+		label + " tug impact damage becomes available again after its cooldown")
+	_check(cargo_after_first - sim.cargo_integrity > DT * COLLISION_DPS,
+		label + " pod impact damage becomes available again after its cooldown")
+	_check(sim.event_id == event_after_first + 1,
+		label + " collision feedback becomes available again after its cooldown")
+	_check(sim.mission_time > 1.5,
+		label + " elapsed-cooldown setup advances through real fixed model time")
+
+
+func _test_reset_clears_impact_cooldowns(contract_id: String, hazard: Dictionary) -> void:
+	var sim := _fixture(contract_id, hazard)
+	var center: Vector2 = hazard.position
+	var tug_margin := float(hazard.radius) + 1.55
+	var cargo_margin := float(hazard.radius) + 1.10
+	sim.position = center + Vector2.RIGHT * (tug_margin - 0.05)
+	sim.cargo_position = center + Vector2.RIGHT * (cargo_margin - 0.05)
+	sim.velocity = Vector2.LEFT * 2.0
+	sim.cargo_velocity = Vector2.LEFT * 2.0
+	sim._apply_reefs(DT)
+	sim.reset(contract_id)
+	sim.phase = "return"
+	sim.tow_attached = true
+	sim.mission_time = 1.0
+	sim.position = center + Vector2.RIGHT * (tug_margin - 0.05)
+	sim.cargo_position = center + Vector2.RIGHT * (cargo_margin - 0.05)
+	sim.velocity = Vector2.LEFT * 2.0
+	sim.cargo_velocity = Vector2.LEFT * 2.0
+	sim._apply_reefs(DT)
+	var label := contract_id + "/" + String(hazard.name)
+	_check(sim.hull < 100.0 and sim.cargo_integrity < 100.0,
+		label + " a fresh contract resets both per-body impact cooldowns")
+	_check(sim.event_id == 1 and sim.event_kind == "collision",
+		label + " a fresh contract resets collision-notice debounce state")
 
 
 func _test_damaged_pod_ends_the_contract() -> void:
