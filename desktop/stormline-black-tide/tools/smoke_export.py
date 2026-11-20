@@ -36,6 +36,11 @@ def main():
         raise SystemExit("PCK file is missing or unreadable") from exc
     if pck.suffix.lower() != ".pck":
         raise SystemExit("Expected a standalone PCK, not a game executable")
+    sandbox = args.sandbox_dir.resolve()
+    if sandbox == root or sandbox.is_relative_to(root):
+        raise SystemExit("Keep the temporary probe project outside the source project tree")
+    if sandbox == pck.parent or sandbox.is_relative_to(pck.parent):
+        raise SystemExit("Keep probe evidence outside the release package directory")
     static = check_pck(pck, root)
     try:
         version = subprocess.run([str(args.godot), "--version"], capture_output=True,
@@ -44,9 +49,6 @@ def main():
         raise SystemExit("Godot executable is missing or cannot start") from exc
     if version.returncode or version.stdout.strip() != ENGINE_VERSION:
         raise SystemExit("Expected official Godot 4.3 stable for the PCK probe")
-    sandbox = args.sandbox_dir.resolve()
-    if sandbox == pck.parent or sandbox.is_relative_to(pck.parent):
-        raise SystemExit("Keep probe evidence outside the release package directory")
     sandbox.mkdir(parents=True, exist_ok=True)
     run = Path(tempfile.mkdtemp(prefix="stormline-pck-probe-", dir=sandbox))
     project = run / "probe"

@@ -10,7 +10,7 @@ import subprocess
 import sys
 
 
-SCRIPT_SUITES = ("app", "journey", "records", "audio", "layout", "input", "docking", "robustness")
+SCRIPT_SUITES = ("app", "journey", "records", "audio", "layout", "input", "docking", "robustness", "cargo_tow")
 REQUIRED_CHECKS = ("import", *SCRIPT_SUITES, "smoke_tool")
 
 

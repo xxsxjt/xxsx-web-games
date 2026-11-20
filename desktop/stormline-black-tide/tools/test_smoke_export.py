@@ -10,6 +10,8 @@ from unittest.mock import patch
 
 import smoke_export as SMOKE
 
+PROJECT_ROOT = Path(SMOKE.__file__).resolve().parents[1]
+
 
 class SmokeExportTests(unittest.TestCase):
     def test_output_decoder_handles_text_and_bytes(self):
@@ -24,6 +26,18 @@ class SmokeExportTests(unittest.TestCase):
                     SMOKE.subprocess, "run", side_effect=AssertionError("process must not start")):
             with self.assertRaises(SystemExit):
                 SMOKE.main()
+
+    def test_runner_rejects_scratch_inside_source_tree_before_process(self):
+        with tempfile.TemporaryDirectory(dir=PROJECT_ROOT) as directory:
+            root = Path(directory) / "source"
+            root.mkdir()
+            pck = root / "candidate.pck"
+            pck.write_bytes(b"not parsed before root guard")
+            with patch("sys.argv", ["smoke_export.py", "--godot", "missing-godot.exe",
+                                    "--pck", str(pck), "--sandbox-dir", str(root / "build" / "evidence")]), \
+                    patch.object(SMOKE.subprocess, "run", side_effect=AssertionError("must not start")):
+                with self.assertRaisesRegex(SystemExit, "outside the source project tree"):
+                    SMOKE.main()
 
     def test_only_headless_probe_is_launched_with_isolated_profile(self):
         with tempfile.TemporaryDirectory() as directory:
