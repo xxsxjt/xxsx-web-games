@@ -12,6 +12,7 @@ var _failures := 0
 
 func _init() -> void:
 	_run_recovery()
+	_run_compound_recovery()
 	print("Stormline post-impact recovery: %d checks, %d failures; deterministic controls/model only, not a full interactive route." % [_checks, _failures])
 	quit(0 if _failures == 0 else 1)
 
@@ -91,6 +92,103 @@ func _run_recovery() -> void:
 		_check(sim.position.distance_to(harbor) <= radius and sim.cargo_position.distance_to(harbor) <= radius,
 			"recovery success still requires both tug and pod inside the harbor")
 		_check(dock_hold >= 60, "recovery success observes the full stable docking hold")
+
+
+func _run_compound_recovery() -> void:
+	var sim := Sim.new()
+	sim.reset("black-tide")
+	var reef: Dictionary = {}
+	for hazard: Dictionary in sim.contract.hazards:
+		if hazard.kind == "reef" and hazard.name == REEF_NAME:
+			reef = hazard
+	_check(not reef.is_empty(), "compound-risk route includes the selected reef")
+	if reef.is_empty():
+		return
+
+	# Start with carried damage, low but nonzero battery, and later mission time
+	# so the existing weather model supplies a stronger deterministic flow phase.
+	# Then produce fresh tug and pod damage through a real two-body reef response.
+	sim.phase = "return"
+	sim.scanned = true
+	sim.tow_attached = true
+	sim.mission_time = 80.0
+	sim._update_weather()
+	sim.hull = 40.0
+	sim.cargo_integrity = 42.0
+	sim.battery = 24.0
+	sim.power_profile = 2
+	var center: Vector2 = reef.position
+	var tug_margin := float(reef.radius) + 1.55
+	var cargo_margin := float(reef.radius) + 1.10
+	var tug_normal := Vector2.UP
+	var cargo_normal := Vector2.UP.rotated(0.68)
+	sim.heading = PI
+	sim.position = center + tug_normal * (tug_margin - 0.05)
+	sim.velocity = -tug_normal * 2.0
+	sim.cargo_position = center + cargo_normal * (cargo_margin - 0.05)
+	sim.cargo_velocity = -cargo_normal * 2.0
+	sim.rope_length = Sim.ROPE_MIN
+	var hull_before_contact := sim.hull
+	var cargo_before_contact := sim.cargo_integrity
+	sim._apply_reefs(DT)
+	_check(sim.hull < hull_before_contact and sim.hull > 0.0
+		and sim.cargo_integrity < cargo_before_contact and sim.cargo_integrity > 0.0,
+		"compound-risk fixture receives real, survivable tug and pod reef impact damage")
+	_check(sim.battery == 24.0 and sim.tow_attached and sim.phase == "return",
+		"compound-risk setup preserves its low reserve and active tow after impact")
+	_check(sim.event_kind == "collision" and sim.event_message.contains(REEF_NAME),
+		"compound-risk reef impact retains a concrete collision event")
+	if sim.hull <= 0.0 or sim.cargo_integrity <= 0.0 or not sim.tow_attached:
+		return
+
+	var route: Array[Vector2] = [center + Vector2(-18.0, -16.0), Vector2(3.0, 8.0)]
+	var leg := 0
+	var dock_hold := 0
+	var ticks := 0
+	var peak_storm := sim.storm_intensity
+	var peak_wind := sim.wind.length()
+	var harbor: Vector2 = sim.contract.harbor
+	var radius := float(sim.contract.harbor_radius)
+	for tick in range(1, MAX_TICKS + 1):
+		var state: Dictionary = sim.snapshot()
+		var tug_distance: float = state.position.distance_to(harbor)
+		var cargo_distance: float = state.cargo_position.distance_to(harbor)
+		var input: Dictionary
+		if leg < route.size() and state.position.distance_to(route[leg]) < 7.0:
+			leg += 1
+		var both_inside := tug_distance <= radius and cargo_distance <= radius
+		if both_inside:
+			input = {"power": 2, "slow": true}
+		else:
+			var goal: Vector2 = route[leg] if leg < route.size() else harbor + Vector2(0.0, radius * 0.45)
+			var near_harbor := tug_distance < radius + 12.0
+			input = _pilot(state, goal, 3.2 if near_harbor else 4.6, 2, near_harbor)
+			input.reel = -0.5 if state.tension < 0.45 else 0.0
+		var previous_dock := sim.dock
+		sim.step(DT, input)
+		peak_storm = maxf(peak_storm, sim.storm_intensity)
+		peak_wind = maxf(peak_wind, sim.wind.length())
+		if sim.dock > previous_dock:
+			dock_hold += 1
+		else:
+			dock_hold = 0
+		ticks = tick
+		if sim.phase in ["success", "failed"]:
+			break
+
+	_check(sim.phase == "success", "partially damaged tow recovers under low battery and late-time flow; phase=%s leg=%d ticks=%d hull=%.1f pod=%.1f battery=%.1f reason=%s" % [sim.phase, leg, ticks, sim.hull, sim.cargo_integrity, sim.battery, sim.fail_reason])
+	print("MODEL compound_recovery: phase=%s ticks=%d t=%.2fs hull=%.1f pod=%.1f battery=%.1f peak_storm=%.3f peak_wind=%.3f peak_tension=%.3f" % [sim.phase, ticks, sim.mission_time, sim.hull, sim.cargo_integrity, sim.battery, peak_storm, peak_wind, sim.peak_tension])
+	if sim.phase == "success":
+		_check(sim.hull > 0.0 and sim.cargo_integrity > 0.0 and sim.battery > 0.0,
+			"compound-risk recovery reaches harbor before any survival resource is exhausted")
+		_check(peak_storm >= 0.70 and peak_wind >= 2.4,
+			"compound-risk recovery traverses a measured high-storm wind phase; peak=%.3f/%.3f" % [peak_storm, peak_wind])
+		_check(sim.report.has("score") and not sim.report.is_empty()
+			and sim.position.distance_to(harbor) <= radius
+			and sim.cargo_position.distance_to(harbor) <= radius,
+			"compound-risk success and score require an actual two-body harbor transition")
+		_check(dock_hold >= 60 and sim.dock == 1.0,
+			"compound-risk delivery still observes the full stable docking hold")
 
 
 func _pilot(state: Dictionary, goal: Vector2, cruise: float, power: int, slow: bool) -> Dictionary:
