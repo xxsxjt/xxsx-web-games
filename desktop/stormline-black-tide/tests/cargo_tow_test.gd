@@ -29,6 +29,9 @@ func _run() -> void:
 			_test_slow_contact_causes_no_impact_hit(contract_id, hazard)
 			_test_impact_damage_cooldown_expires(contract_id, hazard)
 			_test_reset_clears_impact_cooldowns(contract_id, hazard)
+			_test_continuous_slow_scrape_stays_gradual(contract_id, hazard)
+			_test_staggered_body_recontacts(contract_id, hazard)
+			_test_tensioned_tow_keeps_reef_feedback(contract_id, hazard)
 	_check(reef_count == 6, "both routes expose the six expected static reef hazards")
 	_test_damaged_pod_ends_the_contract()
 	print("Stormline cargo tow / reef cases: %d checks, %d failures across %d reefs; deterministic model checks only, no rendered route play." % [_checks, _failures, reef_count])
@@ -240,6 +243,144 @@ func _test_reset_clears_impact_cooldowns(contract_id: String, hazard: Dictionary
 		label + " a fresh contract resets both per-body impact cooldowns")
 	_check(sim.event_id == 1 and sim.event_kind == "collision",
 		label + " a fresh contract resets collision-notice debounce state")
+
+
+func _test_continuous_slow_scrape_stays_gradual(contract_id: String, hazard: Dictionary) -> void:
+	var sim := _fixture(contract_id, hazard)
+	var center: Vector2 = hazard.position
+	var tug_margin := float(hazard.radius) + 1.55
+	var cargo_margin := float(hazard.radius) + 1.10
+	sim.position = center + Vector2.RIGHT * (tug_margin - 0.05)
+	sim.cargo_position = center + Vector2.RIGHT * (cargo_margin - 0.05)
+	sim.velocity = Vector2.LEFT * 2.0
+	sim.cargo_velocity = Vector2.LEFT * 2.0
+	sim._apply_reefs(DT)
+	var hull_after_impact := sim.hull
+	var cargo_after_impact := sim.cargo_integrity
+	var event_after_impact := sim.event_id
+	# Resolve forty consecutive low-speed contact frames, including frames after
+	# the impact cooldown expires; only continuous scrape damage should accrue.
+	for _tick in range(40):
+		sim.mission_time += DT
+		sim.position = center + Vector2.RIGHT * (tug_margin - 0.05)
+		sim.cargo_position = center + Vector2.RIGHT * (cargo_margin - 0.05)
+		sim.velocity = Vector2.LEFT * 0.3
+		sim.cargo_velocity = Vector2.LEFT * 0.3
+		sim._apply_reefs(DT)
+	var label := contract_id + "/" + String(hazard.name)
+	_check(is_equal_approx(hull_after_impact - sim.hull, 40.0 * DT * 7.0),
+		label + " continuous low-speed tug scraping remains gradual after cooldown expiry")
+	_check(is_equal_approx(cargo_after_impact - sim.cargo_integrity, 40.0 * DT * COLLISION_DPS),
+		label + " continuous low-speed pod scraping remains gradual after cooldown expiry")
+	_check(sim.event_id == event_after_impact,
+		label + " continuous sub-threshold contact does not repeat impact notices")
+
+
+func _test_staggered_body_recontacts(contract_id: String, hazard: Dictionary) -> void:
+	var sim := _fixture(contract_id, hazard)
+	var center: Vector2 = hazard.position
+	var tug_margin := float(hazard.radius) + 1.55
+	var cargo_margin := float(hazard.radius) + 1.10
+	sim.position = center + Vector2.RIGHT * (tug_margin - 0.05)
+	sim.cargo_position = center + Vector2.RIGHT * (cargo_margin - 0.05)
+	sim.velocity = Vector2.LEFT * 2.0
+	sim.cargo_velocity = Vector2.LEFT * 2.0
+	sim._apply_reefs(DT)
+	var first_hull := sim.hull
+	var first_cargo := sim.cargo_integrity
+	var first_notice := sim.event_id
+
+	# Clear both bodies for real fixed simulation ticks, then re-enter with only
+	# the tug. The detached cargo must remain untouched.
+	sim.tow_attached = false
+	sim.phase = "approach"
+	_advance_clear_ticks(sim, 35)
+	sim.position = center + Vector2.RIGHT * (tug_margin - 0.05)
+	sim.velocity = Vector2.LEFT * 2.0
+	sim._apply_reefs(DT)
+	var tug_after_recontact := sim.hull
+	var tug_notice := sim.event_id
+	var label := contract_id + "/" + String(hazard.name)
+	_check(first_hull - tug_after_recontact > DT * 7.0,
+		label + " separated tug can take a new impact after its own cooldown")
+	_check(is_equal_approx(sim.cargo_integrity, first_cargo),
+		label + " detached cargo remains unaffected during tug-only recontact")
+	_check(tug_notice == first_notice + 1,
+		label + " tug recontact reports after the shared notice cooldown")
+
+	# Re-enter with the pod ten ticks later: its impact damage is independent of
+	# the tug timer, while the shared collision notice remains debounced.
+	_advance_clear_ticks(sim, 10)
+	sim.phase = "return"
+	sim.tow_attached = true
+	sim.position = center + Vector2(0.0, -(cargo_margin + 9.0))
+	sim.velocity = Vector2.ZERO
+	sim.cargo_position = center + Vector2.RIGHT * (cargo_margin - 0.05)
+	sim.cargo_velocity = Vector2.LEFT * 2.0
+	var hull_before_pod := sim.hull
+	sim._apply_reefs(DT)
+	var pod_after_recontact := sim.cargo_integrity
+	_check(first_cargo - pod_after_recontact > DT * COLLISION_DPS,
+		label + " staggered pod recontact takes its independent impact damage")
+	_check(is_equal_approx(sim.hull, hull_before_pod) and sim.event_id == tug_notice,
+		label + " pod-only impact neither damages the clear tug nor bypasses notice debounce")
+
+	# A low-speed pod graze before its fresh cooldown expires stays gradual; an
+	# impact after another 35 fixed ticks is available and can emit a new notice.
+	_advance_clear_ticks(sim, 30)
+	sim.phase = "return"
+	sim.tow_attached = true
+	sim.position = center + Vector2(0.0, -(cargo_margin + 9.0))
+	sim.cargo_position = center + Vector2.RIGHT * (cargo_margin - 0.05)
+	sim.cargo_velocity = Vector2.LEFT * 0.3
+	var before_slow_recontact := sim.cargo_integrity
+	sim._apply_reefs(DT)
+	_check(is_equal_approx(before_slow_recontact - sim.cargo_integrity, DT * COLLISION_DPS)
+		and sim.event_id == tug_notice,
+		label + " low-speed pod recontact inside its fresh cooldown stays gradual and quiet")
+	_advance_clear_ticks(sim, 5)
+	sim.phase = "return"
+	sim.tow_attached = true
+	sim.position = center + Vector2(0.0, -(cargo_margin + 9.0))
+	sim.cargo_position = center + Vector2.RIGHT * (cargo_margin - 0.05)
+	sim.cargo_velocity = Vector2.LEFT * 2.0
+	var before_rearmed_pod := sim.cargo_integrity
+	sim._apply_reefs(DT)
+	_check(before_rearmed_pod - sim.cargo_integrity > DT * COLLISION_DPS
+		and sim.event_id == tug_notice + 1,
+		label + " pod impact and notice rearm after its own separated cooldown")
+
+
+func _advance_clear_ticks(sim: Sim, ticks: int) -> void:
+	sim.phase = "approach"
+	sim.tow_attached = false
+	for _tick in range(ticks):
+		sim.position = Vector2(-105.0, 105.0)
+		sim.velocity = Vector2.ZERO
+		sim.cargo_position = Vector2(105.0, 105.0)
+		sim.cargo_velocity = Vector2.ZERO
+		sim.step(DT, {"power": 2})
+
+
+func _test_tensioned_tow_keeps_reef_feedback(contract_id: String, hazard: Dictionary) -> void:
+	var sim := _fixture(contract_id, hazard)
+	var center: Vector2 = hazard.position
+	var tug_margin := float(hazard.radius) + 1.55
+	sim.phase = "return"
+	sim.tow_attached = true
+	sim.rope_length = Sim.ROPE_MIN
+	sim.position = center + Vector2.RIGHT * (tug_margin - 0.05)
+	sim.velocity = Vector2.LEFT
+	sim.cargo_position = sim.position + Vector2.UP * 28.0
+	sim.cargo_velocity = Vector2.ZERO
+	sim.step(DT, {"power": 2})
+	var label := contract_id + "/" + String(hazard.name)
+	_check(sim.cable_tension > 1.0 and sim.overload > 0.0,
+		label + " reef contact can coexist with a genuinely tensioned attached tow")
+	_check(sim.hull < 100.0 and sim.cargo_integrity < 100.0,
+		label + " tensioned tow retains reef hull damage and overload pod damage")
+	_check(sim.event_kind == "collision" and sim.event_message.contains(String(hazard.name)),
+		label + " tensioned tow preserves specific reef collision feedback")
 
 
 func _test_damaged_pod_ends_the_contract() -> void:
