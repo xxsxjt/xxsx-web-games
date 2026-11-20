@@ -18,6 +18,7 @@
 - 阶段 08（持续擦礁与双体分时复碰）：`docs/stage-08-continuous-contact.md`
 - 阶段 09（高风暴、低储备复合受损返航）：`docs/stage-09-compound-risk-recovery.md`
 - 阶段 10（低资源成功/失败对照与存档保护）：`docs/stage-10-resource-boundaries.md`
+- 阶段 11（停泊最终 tick 的耗尽/超时优先级）：`docs/stage-11-terminal-priority.md`
 - 持续开发和验证计划：`docs/task-plan.md`
 - 本机无窗口证据：`build/qa/<时间戳>/summary.json` 及相邻日志。
 - Windows 候选包：`build/releases/<时间戳>/`；EXE、独立 PCK、说明和校验随包放置。
@@ -36,7 +37,7 @@ python -X utf8 tools/regression.py --godot 'Godot_v4.3-stable_win64_console.exe'
 python -X utf8 tools/build_windows.py --godot 'Godot_v4.3-stable_win64_console.exe' --qa 'build/qa/<本次时间戳>/summary.json'
 ```
 
-构建器要求十二项 Godot 无窗口检查（导入与十一套脚本）及 `smoke_tool`（Python 探针自测）；完整 QA 命令会自动执行这十三项检查。
+构建器要求十三项 Godot 无窗口检查（导入与十二套脚本）及 `smoke_tool`（Python 探针自测）；完整 QA 命令会自动执行这十四项检查，含终局优先级模型/应用套件。
 
 导出后可用官方 Godot 的隔离无窗口脚本仅加载 PCK 资源。下述探针不执行游戏 EXE、不实例化主场景，只加载七个编译脚本和入口 PackedScene 资源、对无场景模拟器单步校验。用户目录和日志隔离；不播放音频、不截屏、不验证真实渲染/操控。
 
