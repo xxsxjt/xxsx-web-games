@@ -13,6 +13,7 @@
 - 阶段 03（规则边界 / 包资源加载）：`docs/stage-03-package-smoke.md`
 - 阶段 04（六处礁石尾舱接触 / 探针路径防护）：`docs/stage-04-cargo-tow.md`
 - 阶段 05（拖船/尾舱独立碰撞冷却）：`docs/stage-05-impact-cooldown.md`
+- 阶段 06（擦礁后返航 / 致命碰撞存档隔离）：`docs/stage-06-impact-recovery.md`
 - 持续开发和验证计划：`docs/task-plan.md`
 - 本机无窗口证据：`build/qa/<时间戳>/summary.json` 及相邻日志。
 - Windows 候选包：`build/releases/<时间戳>/`；EXE、独立 PCK、说明和校验随包放置。
@@ -31,7 +32,7 @@ python -X utf8 tools/regression.py --godot 'Godot_v4.3-stable_win64_console.exe'
 python -X utf8 tools/build_windows.py --godot 'Godot_v4.3-stable_win64_console.exe' --qa 'build/qa/<本次时间戳>/summary.json'
 ```
 
-构建器要求十项 Godot 无窗口检查（导入与九套脚本）及 `smoke_tool`（Python 探针自测）；完整 QA 命令会自动执行这十一项检查。
+构建器要求十二项 Godot 无窗口检查（导入与十一套脚本）及 `smoke_tool`（Python 探针自测）；完整 QA 命令会自动执行这十三项检查。
 
 导出后可用官方 Godot 的隔离无窗口脚本仅加载 PCK 资源。下述探针不执行游戏 EXE、不实例化主场景，只加载七个编译脚本和入口 PackedScene 资源、对无场景模拟器单步校验。用户目录和日志隔离；不播放音频、不截屏、不验证真实渲染/操控。
 

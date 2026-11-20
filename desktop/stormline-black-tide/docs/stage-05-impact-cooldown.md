@@ -26,5 +26,5 @@
 | 官方 EXE 模板 | `66b26ad96df7458ea917b632a73ac7c88bb058db24dbd11a457fd50435ab7b13` |
 
 - 仓外 PCK-only 探针通过；完整报告保留在本机忽略文件 `build/evidence/stage-05-pck.json`。它不运行 EXE、不实例化主场景、不验证渲染、声音或人工操作。
-- 源码同步限明确白名单；镜像须重跑 QA，fetch 检查远端后正常提交/推送，并回读 GitHub 完整树及逐文件 blob。只有通过后才生成本机忽略的 `build/sync/stage-05.json`。
+- 源码同步已推送至 `xxsxjt/xxsx-web-games` `main`：提交 `119f5542a3d7c5ae64abadda9dc5600142b8f092`。远端完整树 389 个 blob 与提交一致；37 个项目文件逐 blob 匹配开发源。只读回读证据为本机忽略文件 `build/sync/stage-05.json`。
 - 二进制仅在本机；无网页部署或真人试玩结论。
