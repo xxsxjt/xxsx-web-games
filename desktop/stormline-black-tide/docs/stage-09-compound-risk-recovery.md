@@ -13,14 +13,20 @@
 ## 验证与候选
 
 - 开发源完整 QA：`build/qa/20261120-140632-491600/summary.json`，Godot 4.3 headless 共 13 项检查通过，无错误/警告，源码指纹未变；`recovery.log` 留有完整指标。
-- Windows x64 v0.1.1 本机候选及 SHA-256 将以同源码指纹构建后补录；不运行 EXE，只做静态包校验和独立 PCK-only 仓外探针。
+- Windows x64 v0.1.1 本机候选以同源码指纹构建；不运行 EXE，只做静态包校验和独立 PCK-only 仓外探针。
 
 | 文件 | SHA-256 |
 |---|---|
-| ZIP | 待构建后记录 |
-| PCK | 待构建后记录 |
+| ZIP | `0d4e73a19fe35f356948e9e0192b73f47195de1eb076be2656a48c3cad74192c` |
+| PCK | `d9be5dba4b48d8dba43137f61cf0297f193832ca3d309edb170a62650d874a7a` |
 | 官方 EXE 模板 | `66b26ad96df7458ea917b632a73ac7c88bb058db24dbd11a457fd50435ab7b13` |
+
+- 候选位于 `build/releases/20261120-140917-619193/Stormline-Black-Tide-v0.1.1-windows-x64/`；ZIP 在同级目录。独立 PCK 18 项、ZIP CRC、包内逐文件哈希 round-trip 与完整 QA 源码指纹通过。
+- 仓外 PCK-only 探针摘要：`C:/Users/xxsx/AppData/Local/Temp/opencode/stormline-stage09/stormline-pck-probe-mhvqnt98/smoke.json`。7 个编译脚本加载、入口 PackedScene 资源读取、模拟器单步通过，隔离用户目录无成绩文件；未实例化主场景。
+- 不运行导出 EXE，不发布候选，不部署网页；渲染、音频与真人操作仍未验证。
 
 ## 同步状态
 
-阶段源码、验收说明、完整 QA、同指纹候选与探针完成后，同步到 `xxsxjt/xxsx-web-games`，镜像重跑验证并逐 blob 读回。最终提交、完整 GitHub 树和项目文件比对以本机忽略文件 `build/sync/stage-09.json` 为准。源码同步、二进制发布、网页部署和真人试玩分别报告。
+已同步到 `xxsxjt/xxsx-web-games` 的 `main`。最终源码提交、GitHub 完整树和 43 个桌面项目文件逐 blob 读回结果以本机忽略证据 `build/sync/stage-09.json` 为准；镜像完整 QA 与开发源指纹一致，均 13/13 通过。
+
+网页总站 `npm run build` / `npm test` 通过，`dist/index.html` blob 未变化；没有部署网页。本机候选未发布，未执行导出 EXE，未实例化主场景，也未进行图形或真人试玩。
