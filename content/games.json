@@ -69,11 +69,24 @@
     "id": "shell",
     "name": "寄壳行动",
     "type": "解谜",
-    "description": "借用敌人的壳体能力穿过设施：冲锋、炮台、侦察与护盾各有代价。",
-    "controls": "方向键 / 触屏按钮 · 寄壳",
-    "save": "本机竖切片记录",
-    "status": "竖切片",
+    "description": "借用冲锋、炮台、侦察和护盾四种壳体。留壳压住北门，或借护盾绕过南侧光束。",
+    "controls": "方向键 / WASD / 触屏按钮",
+    "save": "本机每步保存 · 可撤销",
+    "status": "测试版",
     "cover": "assets/icons/shell-heist.svg",
-    "format": "固定关卡"
+    "format": "3 个舱段",
+    "entry": "games/shell-heist.html"
+  },
+  {
+    "id": "seconds",
+    "name": "借来的十秒",
+    "type": "解谜",
+    "description": "把十拍内的动作录成回声，下轮与过去的自己协作。踩住压板、错开路线，同步出口。",
+    "controls": "方向键 / WASD / 触屏按钮",
+    "save": "本机保存通关进度 · 不保存局内录像",
+    "status": "测试版",
+    "cover": "assets/icons/borrowed-seconds.svg",
+    "format": "4 个房间",
+    "entry": "games/borrowed-seconds.html"
   }
 ]

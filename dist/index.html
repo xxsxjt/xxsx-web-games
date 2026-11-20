@@ -1,3 +1,80 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#070b18"><meta name="color-scheme" content="dark"><title>XXSX 游戏站</title><meta name="description" content="xxsx 的网页游戏作品目录：动作、战术、解谜与短局挑战，打开浏览器即可游玩。"><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070b18'/%3E%3Cpath d='M8 9h6v6H8zm10 0h6v6h-6zM8 19h6v6H8zm10 0h6v6h-6z' fill='%2379e7ee'/%3E%3C/svg%3E"><link rel="stylesheet" href="static/hub.82924ced383d.css"><script defer src="static/hub.51464b45b09f.js"></script></head>
-<body><a class="skipLink" href="#games">跳到游戏目录</a><header class="siteHeader"><a class="wordmark" href="./">XXSX <span>WEB GAMES</span></a><nav aria-label="总站导航"><a href="#games">作品</a><a href="https://github.com/xxsxjt/xxsx-web-games" target="_blank" rel="noopener noreferrer" aria-label="关于项目，查看 GitHub 仓库">关于</a></nav></header><main class="hubMain"><div class="catalogHeading"><div><h1>选一款，开始玩。</h1><p>动作、战术、解谜、探索、卡牌与塔防。</p></div><span>XXSX / 游戏作品</span></div><div class="recentGames" id="recentGames" hidden></div><div class="filters" aria-label="作品筛选"><button data-filter="all" aria-pressed="true">全部作品</button><button data-filter="favorites" aria-pressed="false">我的收藏</button><button data-filter="动作" aria-pressed="false">动作</button><button data-filter="战术" aria-pressed="false">战术</button><button data-filter="解谜" aria-pressed="false">解谜</button><button data-filter="探索" aria-pressed="false">探索</button><button data-filter="卡牌" aria-pressed="false">卡牌</button><button data-filter="塔防" aria-pressed="false">塔防</button></div><section class="gamesGrid" id="games" aria-label="游戏作品" aria-live="polite"><p>正在载入作品目录…</p></section><noscript><p>游玩需要启用 JavaScript。<a href="play.html#game/expedition">打开霓虹突围</a></p></noscript></main><footer class="siteFooter" id="about"><p id="hubNotice">收藏与游玩记录保存在当前浏览器。</p><details><summary>关于与更新</summary><p>这是 xxsx 的静态网页游戏站。每款作品有自己的玩法；现有科幻作品的舰站、装备和共享成长保留在游戏内部。</p><p>玩法与更新记录在 GitHub 仓库持续维护。现有作品仍处于打磨阶段。</p><p><a href="https://github.com/xxsxjt/xxsx-web-games" target="_blank" rel="noopener noreferrer">源码与开发记录</a> · <a href="play.html#station/bridge">科幻舰站</a></p></details></footer></body></html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#070b18">
+  <meta name="color-scheme" content="dark">
+  <title>XXSX 游戏站</title>
+  <meta name="description" content="xxsx 的网页游戏作品目录：搜索玩法、组合类型与收藏筛选，打开浏览器即可游玩。">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070b18'/%3E%3Cpath d='M8 9h6v6H8zm10 0h6v6h-6zM8 19h6v6H8zm10 0h6v6h-6z' fill='%2379e7ee'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="static/hub.90c473528592.css">
+  <script defer src="static/hub.df59a9ef57b7.js"></script>
+</head>
+<body>
+  <a class="skipLink" href="#games">跳到游戏目录</a>
+  <header class="siteHeader">
+    <a class="wordmark" href="./">XXSX <span>WEB GAMES</span></a>
+    <nav aria-label="总站导航">
+      <a href="#games">作品</a>
+      <a href="https://github.com/xxsxjt/xxsx-web-games" target="_blank" rel="noopener noreferrer" aria-label="关于项目，查看 GitHub 仓库">关于</a>
+    </nav>
+  </header>
+
+  <main class="hubMain">
+    <div class="catalogHeading">
+      <h1>游戏作品</h1>
+      <p>直接打开，无需登录。按名称、玩法或操作方式查找。</p>
+    </div>
+
+    <section class="recentGames" id="recentGames" aria-labelledby="recentHeading" hidden></section>
+
+    <fieldset class="catalogControls" id="catalogControls" disabled>
+      <legend class="srOnly">查找与筛选作品</legend>
+      <div class="searchRow">
+        <div class="searchField">
+          <label for="gameSearch">查找作品</label>
+          <div class="searchInputWrap">
+            <input id="gameSearch" type="search" placeholder="名称、玩法、操作方式…" autocomplete="off" maxlength="120" aria-controls="games" aria-describedby="searchHelp">
+            <button class="textButton" type="button" id="clearSearch" hidden>清除搜索</button>
+          </div>
+          <p id="searchHelp">多个关键词以空格分开；可与类型、收藏一起筛选。</p>
+        </div>
+        <button class="favoritesFilter" type="button" id="favoritesFilter" data-favorites aria-pressed="false" aria-controls="games">我的收藏 <span id="favoriteCount">0</span></button>
+      </div>
+      <div class="typeRow">
+        <span class="typeLabel" id="typeFilterLabel">类型</span>
+        <div class="filters" id="typeFilters" role="group" aria-labelledby="typeFilterLabel">
+          <button type="button" data-type="" aria-pressed="true">全部类型</button>
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="catalogResults">
+      <p id="resultsSummary" role="status" aria-live="polite" aria-atomic="true">正在载入目录…</p>
+      <button class="textButton" type="button" id="resetFilters" hidden>清除全部条件</button>
+    </div>
+    <div class="hubNotice" id="storageMessage" hidden>
+      <p id="hubNotice" role="status" aria-live="polite" aria-atomic="true"></p>
+      <button class="textButton" type="button" id="retryStorage">重试保存</button>
+    </div>
+    <section class="gamesGrid" id="games" aria-label="游戏作品" aria-busy="true" tabindex="-1">
+      <p class="emptyState">正在载入作品目录…</p>
+    </section>
+    <noscript><p>查找与游玩需要启用 JavaScript。<a href="play.html#game/expedition">打开原游戏入口</a></p></noscript>
+  </main>
+
+  <footer class="siteFooter" id="about">
+    <p>收藏与最近打开仅保存在当前浏览器。总站不会读取或改写各游戏的存档。</p>
+    <details>
+      <summary>关于与更新</summary>
+      <p>这是 xxsx 的静态网页游戏站。每款作品有自己的玩法；现有科幻作品的舰站、装备和共享成长保留在游戏内部。</p>
+      <p>玩法与更新记录在 GitHub 仓库持续维护。现有作品仍处于打磨阶段，存档能力以作品说明为准。</p>
+      <div class="footerLinks">
+        <a href="https://github.com/xxsxjt/xxsx-web-games" target="_blank" rel="noopener noreferrer">源码与开发记录</a>
+        <a href="play.html#station/bridge">科幻舰站</a>
+      </div>
+    </details>
+  </footer>
+</body>
+</html>

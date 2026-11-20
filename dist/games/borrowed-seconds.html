@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#070b18">
+  <meta name="description" content="每轮十拍。把自己的行动录成回声，在下一轮与你协作，解开四间压板密室。">
+  <title>借来的十秒</title>
+  <link rel="icon" href="../assets/icons/borrowed-seconds.cb2be0d374e3.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../static/borrowed-seconds.c5fe44fe85d3.css">
+  <script src="../static/borrowed-seconds.64c63a6858ba.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="page-width topbar-inner">
+      <a class="back-link" href="../"><span aria-hidden="true">←</span> 返回游戏厅</a>
+      <span class="instrument-id" aria-hidden="true">ECHO LAB <span>·</span> 10</span>
+    </div>
+  </header>
+
+  <main class="page-width" id="seconds-game">
+    <div class="game-head">
+      <div>
+        <h1>借来的十秒</h1>
+        <p>十拍一轮。移动或等待才推进时间。</p>
+      </div>
+      <nav class="room-nav" aria-label="选择房间">
+        <span class="room-nav-label" id="progress-count">通关 0 / 4</span>
+        <button type="button" id="pick-1" disabled>01</button>
+        <button type="button" id="pick-2" disabled>02</button>
+        <button type="button" id="pick-3" disabled>03</button>
+        <button type="button" id="pick-4" disabled>04</button>
+      </nav>
+    </div>
+    <noscript><p class="notice">请启用 JavaScript，以进入十拍实验。</p></noscript>
+
+    <div class="workbench" id="workbench" hidden>
+      <section class="console field" aria-labelledby="room-title">
+        <div class="field-head">
+          <div>
+            <p class="kicker" id="room-code"></p>
+            <h2 id="room-title" tabindex="-1"></h2>
+          </div>
+          <p class="clock" id="clock"><strong id="beat-count">00</strong><span> / 10 拍</span></p>
+          <p class="clear-stamp" id="clear-stamp" hidden>✓ 已通关</p>
+        </div>
+        <p class="objective" id="room-goal"></p>
+
+        <div class="board-stage">
+          <div class="board" id="board" role="img" tabindex="-1"></div>
+        </div>
+        <div class="legend" role="group" aria-label="棋盘图例">
+          <span><i class="key-you" aria-hidden="true">●</i> 你</span>
+          <span><i class="key-echo" aria-hidden="true">◇</i> 回声</span>
+          <span><i class="key-plate" aria-hidden="true">□</i> 压板</span>
+          <span><i class="key-gate" aria-hidden="true">║</i> 门</span>
+          <span><i class="key-exit" aria-hidden="true">↗</i> 出口</span>
+        </div>
+
+        <div class="controls" id="play-controls">
+          <div class="direction-pad" role="group" aria-label="移动与等待">
+            <button id="move-up" class="up" type="button" aria-label="向上" aria-keyshortcuts="ArrowUp W">↑</button>
+            <button id="move-left" class="left" type="button" aria-label="向左" aria-keyshortcuts="ArrowLeft A">←</button>
+            <button id="move-down" class="down" type="button" aria-label="向下" aria-keyshortcuts="ArrowDown S">↓</button>
+            <button id="move-right" class="right" type="button" aria-label="向右" aria-keyshortcuts="ArrowRight D">→</button>
+            <button id="move-wait" class="wait" type="button" aria-label="等待一拍" aria-keyshortcuts="Space .">等</button>
+          </div>
+          <div class="round-actions" role="group" aria-label="本轮操作">
+            <button class="primary" type="button" id="seal" aria-keyshortcuts="E">封存回声 <kbd>E</kbd></button>
+            <button type="button" id="retry" aria-keyshortcuts="R">重试此轮 <kbd>R</kbd></button>
+            <p class="keyboard-hint">方向键 / WASD · 空格或 . 等待</p>
+          </div>
+        </div>
+        <div class="result-actions" id="result-actions" hidden>
+          <button class="primary" type="button" id="next-room">下一间 <span aria-hidden="true">→</span></button>
+          <a class="action-link primary" id="finish" href="../" hidden>返回游戏厅 <span aria-hidden="true">→</span></a>
+          <button type="button" id="replay">重玩本房</button>
+        </div>
+        <p class="feedback" id="feedback" role="status" aria-atomic="true"></p>
+      </section>
+
+      <aside class="console recorder" aria-labelledby="timeline-title">
+        <div class="recorder-head">
+          <div>
+            <p class="kicker">DELAY BUFFER</p>
+            <h2 id="timeline-title">行动时间线</h2>
+          </div>
+          <p class="memory" id="memory">回声 0 / 3</p>
+        </div>
+        <p class="quiet" id="timeline-note">虚线预演假设你一直等待。× 表示受阻；门行显示该拍可进入的门号。</p>
+        <table id="timeline" class="timeline" aria-label="十拍行动与开门时间线" aria-describedby="timeline-note"></table>
+
+        <div class="review" id="review">
+          <label for="review-beat">检查时间线</label>
+          <select id="review-beat">
+            <option value="">跟随实况</option>
+            <option value="1">第 01 拍</option>
+            <option value="2">第 02 拍</option>
+            <option value="3">第 03 拍</option>
+            <option value="4">第 04 拍</option>
+            <option value="5">第 05 拍</option>
+            <option value="6">第 06 拍</option>
+            <option value="7">第 07 拍</option>
+            <option value="8">第 08 拍</option>
+            <option value="9">第 09 拍</option>
+            <option value="10">第 10 拍</option>
+          </select>
+          <div class="review-detail">
+            <p id="review-summary"></p>
+            <p id="review-events" class="quiet"></p>
+          </div>
+        </div>
+
+        <div class="echo-tools" id="echo-tools" hidden>
+          <p class="quiet">移除一段回声会重启本轮，其他回声保留。</p>
+          <div class="erase-actions" role="group" aria-label="管理回声">
+            <button type="button" id="erase-A" aria-label="移除回声 A">移除 A</button>
+            <button type="button" id="erase-B" aria-label="移除回声 B">移除 B</button>
+            <button type="button" id="erase-C" aria-label="移除回声 C">移除 C</button>
+          </div>
+        </div>
+
+        <details class="rules">
+          <summary>规则速查</summary>
+          <ul>
+            <li>每轮 10 拍，不是倒计时。移动即使受阻也算一拍；等待同样用掉一拍。</li>
+            <li>最多封存三段。封存的是你的指令，不是走过的位置；未录的拍补成等待。封存或重试后，全员回到起点。</li>
+            <li>每拍旧回声先动，新回声接着动，你最后。只有起点能叠站；受阻不会补走，下一拍照常尝试下一条。</li>
+            <li>同号压板全被踩住，门从下一拍才可进入。关闭的门不会困住站在门格的人。你站到出口时，所有压板还得有人踩住。</li>
+          </ul>
+        </details>
+      </aside>
+    </div>
+    <footer class="save-note" id="save-note"></footer>
+  </main>
+</body>
+</html>

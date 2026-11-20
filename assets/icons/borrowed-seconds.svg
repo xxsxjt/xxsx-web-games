@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">借来的十秒</title>
+  <desc id="desc">十格计时刻度里，紫色的回声留在压板，青色的棋子穿过闸门。</desc>
+  <rect width="512" height="512" rx="88" fill="#0d1425"/>
+  <rect x="36" y="36" width="440" height="440" rx="57" fill="#111d32" stroke="#2c4159" stroke-width="2"/>
+  <circle cx="256" cy="258" r="162" fill="#101a2d" stroke="#394f69" stroke-width="2"/>
+  <circle cx="256" cy="258" r="181" fill="none" stroke="#607b95" stroke-width="10" stroke-dasharray="21 79" pathLength="1000" transform="rotate(-93.78 256 258)"/>
+  <path d="M144 348v-91h210" fill="none" stroke="#25475a" stroke-width="24" stroke-linejoin="round"/>
+  <path d="M144 348v-91h210" fill="none" stroke="#79e7ee" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M144 348v-91l93-92h39" fill="none" stroke="#bb9bff" stroke-width="7" stroke-dasharray="1 18" stroke-linecap="round"/>
+  <rect x="251" y="140" width="50" height="50" rx="8" fill="#2a2442" stroke="#8066ad" stroke-width="3"/>
+  <path d="m276 148 17 17-17 17-17-17z" fill="#bb9bff"/>
+  <path d="M279 226v17m0 28v17m17-62v17m0 28v17" stroke="#ffc867" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="354" cy="257" r="21" fill="#79e7ee" stroke="#dbfcff" stroke-width="3"/>
+  <path d="m348 250 8 7-8 7" fill="none" stroke="#06141a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="144" cy="348" r="10" fill="#102332" stroke="#79e7ee" stroke-width="4"/>
+</svg>

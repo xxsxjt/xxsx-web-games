@@ -22,7 +22,7 @@ var UPGRADE_DEFS={
   ambush:{name:'交叉火力',tag:'OVERWATCH',desc:'警戒射击恢复完整伤害，射程额外 +1。适合守住敌人推进路线。',apply:function(s){s.upgrades.ambush=true;}},
   mobility:{name:'轻型推进器',tag:'MOBILITY',desc:'每次移动可走 4 格。更容易抵近掩体、退出预警区或抢先关闭反应堆。',apply:function(s){s.upgrades.mobility=true;}}
 };
-var state=null,revision=0,selectedId='assault',active=false,contract='recon',recoveryNote='',storageAvailable=true,storageWarningShown=false;
+var state=null,revision=0,selectedId='assault',active=false,contract='recon',recoveryNote='',storageAvailable=true,storageWarningShown=false,checkpointConflict=false,expectedCheckpoint={main:null,pending:null,backup:null};
 var ids={page:'borderTacticsPage',lobby:'borderLobby',mission:'borderMission',result:'borderResult',contractPicker:'borderContractPicker',saveStatus:'borderSaveStatus',start:'borderStartBtn',continue:'borderContinueBtn',grid:'borderGrid',turn:'borderTurnLabel',sectorTag:'borderSectorTag',sectorTitle:'borderSectorTitle',objectiveText:'borderObjectiveText',alert:'borderAlertLabel',targetHint:'borderTargetHint',squadSummary:'borderSquadSummary',squad:'borderSquadList',enemySummary:'borderEnemySummary',enemy:'borderEnemyList',log:'borderCombatLog',score:'borderCampaignScore',attack:'borderAttackBtn',watch:'borderWatchBtn',brace:'borderBraceBtn',shove:'borderShoveBtn',ability:'borderAbilityBtn',interact:'borderInteractBtn',endTurn:'borderEndTurnBtn',next:'borderNextSectorBtn',upgrade:'borderUpgradeDraft',saveNow:'borderSaveNowBtn',abandon:'borderAbandonBtn',resultTag:'borderResultTag',resultTitle:'borderResultTitle',resultText:'borderResultText',resultStats:'borderResultStats',newAfterResult:'borderNewAfterResultBtn'};
 function el(id){return document.getElementById(ids[id]||id);}
 function html(value){return String(value).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
@@ -46,14 +46,14 @@ function clearLine(s,from,to){var a=xy(from),b=xy(to),dx=Math.abs(b.x-a.x),dy=Ma
 function envelopeValid(raw){return decodeEnvelope(raw);}
 function readRaw(key){try{return root.localStorage&&root.localStorage.getItem(key);}catch(e){storageAvailable=false;return null;}}
 function readCheckpoint(){
-  var candidates=[],invalid=[];
-  ['main','pending','backup'].forEach(function(name,rank){var raw=readRaw(KEYS[name]);if(!raw)return;var envelope=envelopeValid(raw);if(envelope)candidates.push({name:name,rank:rank,raw:raw,envelope:envelope});else invalid.push({name:name,raw:raw});});
+  var candidates=[],invalid=[],raws={};
+  ['main','pending','backup'].forEach(function(name,rank){var raw=readRaw(KEYS[name]);raws[name]=raw;if(!raw)return;var envelope=envelopeValid(raw);if(envelope)candidates.push({name:name,rank:rank,raw:raw,envelope:envelope});else invalid.push({name:name,raw:raw});});
   candidates.sort(function(a,b){return b.envelope.revision-a.envelope.revision||a.rank-b.rank;});
   var best=candidates[0]||null;
   if(invalid.length&&best)recoveryNote='主档案校验失败，已从有效的'+(best.name==='backup'?'备用档案':'恢复点')+'恢复。';
   else if(invalid.length)recoveryNote='发现无法读取的旧行动档案；原始内容会保留，开始新行动前不会覆盖它。';
   else recoveryNote='';
-  return{best:best,invalid:invalid};
+  return{best:best,invalid:invalid,raws:raws};
 }
 function preserveInvalid(entries){
   if(!entries||!entries.length)return true;
@@ -64,25 +64,29 @@ function preserveInvalid(entries){
   }catch(e){storageAvailable=false;return false;}
 }
 function setSaveStatus(text,kind){var node=el('saveStatus');if(node){node.textContent=text;node.dataset.state=kind||'info';}if(active&&el('targetHint')){el('targetHint').textContent=text;el('targetHint').dataset.state=kind||'info';}}
-function loadSavedState(){var found=readCheckpoint();state=found.best?clone(found.best.envelope.state):null;revision=found.best?found.best.envelope.revision:0;return found;}
+function loadSavedState(){var found=readCheckpoint();expectedCheckpoint=found.raws;checkpointConflict=false;state=found.best?clone(found.best.envelope.state):null;revision=found.best?found.best.envelope.revision:0;return found;}
+function checkpointMatchesLoaded(){if(checkpointConflict)return false;if(!root.localStorage)return true;var current;try{current={main:root.localStorage.getItem(KEYS.main),pending:root.localStorage.getItem(KEYS.pending),backup:root.localStorage.getItem(KEYS.backup)};}catch(e){storageAvailable=false;return true;}if(['main','pending','backup'].some(function(name){return current[name]!==expectedCheckpoint[name];})){checkpointConflict=true;setSaveStatus('另一页面已更新行动档案；本页操作没有写入存档。请返回大厅并重新载入最新进度，避免覆盖较新的行动。','warn');return false;}return true;}
 function saveCheckpoint(){
   if(!state||!isStateValid(state)||state.status==='idle')return false;
   if(!root.localStorage){storageAvailable=false;setSaveStatus('浏览器未开放本地存储；当前行动不能在刷新后续玩。','warn');return false;}
   var next={schema:1,revision:revision+1,savedAt:Date.now(),state:state},payload;
   try{payload=JSON.stringify(next);if(!decodeEnvelope(payload))return false;}catch(e){return false;}
   try{
+    if(!checkpointMatchesLoaded())return false;
     root.localStorage.setItem(KEYS.pending,payload);
     if(root.localStorage.getItem(KEYS.pending)!==payload)throw new Error('pending write mismatch');
+    expectedCheckpoint.pending=payload;
     var oldMain=root.localStorage.getItem(KEYS.main),oldEnvelope=decodeEnvelope(oldMain);
-    if(oldEnvelope){root.localStorage.setItem(KEYS.backup,oldMain);if(root.localStorage.getItem(KEYS.backup)!==oldMain)throw new Error('backup write mismatch');}
+    if(oldEnvelope){root.localStorage.setItem(KEYS.backup,oldMain);if(root.localStorage.getItem(KEYS.backup)!==oldMain)throw new Error('backup write mismatch');expectedCheckpoint.backup=oldMain;}
     else if(oldMain&&!preserveInvalid([{name:'main',raw:oldMain}]))throw new Error('invalid archive not preserved');
     root.localStorage.setItem(KEYS.main,payload);
     if(root.localStorage.getItem(KEYS.main)!==payload)throw new Error('main write mismatch');
+    expectedCheckpoint.main=payload;
     root.localStorage.removeItem(KEYS.pending);
-    revision=next.revision;storageAvailable=true;return true;
+    revision=next.revision;expectedCheckpoint={main:payload,pending:null,backup:root.localStorage.getItem(KEYS.backup)};checkpointConflict=false;storageAvailable=true;return true;
   }catch(e){storageAvailable=false;setSaveStatus('存档写入失败；旧档已保留。本次操作仍可继续，但刷新可能无法恢复。','warn');return false;}
 }
-function clearCheckpoint(){try{Object.keys(KEYS).filter(function(k){return k!=='rejected';}).forEach(function(k){root.localStorage.removeItem(KEYS[k]);});return true;}catch(e){storageAvailable=false;return false;}}
+function clearCheckpoint(){try{Object.keys(KEYS).filter(function(k){return k!=='rejected';}).forEach(function(k){root.localStorage.removeItem(KEYS[k]);});expectedCheckpoint={main:null,pending:null,backup:null};checkpointConflict=false;return true;}catch(e){storageAvailable=false;return false;}}
 function createCampaign(selectedContract){
   var seed='LS07-'+Date.now().toString(36)+'-'+Math.floor(Math.random()*0xffffff).toString(36),seedValue=hashSeed(seed);
   var s={schema:1,ruleset:2,id:'op-'+seedValue.toString(36)+'-'+Date.now().toString(36),seed:seed,rng:seedValue,contract:CONTRACTS[selectedContract]?selectedContract:'recon',status:'active',phase:'player',outcome:null,sector:1,turn:1,score:0,kills:0,alert:0,selectedId:'assault',units:[
@@ -105,7 +109,7 @@ function beginSector(s,sector){
     2:[['guard',0],['raider',6],['sentry',19],['guard',27]],
     3:[['boss',3],['guard',0],['sentry',6],['raider',25]]
   }[sector].slice();
-  if(s.contract==='salvage'&&sector<3)defs.push(['raider',sector===1?5:41]);
+   if(s.contract==='salvage'&&sector<3)defs.push(['raider',sector===1?6:41]);
   var config={guard:{name:'巡逻兵',glyph:'G',hp:40,range:4},raider:{name:'突击机',glyph:'R',hp:34,range:1},sentry:{name:'火力哨戒',glyph:'S',hp:48,range:5},boss:{name:'站务指挥机',glyph:'B',hp:148,range:5}};
   s.enemies=defs.map(function(pair,n){var kind=pair[0],c=config[kind],health=c.hp+(sector-1)*8+(kind==='boss'&&s.contract==='hunter'?40:0);return{id:'s'+sector+'e'+n,kind:kind,name:c.name,glyph:c.glyph,cell:pair[1],hp:health,maxHp:health,damage:baseDamage(s,kind)+(sector-1)*2,range:c.range,staggered:0,intent:{kind:'none',targetId:null,targetCell:null,cells:[]}};});
   s.offers=[];s.focusEnemy=null;
@@ -206,29 +210,29 @@ function refreshLobby(){var found=loadSavedState(),button=el('continue'),status=
 }
 function enter(){if(state&&active)persist();refreshLobby();}
 function leave(){if(state&&state.status==='active')persist();active=false;}
-function newOperation(force){var found=readCheckpoint();if(found.best&&found.best.envelope.state.status==='active'&&!force){if(!root.confirm('当前有未完成行动。开始新行动会保留一个恢复副本并结束这次行动，继续吗？'))return false;}
+function newOperation(force){var found=readCheckpoint();expectedCheckpoint=found.raws;checkpointConflict=false;if(found.best&&found.best.envelope.state.status==='active'&&!force){if(!root.confirm('当前有未完成行动。开始新行动会保留一个恢复副本并结束这次行动，继续吗？'))return false;}
   if(found.invalid.length&&!preserveInvalid(found.invalid)){setSaveStatus('无法安全保留损坏档案，因此没有开始新行动。','warn');return false;}
   state=createCampaign(contract);selectedId=state.selectedId;revision=Math.max(revision,found.best?found.best.envelope.revision:0);persist();loadIntoPage();return true;
 }
-function continueOperation(){var found=readCheckpoint();if(!found.best){refreshLobby();return false;}state=clone(found.best.envelope.state);revision=found.best.envelope.revision;selectedId=state.selectedId||'assault';if(state.status==='settling')settleLoaded();loadIntoPage();return true;}
-function settleLoaded(){if(!state||state.status!=='settling')return;var outcome=state.outcome||'lost',reward=computeReward(state,outcome),bridge=root.NeonProfileBridge;if(bridge&&typeof bridge.recordBorderRun==='function')bridge.recordBorderRun({id:state.id,outcome:outcome,score:state.score,kills:state.kills,sector:state.sector,turns:state.turn,seed:state.seed,contract:CONTRACTS[state.contract].label,reward:reward});state.status='complete';state.phase='result';state.reward=reward;persist();}
+function continueOperation(){var found=readCheckpoint();if(!found.best){refreshLobby();return false;}expectedCheckpoint=found.raws;checkpointConflict=false;state=clone(found.best.envelope.state);revision=found.best.envelope.revision;selectedId=state.selectedId||'assault';if(state.status==='settling')settleLoaded();loadIntoPage();return true;}
+function settleLoaded(){if(!state||state.status!=='settling'||!checkpointMatchesLoaded())return;var outcome=state.outcome||'lost',reward=computeReward(state,outcome),bridge=root.NeonProfileBridge;if(bridge&&typeof bridge.recordBorderRun==='function')bridge.recordBorderRun({id:state.id,outcome:outcome,score:state.score,kills:state.kills,sector:state.sector,turns:state.turn,seed:state.seed,contract:CONTRACTS[state.contract].label,reward:reward});state.status='complete';state.phase='result';state.reward=reward;persist();}
 function computeReward(s,outcome){var factor=CONTRACTS[s.contract].reward;return{shards:Math.max(1,Math.round((outcome==='clear'?8+Math.floor(s.score/120):Math.floor(s.score/180)+1)*factor)),intel:outcome==='clear'?4:1,modules:outcome==='clear'?2:0};}
 function finishWithResult(outcome){if(!state||state.status==='complete')return;settle(state,outcome);persist();settleLoaded();render();}
 function showLobby(){leave();root.location.hash='';}
-function discardRun(){if(!root.confirm('这会清除本次进行中的行动档案。确定放弃吗？'))return false;clearCheckpoint();state=null;revision=0;recoveryNote='';refreshLobby();setSaveStatus('行动已放弃；可随时开始新的行动。','info');return true;}
+function discardRun(){if(!checkpointMatchesLoaded()){setSaveStatus('另一页面已更新行动档案；为保护最新进度，本页不能放弃或清除它。请返回大厅并重新载入最新进度。','warn');render();return false;}if(!root.confirm('这会清除本次进行中的行动档案。确定放弃吗？'))return false;clearCheckpoint();state=null;revision=0;recoveryNote='';refreshLobby();setSaveStatus('行动已放弃；可随时开始新的行动。','info');return true;}
 function selectedUnit(){return state&&state.units.find(function(u){return u.id===selectedId&&u.alive;})||null;}
 function selectUnit(id){if(!state||state.phase!=='player')return;var u=state.units.find(function(x){return x.id===id&&x.alive;});if(!u)return;selectedId=id;state.selectedId=id;render();}
-function onCell(cell){if(!state||state.status!=='active'||state.phase!=='player')return;var own=unitAt(state,cell);if(own){selectUnit(own.id);return;}var enemy=enemyAt(state,cell),u=selectedUnit();if(!u)return;
+function onCell(cell){if(!checkpointMatchesLoaded()||!state||state.status!=='active'||state.phase!=='player')return;var own=unitAt(state,cell);if(own){selectUnit(own.id);return;}var enemy=enemyAt(state,cell),u=selectedUnit();if(!u)return;
   if(enemy){state.focusEnemy=enemy.id;render();return;}
   var path=findPath(state,u.cell,cell,u.id,movementRange(state));if(path&&path.length){if(moveUnit(state,u.id,cell)){persist();render();return;}}
   setSaveStatus('该格不可达；每次移动最多穿过 '+movementRange(state)+' 格，并消耗 1 点行动。','warn');
 }
-function tacticalAction(kind){var u=selectedUnit(),target=currentTarget();if(!u)return;var ok=kind==='attack'?target&&performAttack(state,u.id,target.id,false):kind==='watch'?setOverwatch(state,u.id):kind==='brace'?brace(state,u.id):target&&shove(state,u.id,target.id);if(ok){persist();render();}else setSaveStatus('动作不可用，检查目标距离、行动点和当前状态。','warn');}
+function tacticalAction(kind){if(!checkpointMatchesLoaded())return;var u=selectedUnit(),target=currentTarget();if(!u)return;var ok=kind==='attack'?target&&performAttack(state,u.id,target.id,false):kind==='watch'?setOverwatch(state,u.id):kind==='brace'?brace(state,u.id):target&&shove(state,u.id,target.id);if(ok){persist();render();}else setSaveStatus('动作不可用，检查目标距离、行动点和当前状态。','warn');}
 function adjacentObjective(){var u=selectedUnit();if(!u||!state)return null;return state.map.objectives.find(function(o){return !o.secured&&distance(o.cell,u.cell)<=1;})||null;}
-function useSelectedAbility(){var u=selectedUnit();if(!u||!useAbility(state,u.id)){setSaveStatus(u&&u.id==='medic'?'附近没有需要治疗的队员。':'没有可干扰的敌人，或技能仍在冷却。','warn');return;}persist();render();}
-function interact(){var u=selectedUnit();if(!u||!interactObjective(state,u.id)){setSaveStatus('选一名干员靠近未启动终端后再互动。','warn');return;}persist();render();}
-function endPlayerTurn(){if(!state||!endTurn(state)){render();return;}persist();render();}
-function pickUpgrade(id){if(!chooseUpgrade(state,id))return;persist();render();}
+function useSelectedAbility(){if(!checkpointMatchesLoaded())return;var u=selectedUnit();if(!u||!useAbility(state,u.id)){setSaveStatus(u&&u.id==='medic'?'附近没有需要治疗的队员。':'没有可干扰的敌人，或技能仍在冷却。','warn');return;}persist();render();}
+function interact(){if(!checkpointMatchesLoaded())return;var u=selectedUnit();if(!u||!interactObjective(state,u.id)){setSaveStatus('选一名干员靠近未启动终端后再互动。','warn');return;}persist();render();}
+function endPlayerTurn(){if(!checkpointMatchesLoaded())return;if(!state||!endTurn(state)){render();return;}persist();render();}
+function pickUpgrade(id){if(!checkpointMatchesLoaded()||!chooseUpgrade(state,id))return;persist();render();}
 function renderBoard(){var host=el('grid');if(!host||!state)return;var rows='';for(var cell=0;cell<CELLS;cell++){
     var own=unitAt(state,cell),enemy=enemyAt(state,cell),objective=state.map.objectives.find(function(o){return o.cell===cell;}),wall=wallAt(state,cell),cover=state.map.cover.indexOf(cell)>=0,exit=state.map.exit===cell;
     var selected=own&&own.id===selectedId,unit=selectedUnit(),reachable=!!(unit&&state.phase==='player'&&unit.ap>0&&cell!==unit.cell&&!own&&!enemy&&!wall&&findPath(state,unit.cell,cell,unit.id,movementRange(state)));
@@ -256,8 +260,9 @@ function render(){if(!state||!active)return;if(state.status==='settling')settleL
   renderBoard();renderSquad();renderEnemies();renderLog();renderUpgrades();
   var unit=selectedUnit(),ability=el('ability'),objective=adjacentObjective(),allOut=sectorClear(state);ability.disabled=!unit||unit.ap<1||unit.cooldown>0||(unit.id==='medic'&&!state.units.some(function(u){return u.alive&&u.hp<u.maxHp&&distance(u.cell,unit.cell)<=2;}))||(unit.id!=='medic'&&!targetOptions(state,unit.cell,unit.id==='assault'?4:5).some(function(e){return !state.focusEnemy||e.id===state.focusEnemy;}));ability.textContent=unit?UNIT_DEFS[unit.id].ability+' · '+(unit.cooldown?'冷却 '+unit.cooldown:'消耗 1 AP'):'战术技能';
   el('interact').disabled=!unit||!objective||unit.ap<1;el('interact').textContent=objective?'启动 '+objective.name+' · 消耗 1 AP':'靠近终端后启动 · 消耗 1 AP';el('endTurn').disabled=state.phase!=='player'||state.status!=='active';el('endTurn').textContent='结束我方回合 · '+aliveUnits(state).reduce(function(n,u){return n+u.ap;},0)+' AP 未用';el('next').classList.add('hidden');
-  if(state.phase==='upgrade')el('targetHint').textContent='本段目标已完成。选择一项补给，下一段会保留队伍生命和强化。';else if(allOut&&state.sector===3)el('targetHint').textContent=aliveUnits(state).some(function(u){return u.cell===state.map.exit;})?'全队已到达撤离点，档案正在回收。':'敌人与终端均已处理。把任意存活干员移动到 ⇧ 撤离标记完成行动。';else if(allOut)el('targetHint').textContent='本段目标已完成。选择一项补给，下一段会保留队伍生命和强化。';else if(!unit)el('targetHint').textContent='没有可行动干员。';else el('targetHint').textContent=unit.name+' · '+unit.ap+' 点行动 · 蓝格可移动，先选敌人再射击；也可消耗 1 AP 警戒、掩护或推击。';
-  updateTacticalControls();
+   if(state.phase==='upgrade')el('targetHint').textContent='本段目标已完成。选择一项补给，下一段会保留队伍生命和强化。';else if(allOut&&state.sector===3)el('targetHint').textContent=aliveUnits(state).some(function(u){return u.cell===state.map.exit;})?'全队已到达撤离点，档案正在回收。':'敌人与终端均已处理。把任意存活干员移动到 ⇧ 撤离标记完成行动。';else if(allOut)el('targetHint').textContent='本段目标已完成。选择一项补给，下一段会保留队伍生命和强化。';else if(!unit)el('targetHint').textContent='没有可行动干员。';else el('targetHint').textContent=unit.name+' · '+unit.ap+' 点行动 · 蓝格可移动，先选敌人再射击；也可消耗 1 AP 警戒、掩护或推击。';
+   if(checkpointConflict)setSaveStatus('另一页面已更新行动档案；本页操作没有写入存档。请返回大厅并重新载入最新进度，避免覆盖较新的行动。','warn');
+   updateTacticalControls();
 }
 function refreshVisibleState(){if(active&&state){if(state.status==='settling')settleLoaded();render();}else if(!active)refreshLobby();}
 function bind(){

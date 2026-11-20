@@ -1,12 +1,13 @@
 {
   "name": "xxsx-web-games",
   "version": "1.0.0",
+  "releaseVersion": "V58",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "build": "node scripts/build.mjs",
-    "test": "node tests/core.cjs && node tests/freefield.cjs && node tests/shell-heist.cjs && node tests/regression.cjs && node tests/border.cjs && node tests/circuit.cjs && node tests/campaign-games.cjs && node tests/static-validation.cjs",
+    "test": "node tests/core.cjs && node tests/freefield.cjs && node tests/shell-heist.cjs && node tests/borrowed-seconds.cjs && node tests/hub.cjs && node tests/regression.cjs && node tests/border.cjs && node tests/border-journey.cjs && node tests/circuit.cjs && node tests/campaign-games.cjs && node tests/salvage-journey.cjs && node tests/play-loader.cjs && node tests/play-loader.cjs --dist && node tests/build.cjs && node tests/dev-preview.cjs && node tests/static-validation.cjs",
     "dev:vite": "vite"
   },
   "devDependencies": {

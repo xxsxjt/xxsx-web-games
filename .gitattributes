@@ -1,0 +1,18 @@
+# Published hashes describe exact LF bytes on every checkout, including Windows.
+* text=auto
+.gitignore text eol=lf
+.gitattributes text eol=lf
+*.js text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.json text eol=lf
+*.svg text eol=lf
+*.md text eol=lf
+*.png binary
+*.webp binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.woff2 binary
