@@ -22,6 +22,7 @@ const PANEL := Color(0.039, 0.089, 0.137, 0.95)
 const RULE := Color("315062")
 const HUD_EDGE := 24.0
 const MIN_DESKTOP_SIZE := Vector2i(960, 600)
+const DESIGN_SIZE := Vector2(1440.0, 900.0)
 const KEYS_DRIVE := "W/S 或 ↑/↓  油门（前进／倒车）    ·    A/D 或 ←/→  转向    ·    E  长按声纳    ·    Space  挂索"
 const KEYS_TOW := "1 推进 / 2 搜索 / 3 稳索    ·    按住 Shift 慢车    ·    Q 收绳 / F 放绳    ·    P/Esc 暂停／继续    ·    R 重开    ·    M 静音"
 
@@ -30,6 +31,7 @@ var _records: Dictionary = {}
 var _contract_id := ""
 var _screen := ""
 var _muted := false
+var _interface_root: Control
 
 var _live: Control
 var _curtain: ColorRect
@@ -79,11 +81,14 @@ func _ready() -> void:
 	if window == get_tree().root:
 		window.min_size = window.min_size.max(MIN_DESKTOP_SIZE)
 	var root := Control.new()
+	_interface_root = root
 	root.name = "StormlineInterface"
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.theme = _make_theme()
 	add_child(root)
-	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	# Honor the actual logical viewport, including embedding without project stretch.
+	get_viewport().size_changed.connect(_fit_interface)
+	_fit_interface()
 
 	_live = Control.new()
 	_live.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -105,6 +110,15 @@ func _ready() -> void:
 	_build_debrief(center)
 	_refresh_briefing()
 	_show_screen("briefing")
+
+
+func _fit_interface() -> void:
+	var dimensions := get_viewport().get_visible_rect().size
+	if dimensions.x <= 0.0 or dimensions.y <= 0.0:
+		return
+	var factor := minf(1.0, minf(dimensions.x / DESIGN_SIZE.x, dimensions.y / DESIGN_SIZE.y))
+	_interface_root.scale = Vector2.ONE * factor
+	_interface_root.size = dimensions / factor
 
 func configure(contracts: Dictionary, best_records: Dictionary) -> void:
 	_contracts = contracts
@@ -353,7 +367,7 @@ func _build_briefing(center: CenterContainer) -> void:
 	var picker := _panel(columns)
 	picker.custom_minimum_size.x = 292.0
 	var deck := _column(picker, 10)
-	_label(deck, "航线选择", 18, TEAL)
+	_label(deck, "航线选择  [1 / 2]", 18, TEAL)
 	for id in CONTRACT_IDS:
 		var card := _column(deck, 4)
 		var button := _button(card, "", _choose_contract.bind(id), false, Vector2(0, 50))

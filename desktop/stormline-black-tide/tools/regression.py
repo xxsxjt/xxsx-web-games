@@ -34,7 +34,7 @@ def main():
     base = [str(args.godot), "--headless", "--audio-driver", "Dummy", "--path", str(root)]
     jobs = [("import", ["--editor", "--quit"])]
     jobs += [(name, ["--script", f"res://tests/{name}_test.gd"])
-             for name in ("app", "journey", "records", "audio")]
+             for name in ("app", "journey", "records", "audio", "layout", "input")]
     results = []
     for name, flags in jobs:
         started = dt.datetime.now(dt.timezone.utc)

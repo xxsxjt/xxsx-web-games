@@ -168,11 +168,17 @@ func _on_focus_exited() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo:
 		return
-	var key: Key = event.keycode
+	var key: Key = event.keycode if event.keycode != KEY_NONE else event.physical_keycode
 	if key == KEY_M:
 		_on_mute_requested()
-	elif screen == "briefing" and key in [KEY_ENTER, KEY_KP_ENTER]:
-		_on_start_requested()
+	elif screen == "briefing":
+		match key:
+			KEY_ENTER, KEY_KP_ENTER:
+				_on_start_requested()
+			KEY_1:
+				_on_contract_selected("black-tide")
+			KEY_2:
+				_on_contract_selected("needle-bank")
 	elif screen == "running":
 		match key:
 			KEY_SPACE:

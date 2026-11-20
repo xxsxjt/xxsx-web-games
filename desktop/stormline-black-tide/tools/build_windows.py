@@ -124,7 +124,7 @@ def main():
     qa = json.loads(args.qa.read_text(encoding="utf-8"))
     if not qa.get("passed") or qa.get("source_hashes") != source_hashes(root):
         raise SystemExit("Regression is failed, stale, or does not match the current source tree")
-    if {job["check"] for job in qa["checks"]} != {"import", "app", "journey", "records", "audio"}:
+    if {job["check"] for job in qa["checks"]} != {"import", "app", "journey", "records", "audio", "layout", "input"}:
         raise SystemExit("Required headless regression checks are missing")
     version = subprocess.run([str(args.godot), "--version"], capture_output=True,
                              text=True, encoding="utf-8", timeout=15)
