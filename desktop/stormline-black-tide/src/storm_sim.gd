@@ -135,10 +135,13 @@ func step(delta: float, input: Dictionary = {}) -> Dictionary:
 	var dt := minf(delta, 1.0 / 30.0)
 	mission_time += dt
 	if input.has("power"):
-		set_power_profile(int(input.power))
+		var requested_power: Variant = input.power
+		if (requested_power is int or requested_power is float) and is_finite(float(requested_power)):
+			set_power_profile(int(clampf(float(requested_power), 0.0, float(PROFILES.size() - 1))))
 	var profile: Dictionary = PROFILES[power_profile]
-	var steer := clampf(float(input.get("steer", 0.0)), -1.0, 1.0)
-	throttle = clampf(float(input.get("throttle", 0.0)), -1.0, 1.0)
+	var steer := _bounded_control(input.get("steer", 0.0))
+	throttle = _bounded_control(input.get("throttle", 0.0))
+	var reel := _bounded_control(input.get("reel", 0.0))
 	speed_mode = bool(input.get("slow", false))
 	var scanning := bool(input.get("scan", false)) and not scanned
 	_update_weather()
@@ -176,7 +179,6 @@ func step(delta: float, input: Dictionary = {}) -> Dictionary:
 	if bool(input.get("tow_pressed", false)):
 		_attach(forward)
 	if tow_attached:
-		var reel := clampf(float(input.get("reel", 0.0)), -1.0, 1.0)
 		rope_length = clampf(rope_length + reel * float(profile.winch) * dt, ROPE_MIN, ROPE_MAX)
 		var separation := cargo_position - _stern_position(forward)
 		var cable_dir := separation.normalized()
@@ -209,7 +211,7 @@ func step(delta: float, input: Dictionary = {}) -> Dictionary:
 	if scanning:
 		energy_draw += 0.20 + float(profile.sensors) * 0.22
 	if tow_attached:
-		energy_draw += 0.08 + absf(float(input.get("reel", 0.0))) * 0.19
+		energy_draw += 0.08 + absf(reel) * 0.19
 	battery = maxf(0.0, battery - energy_draw * dt)
 	if hull <= 0.0:
 		_fail("船体耐久归零，拖船失去动力。", "collision")
@@ -226,6 +228,13 @@ func step(delta: float, input: Dictionary = {}) -> Dictionary:
 
 func _stern_position(forward: Vector2) -> Vector2:
 	return position - forward * 2.2
+
+
+func _bounded_control(value: Variant) -> float:
+	if not (value is int or value is float):
+		return 0.0
+	var number := float(value)
+	return clampf(number, -1.0, 1.0) if is_finite(number) else 0.0
 
 
 func _attach(forward: Vector2) -> void:

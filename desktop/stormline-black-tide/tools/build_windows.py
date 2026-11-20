@@ -12,10 +12,10 @@ import subprocess
 import urllib.request
 import zipfile
 
-from regression import source_hashes
+from regression import REQUIRED_CHECKS, source_hashes
 
 
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 STEM = "Stormline-Black-Tide"
 PACKAGE = f"{STEM}-v{VERSION}-windows-x64"
 TEMPLATE_SHA256 = "66b26ad96df7458ea917b632a73ac7c88bb058db24dbd11a457fd50435ab7b13"
@@ -121,11 +121,16 @@ def main():
     parser.add_argument("--qa", required=True, type=Path, help="Passing regression summary.json")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
+    if f'config/version="{VERSION}"' not in (root / "project.godot").read_text(encoding="utf-8"):
+        raise SystemExit("Package version does not match project.godot")
     qa = json.loads(args.qa.read_text(encoding="utf-8"))
     if not qa.get("passed") or qa.get("source_hashes") != source_hashes(root):
         raise SystemExit("Regression is failed, stale, or does not match the current source tree")
-    if {job["check"] for job in qa["checks"]} != {"import", "app", "journey", "records", "audio", "layout", "input"}:
-        raise SystemExit("Required headless regression checks are missing")
+    checks = qa.get("checks", [])
+    if tuple(job.get("check") for job in checks) != REQUIRED_CHECKS or not all(
+            job.get("passed") is True and job.get("exit_code") == 0 and job.get("diagnostic_count") == 0
+            for job in checks):
+        raise SystemExit("Required regression checks are missing or did not pass cleanly")
     version = subprocess.run([str(args.godot), "--version"], capture_output=True,
                              text=True, encoding="utf-8", timeout=15)
     if version.returncode or version.stdout.strip() != qa["engine"]:

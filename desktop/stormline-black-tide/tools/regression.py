@@ -10,10 +10,14 @@ import subprocess
 import sys
 
 
+SCRIPT_SUITES = ("app", "journey", "records", "audio", "layout", "input", "docking", "robustness")
+REQUIRED_CHECKS = ("import", *SCRIPT_SUITES, "smoke_tool")
+
+
 def source_hashes(root):
     paths = [root / name for name in ("project.godot", "export_presets.cfg")]
     for folder, pattern in (("src", "*.gd"), ("scenes", "*.tscn"),
-                            ("tests", "*.gd"), ("tools", "*.py")):
+                            ("tests", "*.gd"), ("tools", "*.py"), ("tools", "*.gd")):
         paths.extend((root / folder).rglob(pattern))
     return {str(path.relative_to(root)).replace("\\", "/"): hashlib.sha256(path.read_bytes()).hexdigest()
             for path in sorted(paths)}
@@ -32,14 +36,15 @@ def main():
     evidence = root / "build" / "qa" / dt.datetime.now().strftime("%Y%m%d-%H%M%S-%f")
     evidence.mkdir(parents=True, exist_ok=False)
     base = [str(args.godot), "--headless", "--audio-driver", "Dummy", "--path", str(root)]
-    jobs = [("import", ["--editor", "--quit"])]
-    jobs += [(name, ["--script", f"res://tests/{name}_test.gd"])
-             for name in ("app", "journey", "records", "audio", "layout", "input")]
+    jobs = [("import", base + ["--editor", "--quit"])]
+    jobs += [(name, base + ["--script", f"res://tests/{name}_test.gd"]) for name in SCRIPT_SUITES]
+    jobs.append(("smoke_tool", [sys.executable, "-X", "utf8", "-m", "unittest",
+                                 "discover", "-s", "tools", "-p", "test_*.py", "-v"]))
     results = []
-    for name, flags in jobs:
+    for name, command in jobs:
         started = dt.datetime.now(dt.timezone.utc)
         try:
-            proc = subprocess.run(base + flags, cwd=root, capture_output=True,
+            proc = subprocess.run(command, cwd=root, capture_output=True,
                                   text=True, encoding="utf-8", errors="replace", timeout=120)
             output = proc.stdout + proc.stderr
             exit_code = proc.returncode

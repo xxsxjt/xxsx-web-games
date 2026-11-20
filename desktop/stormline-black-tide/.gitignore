@@ -5,5 +5,5 @@ build/
 *.tmp
 *.log
 __pycache__/
-*.pyc
 runtime/
+*.py[cod]
