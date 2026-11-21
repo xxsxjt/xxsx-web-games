@@ -4,7 +4,6 @@ import argparse
 import datetime as dt
 import hashlib
 import json
-import os
 from pathlib import Path
 import re
 import shutil
@@ -12,6 +11,7 @@ import subprocess
 import tempfile
 
 from build_windows import check_pck
+from regression import isolated_environment
 
 
 ENGINE_VERSION = "4.3.stable.official.77dcf97d8"
@@ -42,13 +42,6 @@ def main():
     if sandbox == pck.parent or sandbox.is_relative_to(pck.parent):
         raise SystemExit("Keep probe evidence outside the release package directory")
     static = check_pck(pck, root)
-    try:
-        version = subprocess.run([str(args.godot), "--version"], capture_output=True,
-                                 text=True, encoding="utf-8", timeout=15)
-    except OSError as exc:
-        raise SystemExit("Godot executable is missing or cannot start") from exc
-    if version.returncode or version.stdout.strip() != ENGINE_VERSION:
-        raise SystemExit("Expected official Godot 4.3 stable for the PCK probe")
     sandbox.mkdir(parents=True, exist_ok=True)
     run = Path(tempfile.mkdtemp(prefix="stormline-pck-probe-", dir=sandbox))
     project = run / "probe"
@@ -58,16 +51,22 @@ def main():
         'config/use_custom_user_dir=true\nconfig/custom_user_dir_name="StormlinePackProbe"\n'
         '[rendering]\nrenderer/rendering_method="gl_compatibility"\n', encoding="utf-8")
     shutil.copyfile(root / "tools" / "package_probe.gd", project / "package_probe.gd")
-    env = os.environ.copy()
-    for key in ("APPDATA", "LOCALAPPDATA", "TEMP", "TMP", "USERPROFILE",
-                "HOME", "XDG_DATA_HOME", "XDG_CONFIG_HOME", "XDG_CACHE_HOME"):
-        folder = run / key
-        folder.mkdir()
-        env[key] = str(folder)
+    env = isolated_environment(run / "user-profile")
 
     probe_result = run / "probe-result.json"
-    command = [str(args.godot), "--headless", "--audio-driver", "Dummy", "--path", str(project),
-               "--script", "res://package_probe.gd", "--", str(pck), str(probe_result)]
+    engine_log = run / "godot-probe.log"
+    base = [str(args.godot), "--headless", "--audio-driver", "Dummy", "--path", str(project)]
+    version_command = base + ["--log-file", str(run / "godot-version.log"), "--version"]
+    try:
+        version = subprocess.run(version_command, cwd=project, env=env, capture_output=True,
+                                 text=True, encoding="utf-8", timeout=15,
+                                 creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    except OSError as exc:
+        raise SystemExit("Godot executable is missing or cannot start") from exc
+    if version.returncode or version.stdout.strip() != ENGINE_VERSION:
+        raise SystemExit("Expected official Godot 4.3 stable for the PCK probe")
+    command = base + ["--log-file", str(engine_log), "--script", "res://package_probe.gd", "--",
+                      str(pck), str(probe_result)]
     try:
         process = subprocess.run(command, cwd=project, env=env, capture_output=True,
                                  text=True, encoding="utf-8", errors="replace", timeout=args.timeout,
@@ -81,12 +80,18 @@ def main():
 
     log = run / "stdout-stderr.log"
     log.write_text(output, encoding="utf-8")
-    diagnostics = [line[:500] for line in output.splitlines()
-                   if re.search(r"SCRIPT ERROR|ERROR:|WARNING:|\bFAIL\b", line, re.I)]
+    engine_output = engine_log.read_text(encoding="utf-8", errors="replace") if engine_log.is_file() else ""
+    diagnostics = sorted({line[:500] for line in (output + "\n" + engine_output).splitlines()
+                          if re.search(r"SCRIPT ERROR|ERROR:|WARNING:|\bFAIL\b", line, re.I)})
     probe = json.loads(probe_result.read_text(encoding="utf-8")) if probe_result.is_file() else {}
-    score_writes = sorted(str(path.relative_to(run)).replace("\\", "/")
-                          for path in run.rglob("*stormline-best-contracts*") if path.is_file())
-    passed = (exit_code == 0 and not diagnostics and not timed_out and not score_writes
+    expected_scripts = sorted(name for name in static["resolved_runtime_resources"] if name.endswith(".gd"))
+    score_writes = sorted(path.relative_to(run).as_posix()
+                          for path in run.rglob("*best-contracts*") if path.is_file())
+    passed = (exit_code == 0 and not diagnostics and not timed_out and not score_writes and engine_log.is_file()
+              and "res://src/voyage_review.gd" in expected_scripts
+              and sorted(probe.get("loaded_scripts", [])) == expected_scripts
+              and probe.get("pack_mounted") is True and probe.get("main_scene_loaded") is True
+              and probe.get("contract_ids_valid") is True
               and probe.get("passed") is True and probe.get("main_scene_instantiated") is False)
     result = {
         "tested_utc": dt.datetime.now(dt.timezone.utc).isoformat(), "engine": ENGINE_VERSION,
@@ -97,7 +102,7 @@ def main():
         "isolated_user_profile": True, "best_score_files_created": score_writes,
         "exported_game_executed": False, "main_scene_instantiated": False,
         "rendering_tested": False, "audio_played": False, "interactive_or_manual_playtest": False,
-        "evidence_log": str(log),
+        "command": command, "evidence_log": str(log), "engine_log": str(engine_log),
     }
     summary = run / "smoke.json"
     summary.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

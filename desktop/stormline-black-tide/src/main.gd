@@ -6,8 +6,10 @@ const Records = preload("res://src/storm_records.gd")
 const World = preload("res://src/storm_world.gd")
 const HUD = preload("res://src/storm_hud.gd")
 const Audio = preload("res://src/storm_audio.gd")
+const Review = preload("res://src/voyage_review.gd")
 
 var sim = Sim.new()
+var review = Review.new()
 var records: RefCounted
 var world: Node3D
 var hud: CanvasLayer
@@ -75,6 +77,7 @@ func _advance_simulation(delta: float, controls: Dictionary) -> void:
 		return
 	var prior_phase: String = String(sim.phase)
 	var view: Dictionary = sim.step(delta, controls)
+	review.observe(view)
 	if sim.phase != prior_phase and sim.phase in ["success", "failed"]:
 		if sim.phase == "success":
 			_record_status = records.record(sim.contract_id, sim.report)
@@ -96,13 +99,17 @@ func _publish(delta: float, snap_camera: bool = false) -> void:
 	if is_instance_valid(world):
 		world.present(view, delta, snap_camera)
 	if is_instance_valid(hud):
-		hud.present(view)
+		# Review is a HUD-only memory view; preserve the world's public projection.
+		var hud_view := view.duplicate()
+		hud_view["review"] = review.view()
+		hud.present(hud_view)
 	if is_instance_valid(sound):
 		sound.present(view, delta)
 
 
 func _reset_mission() -> void:
 	sim.reset(selected_contract)
+	review.clear()
 	_tow_queued = false
 	_record_status = ""
 
@@ -122,6 +129,7 @@ func _on_start_requested() -> void:
 		return
 	_reset_mission()
 	screen = "running"
+	review.begin(sim.snapshot())
 	_publish(0.0, true)
 
 
@@ -139,6 +147,7 @@ func _on_restart_requested() -> void:
 		return
 	_reset_mission()
 	screen = "running"
+	review.begin(sim.snapshot())
 	_publish(0.0, true)
 
 
@@ -203,6 +212,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				_on_briefing_requested()
 	elif screen == "debrief":
 		match key:
+			KEY_V:
+				hud.toggle_review()
 			KEY_R:
 				_on_restart_requested()
 			KEY_ENTER, KEY_KP_ENTER:

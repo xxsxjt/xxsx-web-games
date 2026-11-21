@@ -4,6 +4,7 @@ import argparse
 import datetime as dt
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -19,6 +20,7 @@ SCRIPT_SUITES = (
     "presentation_lifecycle", "breakwater_journey", "cross_current_app",
     "cross_current_route_feedback",
     "rule_threshold_language",
+    "voyage_review", "voyage_review_app",
 )
 REQUIRED_CHECKS = ("import", *SCRIPT_SUITES, "smoke_tool")
 
@@ -32,28 +34,48 @@ def source_hashes(root):
             for path in sorted(paths)}
 
 
+def isolated_environment(profile):
+    """Give each headless run a new application-data and temporary root."""
+    env = os.environ.copy()
+    for key in ("APPDATA", "LOCALAPPDATA", "TEMP", "TMP", "USERPROFILE",
+                "HOME", "XDG_DATA_HOME", "XDG_CONFIG_HOME", "XDG_CACHE_HOME"):
+        folder = profile / key
+        folder.mkdir(parents=True, exist_ok=False)
+        env[key] = str(folder)
+    return env
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--godot", required=True, type=Path)
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     sources = source_hashes(root)
-    version = subprocess.run([str(args.godot), "--version"], capture_output=True,
-                             text=True, encoding="utf-8", timeout=15)
-    if version.returncode or version.stdout.strip() != "4.3.stable.official.77dcf97d8":
-        raise SystemExit("Expected official Godot 4.3 stable; received " + version.stdout.strip())
     evidence = root / "build" / "qa" / dt.datetime.now().strftime("%Y%m%d-%H%M%S-%f")
     evidence.mkdir(parents=True, exist_ok=False)
+    profile = evidence / "user-profile"
+    env = isolated_environment(profile)
+    engine_logs = evidence / "engine"
+    engine_logs.mkdir()
     base = [str(args.godot), "--headless", "--audio-driver", "Dummy", "--path", str(root)]
-    jobs = [("import", base + ["--editor", "--quit"])]
-    jobs += [(name, base + ["--script", f"res://tests/{name}_test.gd"]) for name in SCRIPT_SUITES]
+
+    def engine_command(name, *args):
+        return base + ["--log-file", str(engine_logs / f"{name}.log"), *args]
+
+    version = subprocess.run(engine_command("version", "--version"), cwd=root, env=env,
+                             capture_output=True, text=True, encoding="utf-8", timeout=15)
+    if version.returncode or version.stdout.strip() != "4.3.stable.official.77dcf97d8":
+        raise SystemExit("Expected official Godot 4.3 stable; received " + version.stdout.strip())
+    jobs = [("import", engine_command("import", "--editor", "--quit"), True)]
+    jobs += [(name, engine_command(name, "--script", f"res://tests/{name}_test.gd"), True)
+             for name in SCRIPT_SUITES]
     jobs.append(("smoke_tool", [sys.executable, "-X", "utf8", "-m", "unittest",
-                                 "discover", "-s", "tools", "-p", "test_*.py", "-v"]))
+                               "discover", "-s", "tools", "-p", "test_*.py", "-v"], False))
     results = []
-    for name, command in jobs:
+    for name, command, godot_job in jobs:
         started = dt.datetime.now(dt.timezone.utc)
         try:
-            proc = subprocess.run(command, cwd=root, capture_output=True,
+            proc = subprocess.run(command, cwd=root, env=env, capture_output=True,
                                   text=True, encoding="utf-8", errors="replace", timeout=120)
             output = proc.stdout + proc.stderr
             exit_code = proc.returncode
@@ -62,11 +84,14 @@ def main():
             exit_code = -1
         log = evidence / f"{name}.log"
         log.write_text(output, encoding="utf-8")
-        errors = re.findall(r"^.*(?:SCRIPT ERROR|ERROR:|WARNING:|FAIL[: ]|TIMEOUT).*?$", output, re.M)
-        passed = exit_code == 0 and not errors
+        engine_log = engine_logs / f"{name}.log" if godot_job else None
+        engine_output = engine_log.read_text(encoding="utf-8", errors="replace") if engine_log and engine_log.is_file() else ""
+        errors = set(re.findall(r"^.*(?:SCRIPT ERROR|ERROR:|WARNING:|FAIL[: ]|TIMEOUT).*?$", output + "\n" + engine_output, re.M))
+        passed = exit_code == 0 and not errors and (engine_log is None or engine_log.is_file())
         result = {"check": name, "exit_code": exit_code, "passed": passed,
-                  "started_utc": started.isoformat(), "diagnostic_count": len(errors),
-                  "log": str(log.relative_to(root))}
+                   "started_utc": started.isoformat(), "diagnostic_count": len(errors),
+                   "command": command, "log": str(log.relative_to(root)),
+                   "engine_log": str(engine_log.relative_to(root)) if engine_log else None}
         results.append(result)
         print(f"{name}: {'PASS' if passed else 'FAIL'} exit={exit_code} diagnostics={len(errors)}", flush=True)
         for line in output.splitlines():
@@ -74,11 +99,14 @@ def main():
                 print(line, flush=True)
         if name == "import" and not passed:
             break
+    score_files = sorted(path.relative_to(profile).as_posix() for path in profile.rglob("*best-contracts*")
+                         if path.is_file())
     summary = {"engine": version.stdout.strip(), "headless_only": True,
+               "isolated_user_profile": str(profile.relative_to(root)), "isolated_profile_score_files": score_files,
                "desktop_playtested": False, "checks": results,
                "source_hashes": sources, "sources_unchanged": sources == source_hashes(root),
-               "passed": len(results) == len(jobs) and all(item["passed"] for item in results)
-                         and sources == source_hashes(root)}
+               "passed": not score_files and len(results) == len(jobs) and all(item["passed"] for item in results)
+                          and sources == source_hashes(root)}
     (evidence / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"Evidence: {evidence}", flush=True)
     return 0 if summary["passed"] else 1

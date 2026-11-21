@@ -5,7 +5,7 @@ config_version=5
 [application]
 
 config/name="Stormline: Black Tide"
-config/version="0.1.2"
+config/version="0.1.3"
 config/use_custom_user_dir=true
 config/custom_user_dir_name="StormlineBlackTide"
 run/main_scene="res://scenes/main.tscn"

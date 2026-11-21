@@ -40,34 +40,46 @@ class SmokeExportTests(unittest.TestCase):
                     SMOKE.main()
 
     def test_only_headless_probe_is_launched_with_isolated_profile(self):
-        with tempfile.TemporaryDirectory() as directory:
+        # The regression runner intentionally places TEMP inside source/build.
+        # Use an isolated sibling so the real source-tree guard stays enabled.
+        with tempfile.TemporaryDirectory(prefix="stormline-probe-test-", dir=PROJECT_ROOT.parent) as directory:
             root = Path(directory)
             release = root / "release"
             release.mkdir()
             pack = release / "Stormline-Black-Tide.pck"
             pack.write_bytes(b"fixture")
             scratch = root / "scratch"
+            required = ["res://src/main.gd", "res://src/voyage_review.gd"]
+            loaded = required.copy()
 
             def run(command, **options):
                 self.assertEqual(command[0], "Godot.exe")
-                if command[1:] == ["--version"]:
-                    return subprocess.CompletedProcess(command, 0, SMOKE.ENGINE_VERSION, "")
                 self.assertEqual(command[1:5], ["--headless", "--audio-driver", "Dummy", "--path"])
-                self.assertEqual(command[6:9], ["--script", "res://package_probe.gd", "--"])
-                self.assertEqual(Path(command[9]), pack.resolve())
+                self.assertEqual(command[6], "--log-file")
+                self.assertTrue(Path(command[7]).is_relative_to(scratch))
                 self.assertTrue(Path(options["env"]["APPDATA"]).is_relative_to(scratch))
                 self.assertNotIn("run/main_scene", (Path(command[5]) / "project.godot").read_text(encoding="utf-8"))
-                Path(command[10]).write_text(json.dumps({
-                    "passed": True, "main_scene_instantiated": False,
+                if command[8:] == ["--version"]:
+                    return subprocess.CompletedProcess(command, 0, SMOKE.ENGINE_VERSION, "")
+                self.assertEqual(command[8:11], ["--script", "res://package_probe.gd", "--"])
+                self.assertEqual(Path(command[11]), pack.resolve())
+                Path(command[7]).touch()
+                Path(command[12]).write_text(json.dumps({
+                    "passed": True, "pack_mounted": True, "main_scene_loaded": True,
+                    "main_scene_instantiated": False, "contract_ids_valid": True, "loaded_scripts": loaded,
                 }), encoding="utf-8")
                 return subprocess.CompletedProcess(command, 0, "", "")
 
             with patch("sys.argv", ["smoke_export.py", "--godot", "Godot.exe", "--pck", str(pack),
                                     "--sandbox-dir", str(scratch)]), patch.object(
-                                        SMOKE, "check_pck", return_value={"entry_count": 18}), patch.object(
-                                        SMOKE.subprocess, "run", side_effect=run) as process, patch("builtins.print"):
+                                         SMOKE, "check_pck", return_value={"entry_count": 20,
+                                             "resolved_runtime_resources": dict.fromkeys(required, "fixture")}), patch.object(
+                                         SMOKE.subprocess, "run", side_effect=run) as process, patch("builtins.print"):
                 self.assertEqual(SMOKE.main(), 0)
                 self.assertEqual(process.call_count, 2)
+                loaded.remove("res://src/voyage_review.gd")
+                self.assertEqual(SMOKE.main(), 1, "a stale probe without the review script must fail")
+                self.assertEqual(process.call_count, 4)
 
 
 if __name__ == "__main__":

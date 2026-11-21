@@ -79,6 +79,15 @@ var _result_grade: Label
 var _result_stats: Dictionary = {}
 var _result_record: Label
 var _result_best: Label
+var _result_overview: VBoxContainer
+var _review_button: Button
+var _review_panel: PanelContainer
+var _review_scroll: ScrollContainer
+var _review_summary: Label
+var _review_coverage: Label
+var _review_timeline: Label
+var _review_advice: Label
+var _review_view: Dictionary = {}
 
 func _ready() -> void:
 	layer = 15
@@ -166,6 +175,13 @@ func _show_screen(screen: String) -> void:
 	if _screen == screen:
 		return
 	_screen = screen
+	if screen != "debrief" and is_instance_valid(_review_button):
+		_review_view.clear()
+		for label: Label in [_review_summary, _review_coverage, _review_timeline, _review_advice]:
+			label.text = ""
+		_review_scroll.scroll_vertical = 0
+		_review_button.set_pressed_no_signal(false)
+		_set_review_open(false)
 	_live.visible = screen == "running" or screen == "paused"
 	_curtain.visible = screen != "running"
 	for id in _menus:
@@ -586,7 +602,8 @@ func _build_debrief(center: CenterContainer) -> void:
 	_result_title = _label(box, "", 32)
 	_result_subtitle = _label(box, "", 21, DIM, true)
 	_result_message = _label(box, "", 21, TEXT, true)
-	var plaque := _row(_panel(box), 14)
+	_result_overview = _column(box, 11)
+	var plaque := _row(_panel(_result_overview), 14)
 	var points := _column(plaque, 1)
 	points.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_label(points, "结算分数", 17, DIM)
@@ -595,15 +612,30 @@ func _build_debrief(center: CenterContainer) -> void:
 	grade.custom_minimum_size.x = 128.0
 	_label(grade, "评级", 17, DIM)
 	_result_grade = _label(grade, "", 48, TEAL)
-	var stats := _row(box, 8)
+	var stats := _row(_result_overview, 8)
 	for stat in [["time", "航次用时"], ["hull", "拖船船体"], ["cargo", "舱完整度"], ["battery", "剩余电量"], ["peak_tension", "峰值张力"]]:
 		var cell := _panel(stats)
 		cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var stack := _column(cell, 4)
 		_label(stack, stat[1], 17, DIM)
 		_result_stats[stat[0]] = _label(stack, "", 23)
-	_result_record = _label(box, "", 19, TEAL, true)
-	_result_best = _label(box, "", 18, DIM, true)
+	_result_record = _label(_result_overview, "", 19, TEAL, true)
+	_result_best = _label(_result_overview, "", 18, DIM, true)
+	_review_button = _button(box, "查看航次复盘  [V]", func() -> void: pass, false, Vector2(0, 44))
+	_review_button.toggle_mode = true
+	_review_button.toggled.connect(_set_review_open)
+	_review_panel = _panel(box)
+	_review_scroll = ScrollContainer.new()
+	_review_scroll.custom_minimum_size.y = 218.0
+	_review_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_review_panel.add_child(_review_scroll)
+	var review_box := _column(_review_scroll, 8)
+	review_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_review_summary = _label(review_box, "", 18, TEAL, true)
+	_review_coverage = _label(review_box, "", 18, DIM, true)
+	_review_timeline = _label(review_box, "", 18, TEXT, true)
+	_review_advice = _label(review_box, "", 18, AMBER, true)
+	_review_panel.hide()
 	_rule(box)
 	var actions := _row(box, 10)
 	var retry := _button(actions, "重新执行  [R]", func() -> void: restart_requested.emit(), true, Vector2(220, 50))
@@ -632,6 +664,28 @@ func _present_report(view: Dictionary, contract: Dictionary) -> void:
 	var status := String(view.get("record_status", ""))
 	_result_record.text = status if not status.is_empty() else ("未收到纪录更新" if success else "本航次未完成，不计入最佳纪录。")
 	_result_best.text = _best_text(_contract_id)
+	_review_view = _dictionary(view.get("review", {})).duplicate(true)
+	_review_button.text = _review_button_text(_review_button.button_pressed)
+	_review_summary.text = String(_review_view.get("summary_text", "航次数据未记录。"))
+	_review_coverage.text = String(_review_view.get("coverage_text", "公开采样未记录。"))
+	_review_timeline.text = String(_review_view.get("timeline_text", "关键节点未记录。"))
+	_review_advice.text = String(_review_view.get("advice_text", "记录不足，暂不提供针对性建议。"))
+
+
+func toggle_review() -> void:
+	if _screen == "debrief":
+		_review_button.button_pressed = not _review_button.button_pressed
+
+
+func _set_review_open(open: bool) -> void:
+	_result_overview.visible = not open
+	_review_panel.visible = open
+	_review_button.text = _review_button_text(open)
+
+
+func _review_button_text(open: bool) -> String:
+	var events: Array = _review_view.get("events", [])
+	return ("收起航次复盘" if open else "查看航次复盘") + "  [V] · 已采集 %d / 保留 %d" % [int(_review_view.get("total_events", 0)), events.size()]
 
 func _best_text(id: String) -> String:
 	var record := _dictionary(_records.get(id, {}))
