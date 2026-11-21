@@ -15,6 +15,10 @@ from regression import isolated_environment
 
 
 ENGINE_VERSION = "4.3.stable.official.77dcf97d8"
+REQUIRED_RUNTIME_SCRIPTS = tuple("res://src/" + stem + ".gd" for stem in (
+    "main", "radar", "storm_audio", "storm_hud", "storm_records", "storm_sim", "storm_world",
+    "voyage_review", "expedition_catalog", "expedition_state", "expedition_store", "expedition_hud",
+))
 
 
 def decode_output(value):
@@ -88,7 +92,7 @@ def main():
     score_writes = sorted(path.relative_to(run).as_posix()
                           for path in run.rglob("*best-contracts*") if path.is_file())
     passed = (exit_code == 0 and not diagnostics and not timed_out and not score_writes and engine_log.is_file()
-              and "res://src/voyage_review.gd" in expected_scripts
+              and set(REQUIRED_RUNTIME_SCRIPTS).issubset(expected_scripts)
               and sorted(probe.get("loaded_scripts", [])) == expected_scripts
               and probe.get("pack_mounted") is True and probe.get("main_scene_loaded") is True
               and probe.get("contract_ids_valid") is True

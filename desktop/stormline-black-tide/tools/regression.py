@@ -21,6 +21,7 @@ SCRIPT_SUITES = (
     "cross_current_route_feedback",
     "rule_threshold_language",
     "voyage_review", "voyage_review_app",
+    "expedition_state", "expedition_store", "expedition_sim", "expedition_app",
 )
 REQUIRED_CHECKS = ("import", *SCRIPT_SUITES, "smoke_tool")
 

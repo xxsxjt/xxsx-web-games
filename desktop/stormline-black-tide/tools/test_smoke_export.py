@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+import re
 import subprocess
 import tempfile
 import unittest
@@ -14,6 +15,13 @@ PROJECT_ROOT = Path(SMOKE.__file__).resolve().parents[1]
 
 
 class SmokeExportTests(unittest.TestCase):
+    def test_probe_and_runner_require_the_same_runtime_scripts(self):
+        probe = (PROJECT_ROOT / "tools/package_probe.gd").read_text(encoding="utf-8")
+        stems = json.loads(re.search(r"const SCRIPT_PATHS := (\[[^\]]+\])", probe)[1])
+        self.assertEqual(set(SMOKE.REQUIRED_RUNTIME_SCRIPTS),
+                         {"res://src/" + stem + ".gd" for stem in stems})
+        self.assertEqual(len(stems), len(set(stems)))
+
     def test_output_decoder_handles_text_and_bytes(self):
         self.assertEqual(SMOKE.decode_output("ok"), "ok")
         self.assertEqual(SMOKE.decode_output(b"ok"), "ok")
@@ -49,7 +57,7 @@ class SmokeExportTests(unittest.TestCase):
             pack = release / "Stormline-Black-Tide.pck"
             pack.write_bytes(b"fixture")
             scratch = root / "scratch"
-            required = ["res://src/main.gd", "res://src/voyage_review.gd"]
+            required = list(SMOKE.REQUIRED_RUNTIME_SCRIPTS)
             loaded = required.copy()
 
             def run(command, **options):
@@ -57,7 +65,9 @@ class SmokeExportTests(unittest.TestCase):
                 self.assertEqual(command[1:5], ["--headless", "--audio-driver", "Dummy", "--path"])
                 self.assertEqual(command[6], "--log-file")
                 self.assertTrue(Path(command[7]).is_relative_to(scratch))
-                self.assertTrue(Path(options["env"]["APPDATA"]).is_relative_to(scratch))
+                for key in ("APPDATA", "LOCALAPPDATA", "TEMP", "TMP", "USERPROFILE",
+                            "HOME", "XDG_DATA_HOME", "XDG_CONFIG_HOME", "XDG_CACHE_HOME"):
+                    self.assertTrue(Path(options["env"][key]).is_relative_to(scratch), key)
                 self.assertNotIn("run/main_scene", (Path(command[5]) / "project.godot").read_text(encoding="utf-8"))
                 if command[8:] == ["--version"]:
                     return subprocess.CompletedProcess(command, 0, SMOKE.ENGINE_VERSION, "")
@@ -72,14 +82,25 @@ class SmokeExportTests(unittest.TestCase):
 
             with patch("sys.argv", ["smoke_export.py", "--godot", "Godot.exe", "--pck", str(pack),
                                     "--sandbox-dir", str(scratch)]), patch.object(
-                                         SMOKE, "check_pck", return_value={"entry_count": 20,
+                                         SMOKE, "check_pck", return_value={"entry_count": 32,
                                              "resolved_runtime_resources": dict.fromkeys(required, "fixture")}), patch.object(
                                          SMOKE.subprocess, "run", side_effect=run) as process, patch("builtins.print"):
                 self.assertEqual(SMOKE.main(), 0)
                 self.assertEqual(process.call_count, 2)
-                loaded.remove("res://src/voyage_review.gd")
-                self.assertEqual(SMOKE.main(), 1, "a stale probe without the review script must fail")
-                self.assertEqual(process.call_count, 4)
+                for missing in required:
+                    with self.subTest(missing_runtime_script=missing):
+                        loaded.remove(missing)
+                        self.assertEqual(SMOKE.main(), 1, "a stale probe must fail: " + missing)
+                        loaded.append(missing)
+                # Even a self-consistent stale manifest+probe cannot omit a mandatory dependency.
+                for missing in required:
+                    with self.subTest(missing_in_manifest_and_probe=missing):
+                        loaded.remove(missing)
+                        stale = {name: "fixture" for name in required if name != missing}
+                        with patch.object(SMOKE, "check_pck", return_value={"entry_count": 30,
+                                                                         "resolved_runtime_resources": stale}):
+                            self.assertEqual(SMOKE.main(), 1, "missing dependency in both pack and probe must fail")
+                        loaded.append(missing)
 
 
 if __name__ == "__main__":

@@ -8,11 +8,12 @@ signal restart_requested
 signal briefing_requested
 signal mute_requested
 signal quit_requested
+signal expedition_requested
 
 const Radar = preload("res://src/radar.gd")
 const Sim = preload("res://src/storm_sim.gd")
-# storm_sim._attach uses this literal; interaction_feedback probes its real predicate.
-const ATTACH_RELATIVE_SPEED := 4.2
+const Catalog = preload("res://src/expedition_catalog.gd")
+const ATTACH_RELATIVE_SPEED := Sim.ATTACH_RELATIVE_SPEED
 # Matches the raw-tension gate and snapshot cap in storm_sim.step().
 const TOW_RATED_LOAD := 1.0
 const TOW_DISPLAY_LIMIT := 1.5
@@ -30,6 +31,7 @@ const MIN_DESKTOP_SIZE := Vector2i(960, 600)
 const DESIGN_SIZE := Vector2(1440.0, 900.0)
 const KEYS_DRIVE := "W/S 或 ↑/↓  油门（前进／倒车）    ·    A/D 或 ←/→  转向    ·    E  长按声纳    ·    Space  挂索"
 const KEYS_TOW := "1 推进 / 2 搜索 / 3 稳索    ·    按住 Shift 慢车    ·    Q 收绳 / F 放绳    ·    P/Esc 暂停／继续    ·    R 重开    ·    M 静音"
+const KEYS_EXPEDITION := "1/2/3 动力档    ·    Shift 慢车    ·    Q 收 / F 放    ·    P/Esc 暂停／继续    ·    远征禁用 R 重开    ·    M 静音"
 
 var _contracts: Dictionary = {}
 var _records: Dictionary = {}
@@ -60,8 +62,10 @@ var _gauges: Dictionary = {}
 var _speed: Label
 var _wind: Label
 var _power: Label
+var _rig: Label
 var _rope: Label
 var _tow_action: Label
+var _keys_tow: Label
 
 var _contract_cards: Dictionary = {}
 var _brief_name: Label
@@ -99,7 +103,7 @@ func _ready() -> void:
 	_interface_root = root
 	root.name = "StormlineInterface"
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.theme = _make_theme()
+	root.theme = make_theme()
 	add_child(root)
 	# Honor the actual logical viewport, including embedding without project stretch.
 	get_viewport().size_changed.connect(_fit_interface)
@@ -151,6 +155,10 @@ func present(view: Dictionary) -> void:
 	if not is_node_ready():
 		return
 	var screen := String(view.get("screen", "briefing"))
+	if bool(view.get("expedition_ui", false)) and screen != "running":
+		_show_screen("expedition")
+		_curtain.hide()
+		return
 	if screen != "running" and not _menus.has(screen):
 		screen = "briefing"
 	var id := String(view.get("contract_id", _contract_id))
@@ -259,6 +267,8 @@ func _build_live() -> void:
 	_wind = _label(helm_box, "", 18, DIM)
 	_rule(helm_box)
 	_power = _label(helm_box, "", 19, TEAL)
+	_rig = _label(helm_box, "", 17, DIM, true)
+	_rig.hide()
 	_rope = _label(helm_box, "", 18, DIM)
 	_tow_action = _label(helm_box, "", 17, AMBER, true)
 	_tow_action.hide()
@@ -273,26 +283,32 @@ func _build_live() -> void:
 	footer.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	var keys := _column(footer, 4)
 	_label(keys, KEYS_DRIVE, 18, TEXT, true).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_label(keys, KEYS_TOW, 18, DIM, true).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_keys_tow = _label(keys, KEYS_TOW, 18, DIM, true)
+	_keys_tow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 func _present_live(view: Dictionary, contract: Dictionary) -> void:
+	var expedition := _dictionary(view.get("expedition", {}))
+	var in_expedition := not expedition.is_empty()
 	var phase := String(view.get("phase", "approach"))
 	var scanned := bool(view.get("scanned", false))
 	var towing := bool(view.get("tow_attached", false))
 	var elapsed := maxf(0.0, float(view.get("time", 0.0)))
-	var deadline := float(contract.get("deadline", 0.0))
+	var deadline := float(view.get("deadline", contract.get("deadline", 0.0)))
 	var tension := clampf(float(view.get("tension", 0.0)), 0.0, TOW_DISPLAY_LIMIT)
 	var overload := clampf(float(view.get("overload", 0.0)), 0.0, 1.0)
 	var hull := clampf(float(view.get("hull", 100.0)), 0.0, 100.0)
 	var cargo := clampf(float(view.get("cargo_integrity", 100.0)), 0.0, 100.0)
 	var battery := clampf(float(view.get("battery", 100.0)), 0.0, 100.0)
 	var position: Vector2 = view.get("position", Vector2.ZERO)
-	var harbor: Vector2 = contract.get("harbor", position)
+	var harbor: Vector2 = view.get("harbor", contract.get("harbor", position))
 	var wind: Vector2 = view.get("wind", Vector2.ZERO)
 	var velocity: Vector2 = view.get("velocity", Vector2.ZERO)
 	var home_distance := float(view.get("home_distance", position.distance_to(harbor)))
 	var heading := float(view.get("heading", 0.0))
-	_mission.text = String(contract.get("name", "黑潮回收"))
+	_mission.text = String(expedition.get("name", contract.get("name", "黑潮回收")))
+	var hint := KEYS_EXPEDITION if in_expedition else KEYS_TOW
+	if _keys_tow.text != hint:
+		_keys_tow.text = hint
 	_phase.text = "拖带返航" if towing or phase == "return" else ("航迹已锁定" if scanned else "接近信号区")
 	_clock.text = ("剩余 " + _time(deadline - elapsed)) if deadline > 0.0 else ("已用 " + _time(elapsed))
 	_objective.text = _interaction_guidance(view, contract)
@@ -314,6 +330,13 @@ func _present_live(view: Dictionary, contract: Dictionary) -> void:
 	var profile := clampi(int(view.get("power", 0)), 0, POWER_NAMES.size() - 1)
 	var rope_length := float(view.get("rope_length", 0.0))
 	_power.text = "[%d] %s   /   %s" % [profile + 1, POWER_NAMES[profile], "慢车" if bool(view.get("speed_mode", false)) else "常速"]
+	_rig.visible = in_expedition
+	if in_expedition:
+		var effective: Dictionary = expedition.profile
+		var rig := "%s\n推进 %.2f · 缆额 %.2f · 声纳 %.2f" % [module_names(expedition.loadout),
+			float(effective.thrust), float(effective.rating), float(effective.sensors)]
+		if _rig.text != rig:
+			_rig.text = rig
 	_rope.text = "索长 %.1f m   ·   峰值 %s" % [rope_length, _tow_load_percent(float(view.get("peak_tension", 0.0)))] if towing else ("绞盘待命 · Space 挂索" if scanned else "绞盘待命 · 须先锁定")
 	_present_tow_risk(towing, tension, overload, scan, rope_length, profile)
 	var contact := "舱距" if scanned else "距信号区中心"
@@ -322,18 +345,18 @@ func _present_live(view: Dictionary, contract: Dictionary) -> void:
 	else:
 		contact += " %.0f m" % float(view.get("target_distance", 0.0))
 	_ranges.text = "%s   /   港距 %.0f m" % [contact, home_distance]
-	var cross_current := String(contract.get("id", "")) == "cross-current"
+	var cross_current := String(view.get("contract_id", contract.get("id", ""))) == "cross-current"
 	# Make room for two live chart rows without shrinking their text or covering
 	# the helm below; legacy contracts keep their former chart dimensions.
 	_radar.custom_minimum_size.y = 194.0 if cross_current else 238.0
 
 	var radar_view := {"position": position, "heading": heading, "wind": wind, "scanned": scanned, "tow_attached": towing}
-	if contract.has("harbor"):
+	if view.has("harbor") or contract.has("harbor"):
 		radar_view["harbor"] = harbor
-		radar_view["harbor_radius"] = contract.get("harbor_radius", 0.0)
-	if contract.has("beacon"):
-		radar_view["beacon"] = contract.get("beacon")
-	radar_view["hazards"] = contract.get("hazards", [])
+		radar_view["harbor_radius"] = view.get("harbor_radius", contract.get("harbor_radius", 0.0))
+	if view.has("beacon") or contract.has("beacon"):
+		radar_view["beacon"] = view.get("beacon", contract.get("beacon"))
+	radar_view["hazards"] = view.get("hazards", contract.get("hazards", []))
 	if cross_current:
 		var current_index := 0
 		var current_landmarks: Array[Dictionary] = []
@@ -351,7 +374,7 @@ func _present_live(view: Dictionary, contract: Dictionary) -> void:
 		radar_view["cargo_position"] = view.get("cargo_position")
 		radar_view["target_visible"] = bool(view.get("target_visible", true))
 	_radar.set_snapshot(radar_view)
-	_present_dock(view, towing and scanned, harbor, float(contract.get("harbor_radius", 0.0)), position, velocity)
+	_present_dock(view, towing and scanned, harbor, float(view.get("harbor_radius", contract.get("harbor_radius", 0.0))), position, velocity)
 
 
 func _cross_current_readout(tug: Vector2, cargo: Vector2, cargo_known: bool, landmarks: Array[Dictionary]) -> String:
@@ -423,6 +446,8 @@ func _interaction_guidance(view: Dictionary, contract: Dictionary) -> String:
 	var phase := String(view.get("phase", "approach"))
 	var velocity: Vector2 = view.get("velocity", Vector2.ZERO)
 	var speed := velocity.length()
+	# Outfitting changes scan progress and rated force, not the shared scan,
+	# attach or docking gates. Use the same constants as both modes in StormSim.
 	if phase == "approach":
 		if not bool(view.get("scanned", false)):
 			var progress := clampf(float(view.get("scan", 0.0)), 0.0, 1.0)
@@ -521,12 +546,18 @@ func _advisory(battery: float, integrity: float, remaining: float) -> String:
 func _build_briefing(center: CenterContainer) -> void:
 	var box := _menu(center, "briefing", 1020.0, "STORMLINE  /  RECOVERY OPERATIONS", "黑潮回收")
 	_label(box, "低速搜索，挂索返航。船和回收舱均须入港，并稳定 1 秒。", 23, DIM, true)
+	var expedition := _row(_panel(box, true), 12)
+	var overview := _label(expedition, "主线远征  /  三海区、六部署；持久损伤与整备预算", 20, TEAL, true)
+	overview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var door := _button(expedition, "远征 / 继续远征  [X]", func() -> void: expedition_requested.emit(), true, Vector2(0, 44))
+	door.name = "OpenExpedition"
+	door.focus_mode = Control.FOCUS_ALL
 	_rule(box)
 	var columns := _row(box, 18)
 	var picker := _panel(columns)
 	picker.custom_minimum_size.x = 292.0
 	var deck := _column(picker, 10)
-	_label(deck, "航线选择  /  %02d 份合同" % Sim.CONTRACTS.size(), 18, TEAL)
+	_label(deck, "单航次快玩  /  %02d 份合同" % Sim.CONTRACTS.size(), 18, TEAL)
 	for id: String in Sim.CONTRACTS:
 		var card := _column(deck, 4)
 		var button := _button(card, "", _choose_contract.bind(id), false, Vector2(0, 50))
@@ -547,7 +578,7 @@ func _build_briefing(center: CenterContainer) -> void:
 	_label(box, KEYS_DRIVE, 18, TEXT, true)
 	_label(box, KEYS_TOW, 18, DIM, true)
 	var actions := _row(box, 10)
-	_launch = _button(actions, "开航  [Enter]", func() -> void: start_requested.emit(), true, Vector2(220, 50))
+	_launch = _button(actions, "快玩开航  [Enter]", func() -> void: start_requested.emit(), true, Vector2(220, 50))
 	_launch.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_mute_button(actions, Vector2(190, 50))
 	_button(actions, "退出", func() -> void: quit_requested.emit(), false, Vector2(110, 50))
@@ -813,7 +844,7 @@ func _mute_button(parent: Control, minimum: Vector2) -> void:
 	var button := _button(parent, "声音：开启 [M]", func() -> void: mute_requested.emit(), false, minimum)
 	_mute_buttons.append(button)
 
-func _make_theme() -> Theme:
+static func make_theme() -> Theme:
 	var theme := Theme.new()
 	var font := SystemFont.new()
 	font.font_names = PackedStringArray(["Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans CJK SC", "SimHei"])
@@ -830,9 +861,12 @@ func _make_theme() -> Theme:
 		theme.set_stylebox(&"hover", type, _block(Color("b3fff5") if primary else Color("23475b"), TEAL, 6, 12, 6))
 		theme.set_stylebox(&"pressed", type, _block(Color("60bfb9") if primary else Color("162b3c"), TEAL, 6, 12, 6))
 		theme.set_stylebox(&"disabled", type, _block(Color("1b2c3b"), RULE, 6, 12, 6))
+		var focus := _block(Color.TRANSPARENT, AMBER, 6, 0, 0)
+		focus.set_border_width_all(3)
+		theme.set_stylebox(&"focus", type, focus)
 	return theme
 
-func _block(fill: Color, stroke: Color, corner: int, pad_x: int, pad_y: int) -> StyleBoxFlat:
+static func _block(fill: Color, stroke: Color, corner: int, pad_x: int, pad_y: int) -> StyleBoxFlat:
 	var box := StyleBoxFlat.new()
 	box.bg_color = fill
 	box.border_color = stroke
@@ -843,6 +877,14 @@ func _block(fill: Color, stroke: Color, corner: int, pad_x: int, pad_y: int) -> 
 	box.content_margin_top = pad_y
 	box.content_margin_bottom = pad_y
 	return box
+
+static func module_names(ids: Array) -> String:
+	var names := PackedStringArray()
+	var modules := Catalog.modules()
+	for id: String in ids:
+		if modules.has(id):
+			names.append(String(modules[id].name))
+	return "原装" if names.is_empty() else " + ".join(names)
 
 func _time(seconds: float) -> String:
 	var tenths := roundi(maxf(seconds, 0.0) * 10.0)

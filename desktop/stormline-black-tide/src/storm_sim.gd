@@ -2,11 +2,14 @@ extends RefCounted
 ## Fixed-step planar tug and free-body recovery pod, presented as a 3D scene.
 ## Coordinates are metres on x/z; heading zero points north (-Y), positive turns right.
 
+const Catalog = preload("res://src/expedition_catalog.gd")
 const WORLD_LIMIT := 140.0
 const SCAN_RADIUS := 27.0
 const SCAN_SPEED := 5.5
 const ATTACH_RADIUS := 15.5
 const ATTACH_SPEED := 2.9
+const ATTACH_RELATIVE_SPEED := 4.2
+const SLOW_TARGET := 2.9
 const DOCK_SPEED := 2.6
 const DOCK_TENSION := 0.68
 const DOCK_TIME := 1.0
@@ -62,6 +65,16 @@ const CONTRACTS := {
 	},
 }
 
+const _EXPEDITION_SPEC_KEYS := ["token", "offer_id", "contract", "loadout", "hull", "battery", "pressure", "path"]
+const _EXPEDITION_OVERRIDES := ["id", "name", "briefing", "base_contract", "sector", "sector_name", "leg",
+	"risk", "branch", "flagship", "reward", "parts_reward", "launch_cost", "severity", "mass", "deadline", "wind_angle"]
+const _EXPEDITION_THRESHOLDS := {
+	"scan_radius": SCAN_RADIUS, "scan_speed": SCAN_SPEED, "attach_radius": ATTACH_RADIUS, "attach_speed": ATTACH_SPEED,
+	"attach_relative_speed": ATTACH_RELATIVE_SPEED, "slow_target": SLOW_TARGET, "dock_speed": DOCK_SPEED,
+	"dock_tension": DOCK_TENSION, "dock_time": DOCK_TIME, "rated_tension": 1.0,
+	"rope_min": ROPE_MIN, "rope_max": ROPE_MAX, "overload_time": OVERLOAD_TIME,
+}
+
 var contract_id := "black-tide"
 var contract: Dictionary = {}
 var phase := "approach"
@@ -98,6 +111,10 @@ var _collision_notice_at := -3.0
 var _tug_impact_at := -3.0
 var _cargo_impact_at := -3.0
 var _danger := false
+var _expedition: Dictionary = {}
+var _profiles: Array = PROFILES
+var _tug_mass := 1.0
+var _energy_multiplier := 1.0
 
 
 func _init() -> void:
@@ -107,6 +124,74 @@ func _init() -> void:
 func reset(id: String = "black-tide") -> void:
 	contract_id = id if CONTRACTS.has(id) else "black-tide"
 	contract = CONTRACTS[contract_id]
+	_expedition = {}
+	_profiles = PROFILES
+	_tug_mass = 1.0
+	_energy_multiplier = 1.0
+	_reset_voyage(100.0, 100.0)
+
+
+func reset_expedition(spec: Dictionary) -> bool:
+	if spec.size() != _EXPEDITION_SPEC_KEYS.size() or not spec.has_all(_EXPEDITION_SPEC_KEYS):
+		return false
+	if not _valid_deployment_token(spec.token) or not spec.offer_id is String or not spec.contract is Dictionary \
+			or not spec.loadout is Array or not spec.pressure is int or not spec.path is Array \
+			or not _usable_resource(spec.hull) or not _usable_resource(spec.battery):
+		return false
+	var effects := Catalog.loadout_effects(spec.loadout)
+	if effects.is_empty():
+		return false
+	var overlay := Catalog.build_contract(spec.offer_id, spec.pressure, spec.path)
+	if overlay.is_empty() or not CONTRACTS.has(overlay.base_contract) \
+			or spec.contract.size() != _EXPEDITION_OVERRIDES.size() or overlay.size() != _EXPEDITION_OVERRIDES.size():
+		return false
+	# Use the rebuilt values, not the caller's contract. Reject extra fields,
+	# malformed values, stale quotes and attempts to smuggle in geometry.
+	var next_contract: Dictionary = CONTRACTS[overlay.base_contract].duplicate(true)
+	for key: String in _EXPEDITION_OVERRIDES:
+		var quoted: Variant = spec.contract.get(key)
+		if not overlay.has(key) or typeof(quoted) != typeof(overlay[key]) or quoted != overlay[key]:
+			return false
+		next_contract[key] = overlay[key]
+
+	# No mutation of the running voyage before the full launch envelope is valid.
+	contract_id = String(overlay.base_contract)
+	contract = next_contract
+	_tug_mass = float(effects.mass)
+	_energy_multiplier = float(effects.energy)
+	_profiles = _effective_profiles(effects) if not spec.loadout.is_empty() else PROFILES
+	_expedition = overlay
+	_expedition.merge({"token": spec.token, "offer_id": spec.offer_id, "path": spec.path.duplicate(),
+		"pressure": spec.pressure, "loadout": spec.loadout.duplicate(), "effects": effects,
+		"thresholds": _EXPEDITION_THRESHOLDS, "initial_hull": float(spec.hull), "initial_battery": float(spec.battery)})
+	_reset_voyage(float(spec.hull), float(spec.battery))
+	return true
+
+
+func _valid_deployment_token(value: Variant) -> bool:
+	# Correlation ID only: State owns authorization and one-time settlement.
+	if not value is String or value.is_empty() or value.length() > 40:
+		return false
+	for character: String in value:
+		if not character in "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_:":
+			return false
+	return true
+
+
+func _usable_resource(value: Variant) -> bool:
+	return (value is int or value is float) and is_finite(float(value)) and float(value) > 0.0 and float(value) <= 100.0
+
+
+func _effective_profiles(effects: Dictionary) -> Array:
+	var result := PROFILES.duplicate(true)
+	for profile: Dictionary in result:
+		for key: String in ["thrust", "sensors", "rating", "stability"]:
+			profile[key] = float(profile[key]) * float(effects[key])
+		profile.yaw = float(profile.yaw) / _tug_mass
+	return result
+
+
+func _reset_voyage(initial_hull: float, initial_battery: float) -> void:
 	phase = "approach"
 	position = contract.start
 	velocity = Vector2.ZERO
@@ -115,9 +200,9 @@ func reset(id: String = "black-tide") -> void:
 	cargo_velocity = Vector2.ZERO
 	wind = Vector2.ZERO
 	storm_intensity = float(contract.severity)
-	hull = 100.0
+	hull = initial_hull
 	cargo_integrity = 100.0
-	battery = 100.0
+	battery = initial_battery
 	mission_time = 0.0
 	power_profile = 0
 	throttle = 0.0
@@ -156,7 +241,7 @@ func step(delta: float, input: Dictionary = {}) -> Dictionary:
 		var requested_power: Variant = input.power
 		if (requested_power is int or requested_power is float) and is_finite(float(requested_power)):
 			set_power_profile(int(clampf(float(requested_power), 0.0, float(PROFILES.size() - 1))))
-	var profile: Dictionary = PROFILES[power_profile]
+	var profile: Dictionary = _profiles[power_profile]
 	var steer := _bounded_control(input.get("steer", 0.0))
 	throttle = _bounded_control(input.get("throttle", 0.0))
 	var reel := _bounded_control(input.get("reel", 0.0))
@@ -175,7 +260,7 @@ func step(delta: float, input: Dictionary = {}) -> Dictionary:
 	var drive: float = float(profile.thrust) * throttle * (0.74 if throttle < 0.0 else 1.0)
 	if speed_mode:
 		# The governor brakes in-world; it does not teleport a fast vessel to a lower speed.
-		drive = clampf((throttle * 2.9 - velocity.dot(forward)) * 2.5, -6.2, 5.0)
+		drive = clampf((throttle * SLOW_TARGET - velocity.dot(forward)) * 2.5, -6.2, 5.0)
 	elif is_zero_approx(throttle):
 		drive = -velocity.dot(forward) * (0.24 if tow_attached else 0.66)
 	var tug_flow := _flow(position)
@@ -220,6 +305,8 @@ func step(delta: float, input: Dictionary = {}) -> Dictionary:
 		else:
 			_danger = false
 			overload = maxf(0.0, overload - dt * 0.45)
+	if _tug_mass != 1.0:
+		tug_accel /= _tug_mass
 	velocity = (velocity + tug_accel * dt).limit_length(18.5)
 	cargo_velocity = (cargo_velocity + cargo_accel * dt).limit_length(17.0)
 	position = _clamp_world(position + velocity * dt)
@@ -230,6 +317,8 @@ func step(delta: float, input: Dictionary = {}) -> Dictionary:
 		energy_draw += 0.20 + float(profile.sensors) * 0.22
 	if tow_attached:
 		energy_draw += 0.08 + absf(reel) * 0.19
+	if _energy_multiplier != 1.0:
+		energy_draw *= _energy_multiplier
 	battery = maxf(0.0, battery - energy_draw * dt)
 	if hull <= 0.0:
 		_fail("船体耐久归零，拖船失去动力。", "collision")
@@ -262,7 +351,7 @@ func _attach(forward: Vector2) -> void:
 		_emit("denied", "目标尚未锁定。靠近信号区域后按住 E 扫描。")
 	elif position.distance_to(cargo_position) > ATTACH_RADIUS:
 		_emit("denied", "挂索距离过远：靠近到 15.5 米以内。")
-	elif velocity.length() > ATTACH_SPEED or (velocity - cargo_velocity).length() > 4.2:
+	elif velocity.length() > ATTACH_SPEED or (velocity - cargo_velocity).length() > ATTACH_RELATIVE_SPEED:
 		_emit("denied", "相对速度过高。松油门或倒车修正，稳住再挂索。")
 	else:
 		phase = "return"
@@ -398,7 +487,7 @@ func objective_text() -> String:
 
 func snapshot() -> Dictionary:
 	var visible := scanned and (tow_attached or position.distance_to(cargo_position) < 51.0)
-	return {
+	var view := {
 		"contract_id": contract_id, "phase": phase, "objective": objective_text(),
 		"position": position, "velocity": velocity, "heading": heading,
 		"cargo_position": cargo_position, "cargo_velocity": cargo_velocity,
@@ -417,3 +506,11 @@ func snapshot() -> Dictionary:
 		"notice": event_message if mission_time <= _notice_until or phase == "failed" else "",
 		"fail_reason": fail_reason, "report": report.duplicate(),
 	}
+	if not _expedition.is_empty():
+		var expedition := _expedition.duplicate(true)
+		expedition["profile"] = _profiles[power_profile].duplicate()
+		view["hazards"] = contract.hazards.duplicate(true)
+		view["expedition"] = expedition
+		view["expedition_token"] = expedition.token
+		view["offer_id"] = expedition.offer_id
+	return view
