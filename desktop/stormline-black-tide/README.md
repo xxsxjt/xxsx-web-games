@@ -29,6 +29,7 @@
 - 阶段 19（3D 拖缆标签状态同步）：`docs/stage-19-towline-visual-feedback.md`
 - 阶段 20（阈值附近的反馈读数）：`docs/stage-20-threshold-readings.md`
 - 阶段 21（场景标记可见状态生命周期）：`docs/stage-21-world-visibility-lifecycle.md`
+- 阶段 22（正式应用 HUD/雷达/世界切屏一致性）：`docs/stage-22-presentation-lifecycle.md`
 - 持续开发和验证计划：`docs/task-plan.md`
 - 本机无窗口证据：`build/qa/<时间戳>/summary.json` 及相邻日志。
 - Windows 候选包：`build/releases/<时间戳>/`；EXE、独立 PCK、说明和校验随包放置。
@@ -47,7 +48,7 @@ python -X utf8 tools/regression.py --godot 'Godot_v4.3-stable_win64_console.exe'
 python -X utf8 tools/build_windows.py --godot 'Godot_v4.3-stable_win64_console.exe' --qa 'build/qa/<本次时间戳>/summary.json'
 ```
 
-构建器要求二十二项 Godot 无窗口检查（导入与二十一套脚本）及 `smoke_tool`（Python 探针自测）；完整 QA 命令会自动执行这二十三项检查，含终局优先级、临港生命周期、针礁触礁恢复、持键生命周期、交互反馈、拖缆风险、3D 拖缆标签和场景显隐生命周期套件。要求以 `tools/regression.py` 的 `REQUIRED_CHECKS` 为准。
+构建器要求二十三项 Godot 无窗口检查（导入与二十二套脚本）及 `smoke_tool`（Python 探针自测）；完整 QA 命令会自动执行这二十四项检查，含终局优先级、临港生命周期、针礁触礁恢复、持键生命周期、交互反馈、拖缆风险、3D 拖缆标签、场景显隐及正式应用切屏生命周期套件。要求以 `tools/regression.py` 的 `REQUIRED_CHECKS` 为准。
 
 导出后可用官方 Godot 的隔离无窗口脚本仅加载 PCK 资源。下述探针不执行游戏 EXE、不实例化主场景，只加载七个编译脚本和入口 PackedScene 资源、对无场景模拟器单步校验。用户目录和日志隔离；不播放音频、不截屏、不验证真实渲染/操控。
 
