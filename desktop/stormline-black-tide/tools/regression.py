@@ -13,6 +13,7 @@ import sys
 SCRIPT_SUITES = (
     "app", "journey", "records", "audio", "layout", "input", "docking", "robustness",
     "cargo_tow", "recovery", "recovery_app", "terminal_priority", "docking_lifecycle",
+    "needle_recovery",
 )
 REQUIRED_CHECKS = ("import", *SCRIPT_SUITES, "smoke_tool")
 
