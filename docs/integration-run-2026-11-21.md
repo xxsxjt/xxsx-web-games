@@ -45,6 +45,8 @@
 
 隔离发布构建副本：`C:\Users\xxsx\AppData\Local\Temp\opencode\xxsx-old-slices-publish-542b255f5b88466e847b7b72b809a53e`。该副本中 `npm run build`、`npm test`、四项旧切片定向测试均退出 0；本阶段不把该隔离结果表述为共享树最终构建通过。
 
+本阶段提交 `69497ce5c44e2d706bc704357e2338d605fa5e76`（20 个显式文件）已正常推送；`git fetch origin main`、`git ls-remote origin refs/heads/main` 均读到该 SHA。远端 main 树核对本清单 20/20 文件 Git blob 与本地一致。推送后工作树中仍保留未提交的边境、黑盒、电路、打捞、余烬独占改动；未部署 Sites、未做浏览器试玩。
+
 ## 证据登记
 
 命令、退出码、提交 SHA、远端 `refs/heads/main`、内容核验与未执行边界随阶段追加；任何未实测项保持“未执行/未验证”，不据计划或旧摘要推断通过。
