@@ -16,7 +16,6 @@ const ATTACH_RELATIVE_SPEED := 4.2
 # Matches the raw-tension gate and snapshot cap in storm_sim.step().
 const TOW_RATED_LOAD := 1.0
 const TOW_DISPLAY_LIMIT := 1.5
-const CONTRACT_IDS := ["black-tide", "needle-bank"]
 const POWER_NAMES := ["推进", "搜索", "稳索"]
 const TEXT := Color("e9f5fa")
 const DIM := Color("a9c4d3")
@@ -132,7 +131,7 @@ func configure(contracts: Dictionary, best_records: Dictionary) -> void:
 	_records = best_records
 	if not _contracts.has(_contract_id):
 		_contract_id = ""
-		for id in CONTRACT_IDS:
+		for id: String in Sim.CONTRACTS:
 			if _contracts.has(id):
 				_contract_id = id
 				break
@@ -307,6 +306,10 @@ func _present_live(view: Dictionary, contract: Dictionary) -> void:
 	else:
 		contact += " %.0f m" % float(view.get("target_distance", 0.0))
 	_ranges.text = "%s   /   港距 %.0f m" % [contact, home_distance]
+	var cross_current := String(contract.get("id", "")) == "cross-current"
+	# Make room for two live chart rows without shrinking their text or covering
+	# the helm below; legacy contracts keep their former chart dimensions.
+	_radar.custom_minimum_size.y = 194.0 if cross_current else 238.0
 
 	var radar_view := {"position": position, "heading": heading, "wind": wind, "scanned": scanned, "tow_attached": towing}
 	if contract.has("harbor"):
@@ -315,11 +318,48 @@ func _present_live(view: Dictionary, contract: Dictionary) -> void:
 	if contract.has("beacon"):
 		radar_view["beacon"] = contract.get("beacon")
 	radar_view["hazards"] = contract.get("hazards", [])
+	if cross_current:
+		var current_index := 0
+		var current_landmarks: Array[Dictionary] = []
+		for hazard: Variant in radar_view.hazards:
+			if hazard is Dictionary and String(hazard.get("kind", "")) == "current":
+				current_index += 1
+				var landmark: Dictionary = hazard.duplicate()
+				landmark["number"] = current_index
+				current_landmarks.append(landmark)
+		radar_view["current_landmarks"] = current_landmarks
+		_ranges.text += _cross_current_readout(position,
+			view.get("cargo_position", position) as Vector2 if scanned else position,
+			scanned, current_landmarks)
 	if scanned and view.get("cargo_position") is Vector2:
 		radar_view["cargo_position"] = view.get("cargo_position")
 		radar_view["target_visible"] = bool(view.get("target_visible", true))
 	_radar.set_snapshot(radar_view)
 	_present_dock(view, towing and scanned, harbor, float(contract.get("harbor_radius", 0.0)), position, velocity)
+
+
+func _cross_current_readout(tug: Vector2, cargo: Vector2, cargo_known: bool, landmarks: Array[Dictionary]) -> String:
+	var lines := PackedStringArray()
+	for landmark: Dictionary in landmarks:
+		var number := int(landmark.get("number", 0))
+		var name := String(landmark.get("name", "水流"))
+		var radius := maxf(0.0, float(landmark.get("radius", 0.0)))
+		var center: Vector2 = landmark.get("position", Vector2.ZERO)
+		var cargo_reading := _current_edge_reading(cargo.distance_to(center), radius) if cargo_known else "未锁定"
+		lines.append("%d%s 船%s 舱%s" % [
+			number, name, _current_edge_reading(tug.distance_to(center), radius), cargo_reading])
+	return "\n" + "\n".join(lines) if not lines.is_empty() else ""
+
+
+func _current_edge_reading(distance: float, radius: float) -> String:
+	var remaining := radius - distance
+	if remaining == 0.0:
+		return "圈边"
+	var side := "圈内" if remaining > 0.0 else "圈外"
+	var clearance := absf(remaining)
+	# A rounded zero obscures whether the body is in the model's strict flow
+	# radius. These are geometric readings, not an all-clear or damage forecast.
+	return side + ("<1m" if clearance < 1.0 else "%dm" % roundi(clearance))
 
 func _present_dock(view: Dictionary, towing: bool, harbor: Vector2, radius: float, position: Vector2, velocity: Vector2) -> void:
 	var cargo_position: Variant = view.get("cargo_position") if towing else null
@@ -470,8 +510,8 @@ func _build_briefing(center: CenterContainer) -> void:
 	var picker := _panel(columns)
 	picker.custom_minimum_size.x = 292.0
 	var deck := _column(picker, 10)
-	_label(deck, "航线选择  [1 / 2]", 18, TEAL)
-	for id in CONTRACT_IDS:
+	_label(deck, "航线选择  /  %02d 份合同" % Sim.CONTRACTS.size(), 18, TEAL)
+	for id: String in Sim.CONTRACTS:
 		var card := _column(deck, 4)
 		var button := _button(card, "", _choose_contract.bind(id), false, Vector2(0, 50))
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -501,8 +541,9 @@ func _choose_contract(id: String) -> void:
 		contract_selected.emit(id)
 
 func _refresh_briefing() -> void:
-	for index in range(CONTRACT_IDS.size()):
-		var id: String = CONTRACT_IDS[index]
+	var ids: Array = Sim.CONTRACTS.keys()
+	for index in range(ids.size()):
+		var id := String(ids[index])
 		var card: Dictionary = _contract_cards[id]
 		var available := _contracts.has(id)
 		card.container.visible = available

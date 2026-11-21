@@ -172,13 +172,13 @@ func _unhandled_input(event: InputEvent) -> void:
 	if key == KEY_M:
 		_on_mute_requested()
 	elif screen == "briefing":
-		match key:
-			KEY_ENTER, KEY_KP_ENTER:
-				_on_start_requested()
-			KEY_1:
-				_on_contract_selected("black-tide")
-			KEY_2:
-				_on_contract_selected("needle-bank")
+		if key == KEY_ENTER or key == KEY_KP_ENTER:
+			_on_start_requested()
+		elif key >= KEY_1 and key <= KEY_9:
+			var index := int(key) - KEY_1
+			var ids: Array = Sim.CONTRACTS.keys()
+			if index < ids.size():
+				_on_contract_selected(String(ids[index]))
 	elif screen == "running":
 		match key:
 			KEY_SPACE:

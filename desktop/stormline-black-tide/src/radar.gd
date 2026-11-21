@@ -45,6 +45,14 @@ func _draw() -> void:
 		if raw is Dictionary and raw.get("position") is Vector2:
 			var point: Vector2 = raw.get("position")
 			_draw_hazard(center + (point - origin) * scale, maxf(5.0, float(raw.get("radius", 0.0)) * scale), String(raw.get("kind", "reef")))
+	for landmark: Dictionary in _snapshot.get("current_landmarks", []):
+		var point: Vector2 = landmark.get("position", origin)
+		var mark := center + (point - origin) * scale
+		var label := str(int(landmark.get("number", 0)))
+		var font := get_theme_default_font()
+		var width := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 16).x
+		draw_circle(mark, 9.0, Color("171e3b"))
+		draw_string(font, mark + Vector2(-width * 0.5, 5.5), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("f2efff"))
 	if _snapshot.has("harbor"):
 		var dock := center + (harbor - origin) * scale
 		var ring := maxf(5.0, harbor_radius * scale)

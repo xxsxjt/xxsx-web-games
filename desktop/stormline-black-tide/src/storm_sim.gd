@@ -46,6 +46,20 @@ const CONTRACTS := {
 			{"position": Vector2(-34, -55), "radius": 13.0, "name": "浅滩回旋", "kind": "current"},
 		],
 	},
+	"cross-current": {
+		"id": "cross-current", "name": "碎潮回廊", "subtitle": "03 / CROSS CURRENT · 叠流择道",
+		"briefing": "回收舱落在碎潮外缘。断桅礁切断直返线；东横流与西折涡之间可抢一条急弯捷径，也可走南脊外侧的宽水绕行。拖带转弯留意尾舱与横流。",
+		"harbor": Vector2(52, 46), "start": Vector2(52, 56), "harbor_radius": 18.0,
+		"beacon": Vector2(-58, -75), "target": Vector2(-65, -87), "deadline": 215.0,
+		"wind_angle": 1.18, "severity": 0.66, "mass": 2.7,
+		"hazards": [
+			{"position": Vector2(-2, -16), "radius": 19.0, "name": "断桅礁", "kind": "reef"},
+			{"position": Vector2(-27, -45), "radius": 24.0, "name": "西折涡", "kind": "current"},
+			{"position": Vector2(22, -38), "radius": 27.0, "name": "东横流", "kind": "current"},
+			{"position": Vector2(34, -71), "radius": 12.0, "name": "南门礁", "kind": "reef"},
+			{"position": Vector2(79, 23), "radius": 11.0, "name": "港外礁", "kind": "reef"},
+		],
+	},
 }
 
 var contract_id := "black-tide"

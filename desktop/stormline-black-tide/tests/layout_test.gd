@@ -23,10 +23,20 @@ func _run() -> void:
 	viewport.add_child(hud)
 	hud.configure(Sim.CONTRACTS, {})
 	var sim := Sim.new()
+	for id: String in Sim.CONTRACTS:
+		sim.reset(id)
+		await _check_contract_layout(viewport, hud, sim)
+	viewport.queue_free()
+	await process_frame
+	print("Stormline layout geometry: %d checks, %d failures; programmatic bounds only, no rendered screenshot or real-window test." % [_checks, _failures])
+	quit(0 if _failures == 0 else 1)
+
+
+func _check_contract_layout(viewport: SubViewport, hud: CanvasLayer, sim: RefCounted) -> void:
 	for dimensions: Vector2i in [Vector2i(1440, 900), Vector2i(1280, 720), Vector2i(960, 600), Vector2i(1920, 1080)]:
 		viewport.size = dimensions
 		for scenario: String in ["briefing", "running", "dock", "paused", "failed", "success"]:
-			var view := sim.snapshot()
+			var view: Dictionary = sim.snapshot()
 			view.screen = scenario
 			if scenario == "dock":
 				view.screen = "running"
@@ -44,7 +54,7 @@ func _run() -> void:
 			hud.present(view)
 			for frame in range(4):
 				await process_frame
-			var label := "%dx%d/%s" % [dimensions.x, dimensions.y, scenario]
+			var label := "%s/%dx%d/%s" % [view.contract_id, dimensions.x, dimensions.y, scenario]
 			var bounds := Rect2(Vector2.ZERO, Vector2(dimensions))
 			if scenario in ["running", "dock"]:
 				var panels: Array[Control] = []
@@ -59,13 +69,13 @@ func _run() -> void:
 			else:
 				var menu: Control = hud.get("_menus")[view.screen]
 				_check(_contains(bounds, _rect(menu)), label + " menu is inside viewport; rect=" + str(_rect(menu)))
+				if scenario == "briefing":
+					var dossier: Label = hud.get("_brief_copy")
+					_check(dossier.text == Sim.CONTRACTS[view.contract_id].briefing and _contains(bounds, _rect(dossier)),
+						label + " selected briefing copy remains in bounds")
 			for button: Button in hud.find_children("*", "Button", true, false):
 				if button.is_visible_in_tree():
 					_check(_contains(bounds, _rect(button)), label + " button in bounds: " + button.text)
-	viewport.queue_free()
-	await process_frame
-	print("Stormline layout geometry: %d checks, %d failures; programmatic bounds only, no rendered screenshot or real-window test." % [_checks, _failures])
-	quit(0 if _failures == 0 else 1)
 
 
 func _contains(outer: Rect2, inner: Rect2) -> bool:

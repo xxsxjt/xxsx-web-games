@@ -16,7 +16,9 @@ SCRIPT_SUITES = (
     "needle_recovery", "needle_lifecycle", "needle_keyboard", "needle_held_lifecycle",
     "interaction_feedback", "tow_risk_feedback", "towline_visual_feedback",
     "world_visibility_lifecycle",
-    "presentation_lifecycle",
+    "presentation_lifecycle", "breakwater_journey", "cross_current_app",
+    "cross_current_route_feedback",
+    "rule_threshold_language",
 )
 REQUIRED_CHECKS = ("import", *SCRIPT_SUITES, "smoke_tool")
 

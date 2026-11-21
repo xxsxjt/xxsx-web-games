@@ -3,6 +3,7 @@ extends SceneTree
 const RecordsStore = preload("res://src/storm_records.gd")
 const BLACK_TIDE := "black-tide"
 const NEEDLE_BANK := "needle-bank"
+const CROSS_CURRENT := "cross-current"
 
 var _root: String
 var _failures := 0
@@ -19,6 +20,7 @@ func _init() -> void:
 	_test_malformed_files()
 	_test_backup_recovery()
 	_test_storage_failure()
+	_test_expansion_isolation()
 	for name in DirAccess.get_files_at(_root):
 		_check(DirAccess.remove_absolute(_root.path_join(name)) == OK, "remove test fixture " + name)
 	_check(DirAccess.remove_absolute(_root) == OK, "remove isolated records test directory")
@@ -147,6 +149,40 @@ func _test_storage_failure() -> void:
 	_check(FileAccess.get_file_as_bytes(path) == original, "failed replacement preserves bytes of previous verified record")
 	_check(RecordsStore.new(path).records.get(BLACK_TIDE, {}) == older, "previous best reloads after failure")
 	_check(DirAccess.remove_absolute(path + ".bak") == OK, "remove rotation blocker")
+
+
+func _test_expansion_isolation() -> void:
+	var path := _root.path_join("v1.json")
+	var expansion := path + ".expansion.json"
+	# Pre-expansion envelope as written/read by the v0.1.1 game.
+	var first := _report(8400, 85.5)
+	var second := _report(7200, 122.0)
+	var prior := JSON.stringify({"version": 1, "records": {BLACK_TIDE: first, NEEDLE_BANK: second}})
+	_check(_write(path, prior), "seed two-route v1 store")
+	_check(_write(path + ".bak", prior), "seed original verified backup")
+	var store := RecordsStore.new(path)
+	var stale := RecordsStore.new(path)
+	_check(store.records == {BLACK_TIDE: first, NEEDLE_BANK: second}, "two existing records load unchanged")
+	var third := _report(7550, 153.5)
+	_check(store.record(CROSS_CURRENT, third) == RecordsStore.NEW_BEST, "expansion record saves")
+	_check(FileAccess.get_file_as_string(path) == prior and FileAccess.get_file_as_string(path + ".bak") == prior,
+		"expansion save never rewrites either original v1 file")
+	_check(RecordsStore.new(path).records == {BLACK_TIDE: first, NEEDLE_BANK: second, CROSS_CURRENT: third},
+		"original and expansion results reload together")
+	_check(stale.record(CROSS_CURRENT, _report(4000, 50.0)) == RecordsStore.EXISTING_BEST,
+		"stale writer cannot downgrade an expansion best")
+	var faster := _report(7550, 151.0)
+	_check(store.record(CROSS_CURRENT, faster) == RecordsStore.NEW_BEST, "expansion tie breaks by time")
+	var expansion_bytes := FileAccess.get_file_as_bytes(expansion)
+	var improved := _report(8500, 93.5)
+	_check(store.record(BLACK_TIDE, improved) == RecordsStore.NEW_BEST, "v1 contract still writes normally")
+	var legacy_envelope: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(path))
+	_check(legacy_envelope.version == 1 and legacy_envelope.records.size() == 2
+		and not legacy_envelope.records.has(CROSS_CURRENT), "old readers still see a two-id v1 envelope")
+	_check(FileAccess.get_file_as_bytes(expansion) == expansion_bytes, "v1 update cannot rewrite expansion")
+	_check(_write(expansion, "{"), "damage only the expansion primary")
+	_check(RecordsStore.new(path).records == {BLACK_TIDE: improved, NEEDLE_BANK: second, CROSS_CURRENT: third},
+		"expansion backup recovery leaves original bests intact")
 
 
 func _report(score: int, elapsed: float) -> Dictionary:

@@ -15,7 +15,7 @@ import zipfile
 from regression import REQUIRED_CHECKS, source_hashes
 
 
-VERSION = "0.1.1"
+VERSION = "0.1.2"
 STEM = "Stormline-Black-Tide"
 PACKAGE = f"{STEM}-v{VERSION}-windows-x64"
 TEMPLATE_SHA256 = "66b26ad96df7458ea917b632a73ac7c88bb058db24dbd11a457fd50435ab7b13"

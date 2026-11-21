@@ -2,7 +2,9 @@ extends RefCounted
 
 const VERSION := 1
 const MAX_FILE_BYTES := 4096
-const CONTRACT_IDS := ["black-tide", "needle-bank"]
+const Sim = preload("res://src/storm_sim.gd")
+# Keep the original v1 file readable by builds that reject unknown contract ids.
+const ORIGINAL_IDS := ["black-tide", "needle-bank"]
 const NEW_BEST := "已保存新的本机最佳成绩"
 const EXISTING_BEST := "保留原有本机最佳成绩"
 const CANNOT_SAVE := "无法保存本机最佳成绩"
@@ -18,34 +20,47 @@ const JSON_TOKENS := (
 
 var records: Dictionary = {}
 var _path: String
+var _expansion_path: String
 var _json_tokens := RegEx.create_from_string(JSON_TOKENS)
 
 
 func _init(file_path: String = "user://best-contracts.json") -> void:
 	_path = ProjectSettings.globalize_path(file_path)
-	var loaded: Variant = _read_records(_path)
-	_merge_loaded(loaded if loaded != null else _read_records(_path + ".bak"))
+	if _path.is_empty():
+		return
+	_expansion_path = _path + ".expansion.json"
+	for original: bool in [true, false]:
+		var path := _path if original else _expansion_path
+		var loaded: Variant = _read_records(path, original)
+		_merge_loaded(loaded if loaded != null else _read_records(path + ".bak", original))
 
 
 # Call only for successfully delivered contracts. The game uses one writer.
 func record(contract_id: String, report: Dictionary) -> String:
-	if contract_id not in CONTRACT_IDS:
+	if not Sim.CONTRACTS.has(contract_id):
 		return CANNOT_SAVE
 	var candidate := _validated_report(report, false)
 	if candidate.is_empty():
 		return CANNOT_SAVE
 
 	# Refresh before ranking so a stale instance cannot replace a newer result.
-	var primary: Variant = _read_records(_path)
-	_merge_loaded(primary if primary != null else _read_records(_path + ".bak"))
+	var original := contract_id in ORIGINAL_IDS
+	var path := _path if original else _expansion_path
+	if path.is_empty():
+		return CANNOT_SAVE
+	var primary: Variant = _read_records(path, original)
+	_merge_loaded(primary if primary != null else _read_records(path + ".bak", original))
 	if records.has(contract_id) and not _is_better(candidate, records[contract_id]):
 		return EXISTING_BEST
 
-	var next := records.duplicate()
+	var next := {}
+	for id: String in records:
+		if _accepts_id(id, original):
+			next[id] = records[id]
 	next[contract_id] = candidate
-	if not _save(next, primary != null):
+	if not _save(path, next, original, primary != null):
 		return CANNOT_SAVE
-	records = next
+	records[contract_id] = candidate
 	return NEW_BEST
 
 
@@ -85,8 +100,12 @@ static func _bounded_float(value: Variant, minimum: float, maximum: float) -> bo
 	return value is float and is_finite(value) and value >= minimum and value <= maximum
 
 
+static func _accepts_id(id: String, original: bool) -> bool:
+	return Sim.CONTRACTS.has(id) and (id in ORIGINAL_IDS) == original
+
+
 # Null means missing or unverified; an empty dictionary is a valid store.
-func _read_records(path: String, expected: PackedByteArray = PackedByteArray()) -> Variant:
+func _read_records(path: String, original: bool, expected: PackedByteArray = PackedByteArray()) -> Variant:
 	var file := FileAccess.open(path, FileAccess.READ)
 	if file == null:
 		return null
@@ -111,7 +130,7 @@ func _read_records(path: String, expected: PackedByteArray = PackedByteArray()) 
 	var loaded := {}
 	for id: String in entries:
 		var entry: Variant = entries[id]
-		if id not in CONTRACT_IDS or not entry is Dictionary or entry.size() != 5:
+		if not _accepts_id(id, original) or not entry is Dictionary or entry.size() != 5:
 			return null
 		var clean := _validated_report(entry, true)
 		if clean.is_empty():
@@ -120,10 +139,10 @@ func _read_records(path: String, expected: PackedByteArray = PackedByteArray()) 
 	return loaded
 
 
-func _save(next: Dictionary, verified_primary: bool) -> bool:
-	if _path.is_empty() or DirAccess.dir_exists_absolute(_path):
+func _save(path: String, next: Dictionary, original: bool, verified_primary: bool) -> bool:
+	if path.is_empty() or DirAccess.dir_exists_absolute(path):
 		return false
-	var stage := "%s.%s.tmp" % [_path, _file_suffix()]
+	var stage := "%s.%s.tmp" % [path, _file_suffix()]
 	var bytes := JSON.stringify({"version": VERSION, "records": next}, "", true, true).to_utf8_buffer()
 	var file := FileAccess.open(stage, FileAccess.WRITE)
 	if file == null:
@@ -132,26 +151,26 @@ func _save(next: Dictionary, verified_primary: bool) -> bool:
 	file.flush()
 	var write_error := file.get_error()
 	file.close()
-	if write_error != OK or _read_records(stage, bytes) == null:
+	if write_error != OK or _read_records(stage, original, bytes) == null:
 		DirAccess.remove_absolute(stage)
 		return false
 
 	# Never replace the verified backup with corrupt input. Archive that input instead.
 	var moved_to := ""
-	if FileAccess.file_exists(_path):
+	if FileAccess.file_exists(path):
 		if verified_primary:
-			moved_to = _path + ".bak"
+			moved_to = path + ".bak"
 		else:
-			moved_to = _path + ".corrupt-" + _file_suffix()
-		if DirAccess.rename_absolute(_path, moved_to) != OK:
+			moved_to = path + ".corrupt-" + _file_suffix()
+		if DirAccess.rename_absolute(path, moved_to) != OK:
 			DirAccess.remove_absolute(stage)
 			return false
 
-	if DirAccess.rename_absolute(stage, _path) == OK:
+	if DirAccess.rename_absolute(stage, path) == OK:
 		return true
 	# If restoring also fails, the older verified data still lives at .bak.
-	if not moved_to.is_empty() and not FileAccess.file_exists(_path):
-		DirAccess.rename_absolute(moved_to, _path)
+	if not moved_to.is_empty() and not FileAccess.file_exists(path):
+		DirAccess.rename_absolute(moved_to, path)
 	DirAccess.remove_absolute(stage)
 	return false
 
