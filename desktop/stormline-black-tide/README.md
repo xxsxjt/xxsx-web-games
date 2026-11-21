@@ -26,6 +26,7 @@
 - 阶段 16（持键暂停/失焦、恢复与重开）：`docs/stage-16-held-key-lifecycle.md`
 - 阶段 17（扫描/挂索/靠港操作反馈）：`docs/stage-17-interaction-feedback.md`
 - 阶段 18（拖缆负载与风险反馈）：`docs/stage-18-tow-risk-feedback.md`
+- 阶段 19（3D 拖缆标签状态同步）：`docs/stage-19-towline-visual-feedback.md`
 - 持续开发和验证计划：`docs/task-plan.md`
 - 本机无窗口证据：`build/qa/<时间戳>/summary.json` 及相邻日志。
 - Windows 候选包：`build/releases/<时间戳>/`；EXE、独立 PCK、说明和校验随包放置。
@@ -44,7 +45,7 @@ python -X utf8 tools/regression.py --godot 'Godot_v4.3-stable_win64_console.exe'
 python -X utf8 tools/build_windows.py --godot 'Godot_v4.3-stable_win64_console.exe' --qa 'build/qa/<本次时间戳>/summary.json'
 ```
 
-构建器要求二十项 Godot 无窗口检查（导入与十九套脚本）及 `smoke_tool`（Python 探针自测）；完整 QA 命令会自动执行这二十一项检查，含终局优先级、临港生命周期、针礁触礁恢复、持键生命周期、交互反馈和拖缆风险套件。
+构建器要求二十一项 Godot 无窗口检查（导入与二十套脚本）及 `smoke_tool`（Python 探针自测）；完整 QA 命令会自动执行这二十二项检查，含终局优先级、临港生命周期、针礁触礁恢复、持键生命周期、交互反馈、拖缆风险与 3D 拖缆标签套件。
 
 导出后可用官方 Godot 的隔离无窗口脚本仅加载 PCK 资源。下述探针不执行游戏 EXE、不实例化主场景，只加载七个编译脚本和入口 PackedScene 资源、对无场景模拟器单步校验。用户目录和日志隔离；不播放音频、不截屏、不验证真实渲染/操控。
 

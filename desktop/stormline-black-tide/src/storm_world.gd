@@ -6,6 +6,8 @@ extends Node3D
 const MAP_LIMIT := 140.0
 const SEA_SIZE := 440.0
 const CABLE_LINKS := 14
+const TOW_RATED_LOAD := 1.0
+const TOW_DISPLAY_LIMIT := 1.5
 
 const DEEP_WATER := Color("061a2e")
 const PALE_WATER := Color("327284")
@@ -709,7 +711,8 @@ func _update_world(view: Dictionary, delta: float, snap_camera: bool) -> void:
 	var cargo_velocity: Vector2 = view.get("cargo_velocity", Vector2.ZERO)
 	var heading := float(view.get("heading", 0.0))
 	var storm := clampf(float(view.get("storm", 0.35)), 0.0, 1.0)
-	var tension := clampf(float(view.get("tension", 0.0)), 0.0, 1.5)
+	var tension := clampf(float(view.get("tension", 0.0)), 0.0, TOW_DISPLAY_LIMIT)
+	var overload_risk := clampf(float(view.get("overload", 0.0)), 0.0, 1.0)
 	var hull := clampf(float(view.get("hull", 100.0)), 0.0, 100.0)
 	var wind: Vector2 = view.get("wind", Vector2.ZERO)
 	var tow_attached := bool(view.get("tow_attached", false))
@@ -728,7 +731,7 @@ func _update_world(view: Dictionary, delta: float, snap_camera: bool) -> void:
 	_target_marker.visible = target_visible and not tow_attached and phase == "approach"
 	_target_label.text = "SONAR LOCK   /   RECOVERY CAPSULE" if scanned else "VISUAL CONTACT   /   RECOVERY CAPSULE"
 	_update_wakes(position_2d, velocity, cargo_position, cargo_velocity, tow_attached, storm)
-	_update_towline(position_2d, cargo_position, cargo_velocity, heading, tow_attached, tension, storm, phase)
+	_update_towline(position_2d, cargo_position, cargo_velocity, heading, tow_attached, tension, overload_risk, storm, phase)
 	_update_sea_and_lights(storm, wind, hull, phase, screen)
 	_update_camera(position_2d, cargo_position, tow_attached, phase, screen, maxf(0.0, delta), snap_camera)
 
@@ -781,21 +784,24 @@ func _draw_wake(mesh: ImmediateMesh, material: Material, position_2d: Vector2, v
 	mesh.surface_end()
 
 
-func _update_towline(position_2d: Vector2, cargo_position: Vector2, cargo_velocity: Vector2, heading: float, towing: bool, tension: float, storm: float, phase: String) -> void:
+func _update_towline(position_2d: Vector2, cargo_position: Vector2, cargo_velocity: Vector2, heading: float, towing: bool, tension: float, overload_risk: float, storm: float, phase: String) -> void:
 	_cable.visible = towing
 	_cable_light.light_energy = 0.0
 	_tow_label.visible = false
 	for link: MeshInstance3D in _cable_links:
 		link.visible = towing
 	if not towing:
+		_tow_label.text = ""
 		return
-	var load_ratio := clampf(tension, 0.0, 1.5)
+	var load_ratio := clampf(tension, 0.0, TOW_DISPLAY_LIMIT)
+	var risk := clampf(overload_risk, 0.0, 1.0)
 	var pulse := 0.72 + 0.28 * sin(_elapsed * (7.0 + storm * 5.0))
-	var overload := load_ratio >= 1.0
+	var overloaded := load_ratio >= TOW_RATED_LOAD
+	var recovering := not overloaded and risk > 0.0
 	var line_color := Color("f0dcad")
 	if load_ratio >= 0.72:
 		line_color = Color("ffb35e")
-	if overload:
+	if overloaded:
 		line_color = Color("ff684f")
 		_cable_light.light_color = HAZARD_ORANGE
 		_cable_light.light_energy = 1.1 + pulse * minf(2.2, load_ratio)
@@ -809,7 +815,7 @@ func _update_towline(position_2d: Vector2, cargo_position: Vector2, cargo_veloci
 	var slack := lerpf(0.68, 0.12, clampf(load_ratio / 1.25, 0.0, 1.0))
 	var thick := 0.16 + minf(load_ratio, 1.4) * 0.12
 	_towline_material.albedo_color = line_color
-	_towline_material.emission = line_color * (0.20 + (0.38 if overload else 0.10) * pulse)
+	_towline_material.emission = line_color * (0.20 + (0.38 if overloaded else 0.10) * pulse)
 	for index in range(CABLE_LINKS):
 		var t0 := float(index) / float(CABLE_LINKS)
 		var t1 := float(index + 1) / float(CABLE_LINKS)
@@ -827,13 +833,21 @@ func _update_towline(position_2d: Vector2, cargo_position: Vector2, cargo_veloci
 		segment.quaternion = Quaternion(Vector3.UP, direction.normalized())
 	var midpoint := start_2d.lerp(end_2d, 0.5)
 	_cable_light.position = Vector3(midpoint.x, 0.88 - slack, midpoint.y)
-	if overload or load_ratio >= 0.72:
+	if overloaded or load_ratio >= 0.72 or recovering:
 		_tow_label.visible = true
 		_tow_label.position = Vector3(midpoint.x, 3.2, midpoint.y)
-		_tow_label.text = "TOW LOAD   %03.0f%%   /   OVERLOAD" % (load_ratio * 100.0) if overload else "TOW LOAD   %03.0f%%   /   MONITOR" % (load_ratio * 100.0)
-		_tow_label.modulate = Color("ff8967") if overload else Color("ffd18a")
+		var load_text := "≥150%" if load_ratio >= TOW_DISPLAY_LIMIT else "%.1f%%" % (load_ratio * 100.0)
+		if load_ratio < TOW_RATED_LOAD and load_text == "100.0%":
+			load_text = "<100%"
+		var risk_text := "<0.1%" if risk > 0.0 and risk < 0.001 else "%.1f%%" % (risk * 100.0)
+		if risk < 1.0 and risk_text == "100.0%":
+			risk_text = "<100%"
+		var state := "OVERLOAD / RISK ACCUM " + risk_text if overloaded else ("RISK FALLING " + risk_text if recovering else "MONITOR")
+		_tow_label.text = "TOW LOAD   %s   /   %s" % [load_text, state]
+		_tow_label.modulate = Color("ff8967") if overloaded else (Color("d8c5ff") if recovering else Color("ffd18a"))
 	elif phase == "return":
 		_tow_label.visible = false
+		_tow_label.text = ""
 
 
 func _update_sea_and_lights(storm: float, wind: Vector2, hull: float, phase: String, screen: String) -> void:

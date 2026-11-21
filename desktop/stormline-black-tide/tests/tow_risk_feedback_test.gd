@@ -195,7 +195,7 @@ func _natural_voyages() -> void:
 				var hud: Node = app.get("hud")
 				var stale: bool = after.event_kind == "overload" and not String(after.notice).is_empty() and after.tension < 1.0
 				observed_stale_event = observed_stale_event or stale
-				if feedback_mismatch == 0 and (not _matches_live(hud, after) or sim.snapshot() != after
+				if feedback_mismatch == 0 and (not _matches_live(hud, after) or not _matches_world(app.get("world"), after) or sim.snapshot() != after
 					or (stale and hud.get("_notice").visible)):
 					feedback_mismatch = tick
 			if tick % 600 == 0:
@@ -262,6 +262,20 @@ func _matches_live(hud: Node, view: Dictionary) -> bool:
 
 func _gauge_text(hud: Node, id: String) -> String:
 	return hud.get("_gauges")[id].label.text
+
+
+func _matches_world(world: Node, view: Dictionary) -> bool:
+	var label: Label3D = world.get("_tow_label")
+	if not view.tow_attached:
+		return not world.get("_cable").visible and not label.visible and label.text.is_empty() \
+			and world.get("_cable_light").light_energy == 0.0
+	var active: bool = view.tension >= 1.0
+	var falling: bool = not active and view.overload > 0.0
+	return world.get("_cable").visible and label.visible == (view.tension >= 0.72 or falling) \
+		and label.text.contains("OVERLOAD") == active \
+		and label.text.contains("RISK ACCUM") == active \
+		and label.text.contains("RISK FALLING") == falling \
+		and (view.tension < 1.5 or label.text.contains("≥150%"))
 
 
 func _layout_ok(hud: Node, dimensions: Vector2i) -> bool:

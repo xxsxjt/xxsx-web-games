@@ -29,8 +29,8 @@
 
 同源码 v0.1.1 候选：`build/releases/20261120-195958-043170/Stormline-Black-Tide-v0.1.1-windows-x64/`。PE/PCK/ZIP 静态检查通过，18 个资源条目校验成功；manifest 的 37 项指纹与本次 QA 一致。ZIP SHA-256：`14e7d272fd17aebe1e29c1c087408ac2e160cd73a09ec51eb2f6eef60b5037f2`；PCK SHA-256：`f0087ac8e9fb94fbcea5aeb4f65a6cf8f9d5553da2c7d0ed1e1840f1c301f8ac`。仓外 PCK-only 探针 `C:/Users/xxsx/AppData/Local/Temp/opencode/stormline-stage18/stormline-pck-probe-jnkd4_d3/smoke.json` 退出 0、无诊断；七脚本和入口资源成功加载，未实例化候选主场景、未执行 EXE、未创建成绩文件。
 
-镜像 QA：`desktop/stormline-black-tide/build/qa/20261120-200135-876415/summary.json`，21/21 通过、37 项指纹与开发源相同。总站 `npm run build` 和 `npm test` 均通过；没有改网页源码、`dist/` 或根 `LICENSE`，也未部署网页。GitHub 全树及逐项目 blob 回读仍待同步提交后记录。
+镜像 QA：`desktop/stormline-black-tide/build/qa/20261120-200135-876415/summary.json`，21/21 通过、37 项指纹与开发源相同。总站 `npm run build` 和 `npm test` 均通过；没有改网页源码、`dist/` 或根 `LICENSE`，也未部署网页。已推送至 `xxsxjt/xxsx-web-games` `main`，提交 `894d8f239cc95a5dd4721b7525e6980d194908be`；GitHub 完整树 415 blob、桌面项目 63/63 文件正文逐 blob 读回且匹配开发源，详细证据见 `build/sync/stage-18.json`。
 
 ## 未包含在验证中的事项
 
-只做 headless 几何与控件文本检查，不代表中文实际字体栅格、图形渲染、音量/音效、操控手感或难度已验收。没有启动图形游戏、导出 EXE、桌面自动化、系统键鼠或真人试玩；导出候选仍须仅以静态检查和仓外 PCK-only 探针验证。候选、镜像 QA 和 GitHub 逐 blob 回读完成后再补入阶段证据。未发布二进制、未部署网页。
+只做 headless 几何与控件文本检查，不代表中文实际字体栅格、图形渲染、音量/音效、操控手感或难度已验收。没有启动图形游戏、导出 EXE、桌面自动化、系统键鼠或真人试玩；候选只做静态检查和仓外 PCK-only 探针验证。未发布二进制、未部署网页。
