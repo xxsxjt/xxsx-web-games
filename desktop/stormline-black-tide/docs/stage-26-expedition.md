@@ -40,7 +40,7 @@ A/B/C 共 14 份 owner 文件按原始 SHA-256、Git blob、严格 UTF-8/LF 接�
 
 实施提交 **`cf877c94fd05230678e58472a41ad43e2d2f48af`** 已正常推送。推送后以匿名 GitHub API/HTTP 独立核验：远端 `main` 等于该提交，完整树 **`7f188a0f0a85782a82907b4602368cf8767486f3`**、**484 blob** 与本地提交全树一致；桌面白名单 **97/97** 每份远端正文、Git blob、镜像和规范源逐项相同。完整实施读回 `build/sync/stage-26-implementation.json`，树快照 `build/sync/stage-26-implementation-tree.json`。本次仅暂存 29 份桌面差异；网页 WIP、根工作单、LICENSE、dist、本机证据与包均未进入实施提交。
 
-实现读回后再补入本记录、集成记录及桌面任务计划，仅桌面白名单三份文档进入独立记录提交；根目录 V61 工作单继续保留为未暂存网页 WIP。记录提交 **`6ee8f09620a457b8b9103024a8597fd95ac84a77`** 后再次核验远端 `main` 与提交一致，完整树 **`39c4bbcb17633452b9996fc2d89d31205148d6ee`** 的 **484 blob** 与本地提交全树一致，桌面 **97/97** 份远端正文/Git blob/镜像/规范源一致。最终证据为本机 `build/sync/stage-26-final.json` 和 `build/sync/stage-26-final-tree.json`。根目录网页源码、工作单与 dist 不在桌面提交内。
+实现读回后再补入本记录、集成记录及桌面任务计划，仅桌面白名单三份文档进入独立记录提交；根目录 V61 工作单继续保留为网页 WIP。首次记录提交 `6ee8f09` 的 484 blob 全树及桌面 97/97 正文/Git blob/镜像/规范源读回通过。其后本地又补全本阶段最终状态并提交 `fed9317`；首次对该提交读回时，GitHub 远端正文与提交 blob 完全一致，但规范源文档已晚于镜像产生一次修订，故这次工具结果标记失败，失败报告保留在 `build/sync/stage-26-final-record.json`，不能用作成功证据。现已把最终规范源字节同步到镜像并形成单文档更正提交；该提交的独立最终 ref、完整树及 97 份正文/blob 读回证据记录于 `build/sync/stage-26-final-confirmed.json` 和 `build/sync/stage-26-final-confirmed-tree.json`。根目录网页源码、工作单与 dist 不在桌面提交内。
 
 ## 测试边界
 
