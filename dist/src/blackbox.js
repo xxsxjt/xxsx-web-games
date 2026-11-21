@@ -45,10 +45,28 @@
     return queue;
   }
   function isSolved(state){var powered=poweredCells(state);return !!state&&powered.indexOf(state.end)>=0&&!!(state.cells[state.end].mask&(state.endPort||E));}
+  // Read only the visible wiring. Open live ports are observations, not a required route.
+  function diagnose(state){
+    if(!state||!state.cells||!state.cells[state.start]||!state.cells[state.end])return null;
+    var size=state.size,startPort=state.startPort||W,endPort=state.endPort||E,on=poweredCells(state),openPorts=[];
+    on.forEach(function(index){
+      var row=Math.floor(index/size),col=index%size,steps=[[-size,N,S],[1,E,W],[size,S,N],[-1,W,E]];
+      steps.forEach(function(step){
+        var port=step[1],next=index+step[0];if(!(state.cells[index].mask&port))return;
+        var outside=port===N&&row===0||port===E&&col===size-1||port===S&&row===size-1||port===W&&col===0;
+        if(outside){if(index===state.start&&port===startPort||index===state.end&&port===endPort)return;openPorts.push({index:index,port:port,next:null,reason:'edge'});return;}
+        var neighbor=state.cells[next];
+        if(!neighbor||!neighbor.mask)openPorts.push({index:index,port:port,next:next,reason:'blank'});
+        else if(!(neighbor.mask&step[2]))openPorts.push({index:index,port:port,next:next,reason:'unmatched'});
+      });
+    });
+    var outputReached=on.indexOf(state.end)>=0;
+    return{powered:on,inputConnected:!!(state.cells[state.start].mask&startPort),outputReached:outputReached,outputConnected:outputReached&&!!(state.cells[state.end].mask&endPort),openPorts:openPorts};
+  }
   function rotate(state,index,turns){
     if(!state||!Number.isInteger(index)||index<0||index>=state.cells.length||!state.cells[index].rotatable||state.movesLeft<=0)return false;
     turns=turns===-1?-1:1;state.cells[index].mask=rotateMask(state.cells[index].mask,turns);state.movesUsed++;state.movesLeft=Math.max(0,state.moveLimit-state.movesUsed);return true;
   }
   function hint(state){if(!state)return null;for(var i=0;i<state.path.length;i++){var index=state.path[i],cell=state.cells[index];if(cell.mask!==cell.solutionMask){var turns=0,mask=cell.mask;while(mask!==cell.solutionMask&&turns<4){mask=rotateMask(mask,1);turns++;}return{index:index,turns:turns===4?0:turns};}}return null;}
-  root.NeonBlackbox={ports:{north:N,east:E,south:S,west:W},generate:generate,rotateMask:rotateMask,poweredCells:poweredCells,isSolved:isSolved,rotate:rotate,hint:hint};
+  root.NeonBlackbox={ports:{north:N,east:E,south:S,west:W},generate:generate,rotateMask:rotateMask,poweredCells:poweredCells,isSolved:isSolved,diagnose:diagnose,rotate:rotate,hint:hint};
 })(window);

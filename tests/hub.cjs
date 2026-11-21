@@ -14,6 +14,16 @@ const context = {module: {exports: {}}, Promise};
 vm.runInNewContext(source, context, {filename: 'src/hub.js'});
 const hub = context.module.exports;
 const plain = value => JSON.parse(JSON.stringify(value));
+const legacyRoutes = {
+  expedition: 'play.html#game/expedition', border: 'play.html#game/border',
+  blackbox: 'play.html#game/blackbox', salvage: 'play.html#game/salvage',
+  lab: 'play.html#game/lab', relay: 'play.html#game/relay',
+  shell: 'games/shell-heist.html', seconds: 'games/borrowed-seconds.html', overprint: 'games/overprint.html'
+};
+const preservedSaves = ['neonDriftProfileV1', 'neonBorderTacticsSaveV1', 'xxsxCircuitCampaignV1',
+  'xxsxSalvageExpeditionV1', 'xxsxEchoDeckV1', 'xxsxRelayDefenseV1', 'xxsxShellHeistV1',
+  'xxsxShellHeistCampaignV1', 'xxsxBorrowedSecondsV1', 'xxsxEmberConvoyV1', 'unrelated']
+  .map(name => [name, JSON.stringify({keep: name})]);
 
 const fixture = [
   {id: 'expedition', name: '月面前哨', type: '动作', description: '自由移动、自动瞄准，挑战 Boss。', controls: 'WASD / 触屏', save: '本机成长记录', format: '短局', status: '测试版', cover: 'assets/icons/expedition-v1.webp', tags: ['生存']},
@@ -25,7 +35,7 @@ const fixture = [
 
 class MemoryStorage {
   constructor(record = null) {
-    this.values = new Map([['xxsxEchoDeckV1', '{"keep":"game-save"}'], ['unrelated', 'keep']]);
+    this.values = new Map(preservedSaves);
     if (record !== null) this.seed(record);
     this.readError = false;
     this.writeError = false;
@@ -45,14 +55,13 @@ class MemoryStorage {
   saved() { return JSON.parse(this.values.get(key)); }
   verifyScope() {
     assert(this.calls.every(([, name]) => name === key), 'hub must touch only its own storage key');
-    assert.equal(this.values.get('xxsxEchoDeckV1'), '{"keep":"game-save"}');
-    assert.equal(this.values.get('unrelated'), 'keep');
+    for (const [name, bytes] of preservedSaves) assert.equal(this.values.get(name), bytes, 'preserve non-hub save: ' + name);
   }
 }
 
 function testPathsAndCatalog() {
   const base = 'https://games.example/catalog/';
-  for (const value of ['games/borrowed-seconds.html', 'games/shell-heist.html', 'games/overprint.html', './games/shell-heist.html', 'play.html', 'games/demo.v2.html']) {
+  for (const value of ['games/borrowed-seconds.html', 'games/shell-heist.html', 'games/overprint.html', 'games/ember-convoy.html', './games/shell-heist.html', 'play.html', 'games/demo.v2.html']) {
     const entry = hub.safeEntry(value);
     assert.equal(entry, value.replace(/^\.\//, ''));
     assert.equal(new URL(entry, base).origin, new URL(base).origin);
@@ -79,12 +88,18 @@ function testPathsAndCatalog() {
 
   const registered = JSON.parse(fs.readFileSync(path.join(root, 'content/games.json'), 'utf8'));
   const catalog = hub.normalizeCatalog(registered);
-  for (const id of ['expedition', 'border', 'blackbox', 'salvage', 'lab', 'relay', 'shell', 'seconds', 'overprint']) {
+  assert.equal(catalog.length, 10, 'V60 registers one new game beside the original nine');
+  for (const [id, href] of Object.entries(legacyRoutes)) {
     const game = catalog.find(item => item.id === id);
     assert(game, 'existing entry missing: ' + id);
-    const original = registered.find(item => item.id === id);
-    assert.equal(game.href, hub.safeEntry(original.entry) || 'play.html#game/' + id);
+    assert.equal(game.href, href, 'preserve existing navigation: ' + id);
   }
+  const ember = catalog.find(item => item.id === 'ember-convoy');
+  assert(ember, 'Ember Convoy must be registered');
+  assert.equal(ember.href, 'games/ember-convoy.html');
+  assert.equal(ember.cover, 'assets/icons/ember-convoy.svg');
+  assert.equal(ember.type, '战术');
+  assert.deepEqual(plain(hub.filterGames(catalog, {query: '余烬', type: '战术'}, []).map(game => game.id)), ['ember-convoy']);
 }
 
 function testSearch() {
@@ -213,6 +228,30 @@ function harness(options = {}) {
 }
 
 async function settle() { for (let index = 0; index < 20; index++) await Promise.resolve(); }
+
+async function testRegisteredEmberEntry() {
+  const games = JSON.parse(fs.readFileSync(path.join(root, 'content/games.json'), 'utf8'));
+  const favorites = Object.keys(legacyRoutes);
+  const memory = new MemoryStorage({favorites, recent: ['expedition', 'lab', 'shell']});
+  const h = harness({games, storage: memory});
+  await settle();
+  assert.equal(h.elements('article').length, 10);
+  assert.equal(h.byId('favoriteCount').textContent, '9', 'new catalogue must retain every existing favorite');
+  for (const [id, href] of Object.entries(legacyRoutes)) assert.equal(h.one('data-open', id, h.byId('games')).getAttribute('href'), href);
+  h.input('余烬');
+  assert.equal(h.elements('article').length, 1);
+  const open = h.one('data-open', 'ember-convoy', h.byId('games'));
+  assert.equal(open.getAttribute('href'), 'games/ember-convoy.html');
+  h.one('data-favorite', 'ember-convoy').click();
+  assert.deepEqual(memory.saved().favorites, favorites.concat('ember-convoy'));
+  assert.equal(h.one('data-open', 'ember-convoy', h.byId('games')).click().defaultPrevented, false);
+  assert.deepEqual(memory.saved().recent, ['ember-convoy', 'expedition', 'lab', 'shell']);
+  const restored = harness({games, storage: memory});
+  await settle();
+  assert.equal(restored.byId('favoriteCount').textContent, '10');
+  assert.equal(restored.one('data-open', 'ember-convoy', restored.byId('recentGames')).getAttribute('href'), 'games/ember-convoy.html');
+  memory.verifyScope();
+}
 
 async function testDomInteractions() {
   const memory = new MemoryStorage({favorites: ['shell', 'old-unlisted'], recent: ['old-unlisted', 'expedition', 'lab', 'shell', 'borrowed-seconds']});
@@ -452,6 +491,7 @@ async function testLoadingAndLegacyRoutes() {
   testPathsAndCatalog();
   testSearch();
   testDecodeAndStore();
+  await testRegisteredEmberEntry();
   await testDomInteractions();
   await testStorageEventsAndFailures();
   await testEscaping();

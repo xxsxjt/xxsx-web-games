@@ -18,17 +18,26 @@ check(!/src\/(game|catalog|styles|border|arcade)\./.test(hubHtml),'homepage must
 const games=JSON.parse(fs.readFileSync(path.join(root,'content/games.json'),'utf8'));
 const gameIds=new Set(games.map(g=>g.id));
 const legacyGameIds=['expedition','border','relay','lab','salvage','blackbox'];
-check(gameIds.size===games.length&&legacyGameIds.concat('shell','seconds','overprint').every(id=>gameIds.has(id)),'catalogue IDs must be unique and include all supported games');
+check(gameIds.size===games.length&&games.length===10&&legacyGameIds.concat('shell','seconds','overprint','ember-convoy').every(id=>gameIds.has(id)),'catalogue IDs must be unique and include all ten supported games');
 const overprintPage=fs.readFileSync(path.join(root,'games/overprint.html'),'utf8');
 const overprintJs=fs.readFileSync(path.join(root,'src/overprint.js'),'utf8');
 new Function(overprintJs);
 check(overprintPage.includes('href="../"')&&overprintPage.includes('id="work-board"')&&overprintPage.includes('id="target-board"'),'overprint prototype needs a standalone entry, target and work boards');
 check(!overprintPage.includes('user-scalable=no'),'browser zoom must remain enabled in overprint');
+const emberPage=fs.readFileSync(path.join(root,'games/ember-convoy.html'),'utf8');
+const emberJs=fs.readFileSync(path.join(root,'src/ember-convoy.js'),'utf8');
+new Function(emberJs);
+const emberEntry=games.find(g=>g.id==='ember-convoy');
+check(emberEntry.entry==='games/ember-convoy.html'&&emberEntry.cover==='assets/icons/ember-convoy.svg','Ember Convoy must use its own entry and icon');
+check(emberPage.includes('href="../"')&&emberPage.includes('id="ember-convoy"')&&emberPage.includes('role="status"')&&emberPage.includes('aria-live="polite"'),'Ember Convoy needs its own host, return link and live status');
+for(const resource of ['src/ember-convoy.js','src/ember-convoy.css','assets/icons/ember-convoy.svg'])check(emberPage.includes('"../'+resource+'"'),'missing Ember Convoy source reference: '+resource);
+check(!emberPage.includes('user-scalable=no')&&!emberPage.includes('play-loader')&&!emberPage.includes('../src/game.js'),'Ember Convoy must preserve zoom and avoid legacy bundles');
 const manifest=JSON.parse(fs.readFileSync(path.join(root,'dist/release-manifest.json'),'utf8'));
 const pinned=JSON.parse(fs.readFileSync(path.join(root,'scripts/published-assets.json'),'utf8'));
 const hash=bytes=>require('node:crypto').createHash('sha256').update(bytes).digest('hex');
 const canonicalText=bytes=>Buffer.from(bytes.toString('utf8').replace(/\r\n?/g,'\n'));
 check(manifest.version===require('../package.json').releaseVersion,'release manifest must identify the current source');
+for(const source of ['games/ember-convoy.html','src/ember-convoy.js','src/ember-convoy.css','assets/icons/ember-convoy.svg'])check(manifest.files[source],'Ember Convoy release resource missing: '+source);
 for(const [source,file] of Object.entries(manifest.files)){
   const sourceBytes=fs.readFileSync(path.join(root,source));
   const outputBytes=fs.readFileSync(path.join(root,'dist',file.path));

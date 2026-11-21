@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">余烬航团</title>
+  <desc id="desc">三艘护航舰围绕一颗余烬星体，舰首指向开放航道。</desc>
+  <rect width="512" height="512" rx="88" fill="#080c17"/>
+  <rect x="34" y="34" width="444" height="444" rx="58" fill="#101827" stroke="#344457" stroke-width="3"/>
+  <circle cx="256" cy="256" r="122" fill="#151f31" stroke="#344457" stroke-width="4"/>
+  <circle cx="256" cy="256" r="86" fill="#422f20" stroke="#f2c879" stroke-width="3"/>
+  <circle cx="256" cy="256" r="52" fill="#f2c879" opacity=".22"/>
+  <path d="M242 283 256 214l14 69-14 25z" fill="#ffcf79"/>
+  <path d="M248 285h16l-8 16z" fill="#fff0bf"/>
+  <g fill="#88e5db" stroke="#d2fff7" stroke-width="4" stroke-linejoin="round">
+    <path d="m256 76 24 48h-48z"/>
+    <path d="m112 350 49-25-10 54z"/>
+    <path d="m400 350-39-29 49 1z"/>
+  </g>
+  <g fill="none" stroke="#88e5db" stroke-width="6" stroke-linecap="round" opacity=".8">
+    <path d="M246 119v37"/><path d="m151 343 32-18"/><path d="m361 325 30 18"/>
+  </g>
+  <path d="M199 412h114" stroke="#f2c879" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="199" cy="412" r="7" fill="#f2c879"/><circle cx="313" cy="412" r="7" fill="#f2c879"/>
+</svg>

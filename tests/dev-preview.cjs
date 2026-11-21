@@ -59,6 +59,12 @@ async function sourcePreviewChecks() {
     assert.equal((await request(server.port, '/tests/game-viewports.html')).status, 200);
     assert.equal((await request(server.port, '/dist/index.html')).status, 200);
     assert.equal((await request(server.port, '/play.html')).status, 200);
+    const ember = await request(server.port, '/games/ember-convoy.html');
+    assert.equal(ember.status, 200);
+    assert.match(ember.body, /id="ember-convoy"/);
+    for (const source of ['src/ember-convoy.js', 'src/ember-convoy.css', 'assets/icons/ember-convoy.svg']) {
+      assert.equal((await request(server.port, '/' + source)).status, 200);
+    }
     assert.equal((await request(server.port, '/missing-preview-route')).status, 200, 'source preview should support SPA routes');
     for (const pathname of ['/scripts/dev.mjs', '/README.md', '/package.json', '/.git/config', '/docs/active-development.md']) {
       assert.equal((await request(server.port, pathname)).status, 404, `${pathname} should not be exposed`);
@@ -82,15 +88,17 @@ async function distPreviewChecks() {
     const release = await request(server.port, '/release-manifest.json');
     assert.equal(release.status, 200);
     const {files} = JSON.parse(release.body);
-    const page = await request(server.port, '/games/overprint.html');
-    assert.equal(page.status, 200);
-    assert.match(page.body, /id="work-board"/);
-    for (const [source, type] of [['src/overprint.js', /javascript/], ['src/overprint.css', /text\/css/], ['assets/icons/overprint.svg', /image\/svg\+xml/]]) {
-      const {path: url} = files[source];
-      assert.ok(page.body.includes(`"../${url}"`), `${url} must be referenced by the served entry`);
-      const asset = await request(server.port, '/' + url);
-      assert.equal(asset.status, 200, url);
-      assert.match(asset.type, type);
+    for (const [name, host] of [['overprint', 'work-board'], ['ember-convoy', 'ember-convoy']]) {
+      const page = await request(server.port, `/games/${name}.html`);
+      assert.equal(page.status, 200);
+      assert.ok(page.body.includes(`id="${host}"`));
+      for (const [source, type] of [[`src/${name}.js`, /javascript/], [`src/${name}.css`, /text\/css/], [`assets/icons/${name}.svg`, /image\/svg\+xml/]]) {
+        const {path: url} = files[source];
+        assert.ok(page.body.includes(`"../${url}"`), `${url} must be referenced by the served entry`);
+        const asset = await request(server.port, '/' + url);
+        assert.equal(asset.status, 200, url);
+        assert.match(asset.type, type);
+      }
     }
     for (const {version, catalog, hub, count} of cachedReleases) {
       const previousHub = await request(server.port, hub);

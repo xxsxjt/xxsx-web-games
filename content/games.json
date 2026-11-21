@@ -100,5 +100,17 @@
     "cover": "assets/icons/overprint.svg",
     "format": "A01 单关",
     "entry": "games/overprint.html"
+  },
+  {
+    "id": "ember-convoy",
+    "name": "余烬航团",
+    "type": "战术",
+    "description": "读取敌舰公开意图，为三舰分配两点命令，管理热量、护盾与维修物资，穿过三段航路并确认撤离。",
+    "controls": "点击 / 触屏 / 数字键与 E",
+    "save": "独立本机进度 · 每步保存 · 同种子重开",
+    "status": "测试版",
+    "cover": "assets/icons/ember-convoy.svg",
+    "format": "3 段远征",
+    "entry": "games/ember-convoy.html"
   }
 ]

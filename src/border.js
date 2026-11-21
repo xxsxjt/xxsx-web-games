@@ -22,7 +22,7 @@ var UPGRADE_DEFS={
   ambush:{name:'交叉火力',tag:'OVERWATCH',desc:'警戒射击恢复完整伤害，射程额外 +1。适合守住敌人推进路线。',apply:function(s){s.upgrades.ambush=true;}},
   mobility:{name:'轻型推进器',tag:'MOBILITY',desc:'每次移动可走 4 格。更容易抵近掩体、退出预警区或抢先关闭反应堆。',apply:function(s){s.upgrades.mobility=true;}}
 };
-var state=null,revision=0,selectedId='assault',active=false,contract='recon',recoveryNote='',storageAvailable=true,storageWarningShown=false,checkpointConflict=false,expectedCheckpoint={main:null,pending:null,backup:null};
+var state=null,revision=0,selectedId='assault',active=false,contract='recon',recoveryNote='',actionReceipt='',targetToggleArmed=true,storageAvailable=true,storageWarningShown=false,checkpointConflict=false,expectedCheckpoint={main:null,pending:null,backup:null};
 var ids={page:'borderTacticsPage',lobby:'borderLobby',mission:'borderMission',result:'borderResult',contractPicker:'borderContractPicker',saveStatus:'borderSaveStatus',start:'borderStartBtn',continue:'borderContinueBtn',grid:'borderGrid',turn:'borderTurnLabel',sectorTag:'borderSectorTag',sectorTitle:'borderSectorTitle',objectiveText:'borderObjectiveText',alert:'borderAlertLabel',targetHint:'borderTargetHint',squadSummary:'borderSquadSummary',squad:'borderSquadList',enemySummary:'borderEnemySummary',enemy:'borderEnemyList',log:'borderCombatLog',score:'borderCampaignScore',attack:'borderAttackBtn',watch:'borderWatchBtn',brace:'borderBraceBtn',shove:'borderShoveBtn',ability:'borderAbilityBtn',interact:'borderInteractBtn',endTurn:'borderEndTurnBtn',next:'borderNextSectorBtn',upgrade:'borderUpgradeDraft',saveNow:'borderSaveNowBtn',abandon:'borderAbandonBtn',resultTag:'borderResultTag',resultTitle:'borderResultTitle',resultText:'borderResultText',resultStats:'borderResultStats',newAfterResult:'borderNewAfterResultBtn'};
 function el(id){return document.getElementById(ids[id]||id);}
 function html(value){return String(value).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
@@ -64,7 +64,7 @@ function preserveInvalid(entries){
   }catch(e){storageAvailable=false;return false;}
 }
 function setSaveStatus(text,kind){var node=el('saveStatus');if(node){node.textContent=text;node.dataset.state=kind||'info';}if(active&&el('targetHint')){el('targetHint').textContent=text;el('targetHint').dataset.state=kind||'info';}}
-function loadSavedState(){var found=readCheckpoint();expectedCheckpoint=found.raws;checkpointConflict=false;state=found.best?clone(found.best.envelope.state):null;revision=found.best?found.best.envelope.revision:0;return found;}
+function loadSavedState(){var found=readCheckpoint();expectedCheckpoint=found.raws;checkpointConflict=false;actionReceipt='';targetToggleArmed=true;state=found.best?clone(found.best.envelope.state):null;revision=found.best?found.best.envelope.revision:0;return found;}
 function checkpointMatchesLoaded(){if(checkpointConflict)return false;if(!root.localStorage)return true;var current;try{current={main:root.localStorage.getItem(KEYS.main),pending:root.localStorage.getItem(KEYS.pending),backup:root.localStorage.getItem(KEYS.backup)};}catch(e){storageAvailable=false;return true;}if(['main','pending','backup'].some(function(name){return current[name]!==expectedCheckpoint[name];})){checkpointConflict=true;setSaveStatus('另一页面已更新行动档案；本页操作没有写入存档。请返回大厅并重新载入最新进度，避免覆盖较新的行动。','warn');return false;}return true;}
 function saveCheckpoint(){
   if(!state||!isStateValid(state)||state.status==='idle')return false;
@@ -132,23 +132,104 @@ function spend(u){if(!u||u.ap<1)return false;u.ap--;return true;}
 function runDamage(s,u){return UNIT_DEFS[u.id].damage+s.upgrades.damage;}
 function movementRange(s){return s.upgrades.mobility?4:3;}
 function attackDamage(s,u,e){return Math.max(1,Math.round(runDamage(s,u)*(s.ruleset===2&&s.map.cover.indexOf(e.cell)>=0&&distance(u.cell,e.cell)>1?.7:1)));}
-function setOverwatch(s,unitId){if(!s||s.status!=='active'||s.phase!=='player')return false;var u=s.units.find(function(x){return x.id===unitId&&x.alive;});if(!u||u.overwatch||!spend(u))return false;u.overwatch=true;appendLog(s,u.name+' 警戒：敌人推进进入射程时射击一次。');return true;}
-function brace(s,unitId){if(!s||s.status!=='active'||s.phase!=='player')return false;var u=s.units.find(function(x){return x.id===unitId&&x.alive;});if(!u||u.braced||!spend(u))return false;u.braced=true;appendLog(s,u.name+' 进入掩护姿态，本轮受到的伤害减半。');return true;}
-function reactToEnemyMove(s,e){aliveUnits(s).forEach(function(u){if(!u.overwatch||e.hp<=0||distance(u.cell,e.cell)>UNIT_DEFS[u.id].range+(s.upgrades.ambush?1:0)||!clearLine(s,u.cell,e.cell))return;u.overwatch=false;hitEnemy(s,e,Math.max(1,Math.round(attackDamage(s,u,e)*(s.upgrades.ambush?1:.75))),u.name+' 警戒射击');});}
-function shove(s,unitId,enemyId){if(!s||s.status!=='active'||s.phase!=='player')return false;var u=s.units.find(function(x){return x.id===unitId&&x.alive;}),e=s.enemies.find(function(x){return x.id===enemyId&&x.hp>0;});if(!u||!e||e.kind==='boss'||distance(u.cell,e.cell)!==1||!spend(u))return false;var a=xy(u.cell),b=xy(e.cell),next=indexOf(b.x+(b.x-a.x),b.y+(b.y-a.y));if(b.x+(b.x-a.x)<0||b.x+(b.x-a.x)>=SIZE||b.y+(b.y-a.y)<0||b.y+(b.y-a.y)>=SIZE||blocked(s,next,e.id)){hitEnemy(s,e,12,u.name+' 撞击');}else{e.cell=next;appendLog(s,u.name+' 把 '+e.name+' 推离一格。');reactToEnemyMove(s,e);}if(e.hp>0)e.staggered=1;afterAction(s);return true;}
-function targetOptions(s,from,range){return livingEnemies(s).filter(function(e){return distance(e.cell,from)<=range&&clearLine(s,from,e.cell);}).sort(function(a,b){return a.hp-b.hp||distance(a.cell,from)-distance(b.cell,from);});}
-function hitEnemy(s,e,amount,label){if(!e||e.hp<=0)return false;e.hp=Math.max(0,e.hp-amount);appendLog(s,label+' 命中 '+e.name+' · '+amount+' 伤害。');if(e.hp<=0){s.kills++;s.score+=30+(e.kind==='boss'?160:0);appendLog(s,e.name+' 已瘫痪。');}return true;}
-function performAttack(s,unitId,enemyId,ability){if(!s||s.status!=='active'||s.phase!=='player')return false;var u=s.units.find(function(x){return x.id===unitId&&x.alive;}),e=s.enemies.find(function(x){return x.id===enemyId&&x.hp>0;});if(!u||!e||u.ap<1)return false;var def=UNIT_DEFS[u.id];if(distance(u.cell,e.cell)>def.range||!clearLine(s,u.cell,e.cell)||(ability&&u.cooldown>0))return false;if(!spend(u))return false;var damage=attackDamage(s,u,e);if(ability){u.cooldown=Math.max(1,s.upgrades.cooldown);damage=u.id==='assault'?10+s.upgrades.damage:8+s.upgrades.damage;hitEnemy(s,e,damage,def.ability);if(e.hp>0)e.staggered=1;}else hitEnemy(s,e,damage,def.name);afterAction(s);return true;}
-function moveUnit(s,unitId,destination){if(!s||s.status!=='active'||s.phase!=='player')return false;var u=s.units.find(function(x){return x.id===unitId&&x.alive;});if(!u||u.ap<1)return false;var path=findPath(s,u.cell,destination,u.id,movementRange(s));if(!path||!path.length||path.length>movementRange(s))return false;if(!spend(u))return false;u.cell=destination;if(s.ruleset!==2)s.score+=2;appendLog(s,u.name+' 移至格位 '+(xy(destination).x+1)+','+(xy(destination).y+1)+'。');afterAction(s);return true;}
-function useAbility(s,unitId){if(!s||s.phase!=='player'||s.status!=='active')return false;var u=s.units.find(function(x){return x.id===unitId&&x.alive;});if(!u||u.ap<1||u.cooldown>0)return false;var def=UNIT_DEFS[u.id];
-  if(u.id==='medic'){
-    var ally=s.units.filter(function(x){return x.alive&&x.hp<x.maxHp&&distance(x.cell,u.cell)<=2;}).sort(function(a,b){return a.hp/a.maxHp-b.hp/b.maxHp;})[0];if(!ally)return false;if(!spend(u))return false;var before=ally.hp;ally.hp=Math.min(ally.maxHp,ally.hp+22);u.cooldown=Math.max(1,s.upgrades.cooldown);appendLog(s,'急救注射：'+ally.name+' 恢复 '+(ally.hp-before)+' 点生命。');
-  }else{
-    var candidates=targetOptions(s,u.cell,u.id==='assault'?4:5);var target=s.focusEnemy?candidates.find(function(e){return e.id===s.focusEnemy;}):candidates[0];if(!target)return false;if(!spend(u))return false;u.cooldown=Math.max(1,s.upgrades.cooldown);hitEnemy(s,target,u.id==='assault'?10+s.upgrades.damage:8+s.upgrades.damage,def.ability);if(target.hp>0)target.staggered=1;
+function cellLabel(cell){var p=xy(cell);return(p.x+1)+','+(p.y+1);}
+function hasActiveIntent(e){return e.hp>0&&!e.staggered&&e.intent&&e.intent.kind!=='none';}
+// The same read-only reaction plan is used by push previews and real movement.
+// No enemy phase, RNG roll, AP spend, log entry or checkpoint is run to preview.
+function overwatchShots(s,e,cell){var remaining=e.hp,at=Object.assign({},e,{cell:cell}),shots=[];aliveUnits(s).forEach(function(u){if(!u.overwatch||remaining<=0||distance(u.cell,cell)>UNIT_DEFS[u.id].range+(s.upgrades.ambush?1:0)||!clearLine(s,u.cell,cell))return;var damage=Math.max(1,Math.round(attackDamage(s,u,at)*(s.upgrades.ambush?1:.75)));remaining=Math.max(0,remaining-damage);shots.push({unitId:u.id,damage:damage});});return shots;}
+function inspectAction(s,unitId,kind,target){
+  var names={move:'移动',attack:'射击',watch:'警戒',brace:'掩护',shove:'推击',ability:'战术技能',weaponAbility:'战术技能',interact:'启动终端'},name=names[kind]||'动作';
+  var u=s&&s.units.find(function(x){return x.id===unitId&&x.alive;}),view={ok:false,kind:kind,unitId:unitId,cost:0,requiredCost:1,apAfter:u?u.ap:0};
+  function refuse(code,reason){view.code=code;view.reason=reason;view.summary=name+'：'+reason+' · 未消耗 AP。';return view;}
+  function ready(summary){view.ok=true;view.cost=1;view.code='ready';view.reason='';view.apAfter=u.ap-1;view.summary=summary+' · 消耗 1 AP → 剩余 '+view.apAfter+' AP';return view;}
+  if(!names[kind])return refuse('unknown','未知动作');
+  if(!s||s.status!=='active')return refuse('inactive','行动已结束或尚未开始');
+  if(s.phase!=='player')return refuse('phase',s.phase==='upgrade'?'当前正在整备，请先选择补给':'当前不是我方行动阶段');
+  if(!u)return refuse('unit','请先选择一名存活干员');
+  if(kind==='ability'||kind==='weaponAbility')name=UNIT_DEFS[u.id].ability;
+  if(u.ap<1)return refuse('ap','行动点不足，需要 1 AP；可切换干员或结束回合');
+  var e,damage,summary;
+  if(kind==='move'){
+    if(!inBounds(target))return refuse('bounds','目标不在棋盘内');
+    if(target===u.cell)return refuse('same-cell','目标就是当前位置');
+    if(wallAt(s,target))return refuse('wall','墙体不可进入');
+    if(s.map.objectives.some(function(o){return o.cell===target;}))return refuse('objective-cell','终端格不可进入，请在相邻格启动终端');
+    if(blocked(s,target,u.id))return refuse('occupied','目标格被单位占据');
+    var path=findPath(s,u.cell,target,u.id,movementRange(s));
+    if(!path||!path.length)return refuse('path','本次移动不可达：最多 '+movementRange(s)+' 格，且须有连续空通道');
+    view.path=path;view.destination=target;
+    summary=u.name+' 移动至 '+cellLabel(target)+' · 路径 '+path.length+' 格';
+    if(s.map.cover.indexOf(target)>=0)summary+=' · 进入掩体';
+    if(s.enemies.some(function(enemy){return hasActiveIntent(enemy)&&enemy.intent.cells.indexOf(target)>=0;}))summary+=' · 落点在敌方预警区';
+    if(reactorHazard(s).indexOf(target)>=0)summary+=' · 落点在反应堆泄压区';
+    if(s.sector===3&&!livingEnemies(s).length&&allObjectives(s)&&target===s.map.exit)summary+=' · 完成撤离';
+    return ready(summary);
   }
+  if(kind==='watch'){if(u.overwatch)return refuse('overwatch','该干员已在警戒');return ready(u.name+' 警戒：敌人移动进入射程时射击一次 · '+(s.upgrades.ambush?'完整伤害，射程 +1':'正常伤害的 75%')+' · 下轮解除');}
+  if(kind==='brace'){if(u.braced)return refuse('braced','该干员已在掩护');return ready(u.name+' 掩护：本轮受到的伤害减半 · 下轮解除');}
+  if(kind==='interact'){
+    var objectiveIndex=s.map.objectives.findIndex(function(o){return !o.secured&&distance(o.cell,u.cell)<=1;});
+    if(objectiveIndex<0)return refuse('objective','相邻没有未启动终端，请先靠近终端');
+    view.objectiveIndex=objectiveIndex;view.objectiveName=s.map.objectives[objectiveIndex].name;
+    return ready(u.name+' 启动 '+view.objectiveName+' · 评分 +70');
+  }
+  if((kind==='ability'||kind==='weaponAbility')&&u.cooldown>0)return refuse('cooldown','技能冷却 '+u.cooldown+' 回合');
+  if(kind==='ability'&&u.id==='medic'){
+    var ally=s.units.filter(function(x){return x.alive&&x.hp<x.maxHp&&distance(x.cell,u.cell)<=2;}).sort(function(a,b){return a.hp/a.maxHp-b.hp/b.maxHp;})[0];
+    if(!ally)return refuse('healing','2 格内没有需要治疗的队员');
+    view.targetId=ally.id;view.targetName=ally.name;view.healing=Math.min(22,ally.maxHp-ally.hp);view.remainingHp=ally.hp+view.healing;view.cooldown=Math.max(1,s.upgrades.cooldown);
+    return ready(name+' → '+ally.name+' · 恢复 '+view.healing+' HP → '+view.remainingHp+'/'+ally.maxHp+' HP · 冷却 '+view.cooldown+' 回合');
+  }
+  if(kind==='ability'){
+    var selected=target===undefined?s.focusEnemy:target,range=u.id==='assault'?4:5,candidates=targetOptions(s,u.cell,range);
+    e=selected?s.enemies.find(function(enemy){return enemy.id===selected&&enemy.hp>0;}):candidates[0];
+    if(!e)return refuse('target',selected?'所选目标已失效，请重新选择或取消目标':'技能 '+range+' 格内没有视线畅通的敌人');
+    if(distance(u.cell,e.cell)>range)return refuse('range','所选目标超出技能 '+range+' 格射程；再次点击当前目标可取消锁定');
+    if(!clearLine(s,u.cell,e.cell))return refuse('line','所选目标被墙体遮挡；再次点击当前目标可取消锁定');
+    view.automatic=!selected;
+  }else{
+    e=s.enemies.find(function(enemy){return enemy.id===target&&enemy.hp>0;});
+    if(!e)return refuse('target','请先选择一个存活敌人');
+  }
+  view.targetId=e.id;view.targetName=e.name;
+  if(kind==='shove'){
+    if(e.kind==='boss')return refuse('boss','指挥机不能被推击');
+    if(distance(u.cell,e.cell)!==1)return refuse('adjacent','推击需要与目标相邻');
+    var a=xy(u.cell),b=xy(e.cell),x=b.x+(b.x-a.x),y=b.y+(b.y-a.y),next=indexOf(x,y),impact=x<0||x>=SIZE||y<0||y>=SIZE||blocked(s,next,e.id);
+    view.destination=impact?e.cell:next;view.impactDamage=impact?12:0;view.reactions=impact?[]:overwatchShots(s,e,next);
+    view.damage=view.impactDamage+view.reactions.reduce(function(total,shot){return total+shot.damage;},0);view.remainingHp=Math.max(0,e.hp-view.damage);view.staggered=view.remainingHp>0?1:0;
+    summary='推击 → '+e.name+' · '+(impact?'落点受阻，撞击 12 伤害':'推至 '+cellLabel(next));
+    if(view.reactions.length)summary+=' · 触发 '+view.reactions.length+' 次警戒射击，合计 '+view.damage+' 伤害';
+    return ready(summary+' → 剩余 '+view.remainingHp+' HP'+(view.staggered?' · 打断下一次行动':' · 瘫痪目标'));
+  }
+  // weaponAbility preserves the existing direct performAttack(..., true)
+  // compatibility entry point, whose range is the unit's weapon range.
+  if(kind==='attack'||kind==='weaponAbility'){
+    if(distance(u.cell,e.cell)>UNIT_DEFS[u.id].range)return refuse('range','目标超出武器 '+UNIT_DEFS[u.id].range+' 格射程');
+    if(!clearLine(s,u.cell,e.cell))return refuse('line','目标被墙体遮挡');
+  }
+  damage=kind==='attack'?attackDamage(s,u,e):(u.id==='assault'?10:8)+s.upgrades.damage;
+  view.damage=damage;view.remainingHp=Math.max(0,e.hp-damage);view.staggered=kind!=='attack'&&view.remainingHp>0?1:0;
+  if(kind!=='attack')view.cooldown=Math.max(1,s.upgrades.cooldown);
+  summary=name+(view.automatic?'（自动）':'')+' → '+e.name+' · 预计 '+damage+' 伤害 → 剩余 '+view.remainingHp+' HP';
+  if(kind!=='attack')summary+=(view.staggered?' · 打断下一次行动':' · 瘫痪目标')+' · 冷却 '+view.cooldown+' 回合';
+  return ready(summary);
+}
+function getActionView(s,unitId){var view={};['attack','watch','brace','shove','ability','interact'].forEach(function(kind){view[kind]=inspectAction(s,unitId,kind,s&&s.focusEnemy||undefined);});return view;}
+function setOverwatch(s,unitId){var view=inspectAction(s,unitId,'watch');if(!view.ok)return false;var u=s.units.find(function(x){return x.id===unitId;});spend(u);u.overwatch=true;appendLog(s,u.name+' 警戒：敌人推进进入射程时射击一次。');return true;}
+function brace(s,unitId){var view=inspectAction(s,unitId,'brace');if(!view.ok)return false;var u=s.units.find(function(x){return x.id===unitId;});spend(u);u.braced=true;appendLog(s,u.name+' 进入掩护姿态，本轮受到的伤害减半。');return true;}
+function reactToEnemyMove(s,e){overwatchShots(s,e,e.cell).forEach(function(shot){var u=s.units.find(function(unit){return unit.id===shot.unitId;});u.overwatch=false;hitEnemy(s,e,shot.damage,u.name+' 警戒射击');});}
+function shove(s,unitId,enemyId){var view=inspectAction(s,unitId,'shove',enemyId);if(!view.ok)return false;var u=s.units.find(function(x){return x.id===unitId;}),e=s.enemies.find(function(x){return x.id===view.targetId;});spend(u);if(view.impactDamage){hitEnemy(s,e,view.impactDamage,u.name+' 撞击');}else{e.cell=view.destination;appendLog(s,u.name+' 把 '+e.name+' 推离一格。');reactToEnemyMove(s,e);}if(e.hp>0)e.staggered=1;afterAction(s);return true;}
+function targetOptions(s,from,range){return livingEnemies(s).filter(function(e){return distance(e.cell,from)<=range&&clearLine(s,from,e.cell);}).sort(function(a,b){return a.hp-b.hp||distance(a.cell,from)-distance(b.cell,from);});}
+function hitEnemy(s,e,amount,label){if(!e||e.hp<=0)return false;e.hp=Math.max(0,e.hp-amount);appendLog(s,label+' 命中 '+e.name+' · '+amount+' 伤害。');if(e.hp<=0){s.kills++;s.score+=30+(e.kind==='boss'?160:0);if(s.focusEnemy===e.id)s.focusEnemy=null;appendLog(s,e.name+' 已瘫痪。');}return true;}
+function performAttack(s,unitId,enemyId,ability){var view=inspectAction(s,unitId,ability?'weaponAbility':'attack',enemyId);if(!view.ok)return false;var u=s.units.find(function(x){return x.id===unitId;}),e=s.enemies.find(function(x){return x.id===view.targetId;});spend(u);if(ability)u.cooldown=view.cooldown;hitEnemy(s,e,view.damage,ability?UNIT_DEFS[u.id].ability:UNIT_DEFS[u.id].name);if(view.staggered)e.staggered=view.staggered;afterAction(s);return true;}
+function moveUnit(s,unitId,destination){var view=inspectAction(s,unitId,'move',destination);if(!view.ok)return false;var u=s.units.find(function(x){return x.id===unitId;});spend(u);u.cell=view.destination;if(s.ruleset!==2)s.score+=2;appendLog(s,u.name+' 移至格位 '+cellLabel(destination)+'。');afterAction(s);return true;}
+function useAbility(s,unitId){var view=inspectAction(s,unitId,'ability');if(!view.ok)return false;var u=s.units.find(function(x){return x.id===unitId;});spend(u);u.cooldown=view.cooldown;
+  if(u.id==='medic'){var ally=s.units.find(function(x){return x.id===view.targetId;});ally.hp=view.remainingHp;appendLog(s,'急救注射：'+ally.name+' 恢复 '+view.healing+' 点生命。');}
+  else{var target=s.enemies.find(function(e){return e.id===view.targetId;});hitEnemy(s,target,view.damage,UNIT_DEFS[u.id].ability);if(view.staggered)target.staggered=view.staggered;}
   afterAction(s);return true;
 }
-function interactObjective(s,unitId){if(!s||s.phase!=='player'||s.status!=='active')return false;var u=s.units.find(function(x){return x.id===unitId&&x.alive;});if(!u||u.ap<1)return false;var objective=s.map.objectives.find(function(o){return !o.secured&&distance(o.cell,u.cell)<=1;});if(!objective||!spend(u))return false;objective.secured=true;s.score+=70;appendLog(s,u.name+' 启动 '+objective.name+'。');afterAction(s);return true;}
+function interactObjective(s,unitId){var view=inspectAction(s,unitId,'interact');if(!view.ok)return false;var u=s.units.find(function(x){return x.id===unitId;});spend(u);s.map.objectives[view.objectiveIndex].secured=true;s.score+=70;appendLog(s,u.name+' 启动 '+view.objectiveName+'。');afterAction(s);return true;}
 function allObjectives(s){return s.map.objectives.every(function(o){return o.secured;});}
 function sectorClear(s){return livingEnemies(s).length===0&&allObjectives(s)&&(s.sector<3||aliveUnits(s).some(function(u){return u.cell===s.map.exit;}));}
 function afterAction(s){if(!aliveUnits(s).length){settle(s,'lost');return;}if(sectorClear(s)){if(s.sector>=3)settle(s,'clear');else{s.phase='upgrade';var choices=Object.keys(UPGRADE_DEFS).filter(function(id){return !s.upgrades[id];});while(choices.length>3)choices.splice(Math.floor(roll(s)*choices.length),1);s.offers=choices;appendLog(s,'舱段安全。选一项补给整备，然后继续深入。');}}}
@@ -212,45 +293,67 @@ function enter(){if(state&&active)persist();refreshLobby();}
 function leave(){if(state&&state.status==='active')persist();active=false;}
 function newOperation(force){var found=readCheckpoint();expectedCheckpoint=found.raws;checkpointConflict=false;if(found.best&&found.best.envelope.state.status==='active'&&!force){if(!root.confirm('当前有未完成行动。开始新行动会保留一个恢复副本并结束这次行动，继续吗？'))return false;}
   if(found.invalid.length&&!preserveInvalid(found.invalid)){setSaveStatus('无法安全保留损坏档案，因此没有开始新行动。','warn');return false;}
-  state=createCampaign(contract);selectedId=state.selectedId;revision=Math.max(revision,found.best?found.best.envelope.revision:0);persist();loadIntoPage();return true;
+  state=createCampaign(contract);selectedId=state.selectedId;actionReceipt='';targetToggleArmed=true;revision=Math.max(revision,found.best?found.best.envelope.revision:0);persist();loadIntoPage();return true;
 }
-function continueOperation(){var found=readCheckpoint();if(!found.best){refreshLobby();return false;}expectedCheckpoint=found.raws;checkpointConflict=false;state=clone(found.best.envelope.state);revision=found.best.envelope.revision;selectedId=state.selectedId||'assault';if(state.status==='settling')settleLoaded();loadIntoPage();return true;}
+function continueOperation(){var found=readCheckpoint();if(!found.best){refreshLobby();return false;}expectedCheckpoint=found.raws;checkpointConflict=false;actionReceipt='';targetToggleArmed=true;state=clone(found.best.envelope.state);revision=found.best.envelope.revision;selectedId=state.selectedId||'assault';if(state.status==='settling')settleLoaded();loadIntoPage();return true;}
 function settleLoaded(){if(!state||state.status!=='settling'||!checkpointMatchesLoaded())return;var outcome=state.outcome||'lost',reward=computeReward(state,outcome),bridge=root.NeonProfileBridge;if(bridge&&typeof bridge.recordBorderRun==='function')bridge.recordBorderRun({id:state.id,outcome:outcome,score:state.score,kills:state.kills,sector:state.sector,turns:state.turn,seed:state.seed,contract:CONTRACTS[state.contract].label,reward:reward});state.status='complete';state.phase='result';state.reward=reward;persist();}
 function computeReward(s,outcome){var factor=CONTRACTS[s.contract].reward;return{shards:Math.max(1,Math.round((outcome==='clear'?8+Math.floor(s.score/120):Math.floor(s.score/180)+1)*factor)),intel:outcome==='clear'?4:1,modules:outcome==='clear'?2:0};}
 function finishWithResult(outcome){if(!state||state.status==='complete')return;settle(state,outcome);persist();settleLoaded();render();}
 function showLobby(){leave();root.location.hash='';}
 function discardRun(){if(!checkpointMatchesLoaded()){setSaveStatus('另一页面已更新行动档案；为保护最新进度，本页不能放弃或清除它。请返回大厅并重新载入最新进度。','warn');render();return false;}if(!root.confirm('这会清除本次进行中的行动档案。确定放弃吗？'))return false;clearCheckpoint();state=null;revision=0;recoveryNote='';refreshLobby();setSaveStatus('行动已放弃；可随时开始新的行动。','info');return true;}
 function selectedUnit(){return state&&state.units.find(function(u){return u.id===selectedId&&u.alive;})||null;}
-function selectUnit(id){if(!state||state.phase!=='player')return;var u=state.units.find(function(x){return x.id===id&&x.alive;});if(!u)return;selectedId=id;state.selectedId=id;render();}
+function selectUnit(id){if(!state||state.phase!=='player')return;var u=state.units.find(function(x){return x.id===id&&x.alive;});if(!u)return;selectedId=id;state.selectedId=id;actionReceipt='';targetToggleArmed=false;render();}
+// Reaffirming a target after selecting a unit stays idempotent for existing
+// controls/replays; consecutive clicks on that enemy toggle the lock off.
+function selectEnemy(id){if(!state||state.phase!=='player'||!state.enemies.some(function(e){return e.id===id&&e.hp>0;}))return;state.focusEnemy=state.focusEnemy===id&&targetToggleArmed?null:id;targetToggleArmed=true;actionReceipt='';render();}
 function onCell(cell){if(!checkpointMatchesLoaded()||!state||state.status!=='active'||state.phase!=='player')return;var own=unitAt(state,cell);if(own){selectUnit(own.id);return;}var enemy=enemyAt(state,cell),u=selectedUnit();if(!u)return;
-  if(enemy){state.focusEnemy=enemy.id;render();return;}
-  var path=findPath(state,u.cell,cell,u.id,movementRange(state));if(path&&path.length){if(moveUnit(state,u.id,cell)){persist();render();return;}}
-  setSaveStatus('该格不可达；每次移动最多穿过 '+movementRange(state)+' 格，并消耗 1 点行动。','warn');
+  if(enemy){selectEnemy(enemy.id);return;}
+  performSelectedAction('move',cell);
 }
-function tacticalAction(kind){if(!checkpointMatchesLoaded())return;var u=selectedUnit(),target=currentTarget();if(!u)return;var ok=kind==='attack'?target&&performAttack(state,u.id,target.id,false):kind==='watch'?setOverwatch(state,u.id):kind==='brace'?brace(state,u.id):target&&shove(state,u.id,target.id);if(ok){persist();render();}else setSaveStatus('动作不可用，检查目标距离、行动点和当前状态。','warn');}
+function performSelectedAction(kind,destination){if(!checkpointMatchesLoaded())return false;var u=selectedUnit(),target=kind==='move'?destination:state&&state.focusEnemy||undefined,view=inspectAction(state,u&&u.id,kind,target);if(!view.ok){setSaveStatus(view.summary,'warn');return false;}
+  var ok=kind==='move'?moveUnit(state,u.id,destination):kind==='attack'?performAttack(state,u.id,target,false):kind==='watch'?setOverwatch(state,u.id):kind==='brace'?brace(state,u.id):kind==='shove'?shove(state,u.id,target):kind==='ability'?useAbility(state,u.id):interactObjective(state,u.id);
+  if(!ok)return false;actionReceipt='已执行：'+view.summary.replace('预计 ','')+'。';persist();render();return true;
+}
+function tacticalAction(kind){performSelectedAction(kind);}
 function adjacentObjective(){var u=selectedUnit();if(!u||!state)return null;return state.map.objectives.find(function(o){return !o.secured&&distance(o.cell,u.cell)<=1;})||null;}
-function useSelectedAbility(){if(!checkpointMatchesLoaded())return;var u=selectedUnit();if(!u||!useAbility(state,u.id)){setSaveStatus(u&&u.id==='medic'?'附近没有需要治疗的队员。':'没有可干扰的敌人，或技能仍在冷却。','warn');return;}persist();render();}
-function interact(){if(!checkpointMatchesLoaded())return;var u=selectedUnit();if(!u||!interactObjective(state,u.id)){setSaveStatus('选一名干员靠近未启动终端后再互动。','warn');return;}persist();render();}
-function endPlayerTurn(){if(!checkpointMatchesLoaded())return;if(!state||!endTurn(state)){render();return;}persist();render();}
-function pickUpgrade(id){if(!checkpointMatchesLoaded()||!chooseUpgrade(state,id))return;persist();render();}
-function renderBoard(){var host=el('grid');if(!host||!state)return;var rows='';for(var cell=0;cell<CELLS;cell++){
+function useSelectedAbility(){performSelectedAction('ability');}
+function interact(){performSelectedAction('interact');}
+function endPlayerTurn(){if(!checkpointMatchesLoaded())return;actionReceipt='';if(!state||!endTurn(state)){render();return;}persist();render();}
+function pickUpgrade(id){if(!checkpointMatchesLoaded()||!chooseUpgrade(state,id))return;actionReceipt='';persist();render();}
+function renderBoard(){var host=el('grid');if(!host||!state)return;var rows='',unit=selectedUnit();for(var cell=0;cell<CELLS;cell++){
     var own=unitAt(state,cell),enemy=enemyAt(state,cell),objective=state.map.objectives.find(function(o){return o.cell===cell;}),wall=wallAt(state,cell),cover=state.map.cover.indexOf(cell)>=0,exit=state.map.exit===cell;
-    var selected=own&&own.id===selectedId,unit=selectedUnit(),reachable=!!(unit&&state.phase==='player'&&unit.ap>0&&cell!==unit.cell&&!own&&!enemy&&!wall&&findPath(state,unit.cell,cell,unit.id,movementRange(state)));
-    var danger=state.enemies.some(function(e){return e.hp>0&&e.intent&&e.intent.cells&&e.intent.cells.indexOf(cell)>=0;});
+    var selected=own&&own.id===selectedId,moveView=!own&&!enemy&&unit?inspectAction(state,unit.id,'move',cell):null,reachable=!!(moveView&&moveView.ok);
+    var danger=state.enemies.some(function(e){return hasActiveIntent(e)&&e.intent.cells.indexOf(cell)>=0;});
     var hazard=reactorHazard(state).indexOf(cell)>=0;
     var classes=['borderTile'];if(wall)classes.push('isWall');if(cover)classes.push('isCover');if(objective)classes.push(objective.secured?'isSecured':'isObjective');if(exit)classes.push('isExit');if(selected)classes.push('isSelected');if(reachable)classes.push('isReachable');if(danger)classes.push('hasIntent');if(hazard)classes.push('isReactorHazard');if(own)classes.push('hasUnit');if(enemy)classes.push('hasEnemy');if(enemy&&enemy.id===state.focusEnemy)classes.push('isTarget');
-    var label=wall?'墙体':cover?'掩体':'通道';if(objective)label=objective.name+(objective.secured?' 已启动':' 未启动');if(exit)label='撤离标记';if(own)label=own.name+' · HP '+own.hp+'/'+own.maxHp+' · AP '+own.ap;if(enemy)label=enemy.name+' · HP '+enemy.hp+'/'+enemy.maxHp+(enemy.intent.kind!=='none'?' · '+intentLabel(enemy.intent.kind):'');
+    var label=wall?'墙体':cover?'掩体':'通道';if(objective)label=objective.name+(objective.secured?' 已启动':' 未启动');if(exit)label='撤离标记';if(own)label=own.name+' · HP '+own.hp+'/'+own.maxHp+' · AP '+own.ap;if(enemy)label=enemy.name+' · HP '+enemy.hp+'/'+enemy.maxHp+' · '+(hasActiveIntent(enemy)?intentLabel(enemy.intent.kind):'暂被打断')+' · 点击'+(enemy.id===state.focusEnemy&&targetToggleArmed?'取消目标锁定':'选择目标');
+    if(moveView)label+=' · '+moveView.summary;
     var token=wall?'▰':own?'<span class="borderUnitGlyph" style="--unit-color:'+UNIT_DEFS[own.id].color+'">'+UNIT_DEFS[own.id].glyph+'</span>':enemy?'<span class="borderEnemyGlyph">'+enemy.glyph+'</span>':objective?(objective.secured?'✓':'⌖'):exit?'⇧':cover?'▧':'';
     if(own)token+='<small>'+own.ap+' AP'+(own.overwatch?' · 警戒':own.braced?' · 掩护':'')+'</small>';if(enemy)token+='<small class="borderHp">'+Math.ceil(enemy.hp)+'</small>';if(danger&&!enemy&&!own)token+='<span class="borderIntentGlyph">!</span>';if(hazard){token+='<small class="borderHazardMark">热</small>';label+=' · 反应堆泄压区';}
-    rows+='<button class="'+classes.join(' ')+'" type="button" role="gridcell" data-border-cell="'+cell+'" aria-label="'+html(label)+'" '+(wall?'disabled':'')+'><span class="borderTileToken">'+token+'</span></button>';
+    rows+='<button class="'+classes.join(' ')+'" type="button" role="gridcell" data-border-cell="'+cell+'" aria-label="'+html(label)+'" title="'+html(label)+'" '+(wall?'disabled':'')+'><span class="borderTileToken">'+token+'</span></button>';
   }host.innerHTML=rows;
 }
 function intentLabel(kind){return({shot:'射击预警',strike:'近战预警',advance:'推进',blast:'范围爆破',none:'被打断'})[kind]||'待机';}
 function renderSquad(){var host=el('squad');if(!host||!state)return;var living=aliveUnits(state);el('squadSummary').textContent=living.length+' / 3';host.innerHTML=state.units.map(function(u){var def=UNIT_DEFS[u.id],pct=Math.max(0,Math.min(100,Math.round(u.hp/u.maxHp*100)));return'<button class="borderSquadUnit '+(u.id===selectedId?'active':'')+(u.alive?'':' down')+'" type="button" data-border-unit="'+u.id+'" '+(!u.alive||state.phase!=='player'?'disabled':'')+'><span class="borderSquadGlyph" style="--unit-color:'+def.color+'">'+def.glyph+'</span><span class="borderSquadCopy"><b>'+html(def.name)+'</b><small>'+html(def.role)+' · AP '+u.ap+'/2 · '+(u.cooldown?'技能冷却 '+u.cooldown:'技能就绪')+'</small><i><em style="width:'+pct+'%"></em></i></span><strong>'+Math.max(0,u.hp)+'</strong></button>';}).join('');}
-function renderEnemies(){var host=el('enemy');if(!host||!state)return;var enemies=livingEnemies(state);el('enemySummary').textContent=String(enemies.length);host.innerHTML=enemies.length?enemies.map(function(e){var pct=Math.max(0,Math.min(100,Math.round(e.hp/e.maxHp*100))),warning=e.intent.kind==='none'?'暂被打断':intentLabel(e.intent.kind);return'<button type="button" class="borderEnemyCard '+(state.focusEnemy===e.id?'isTarget':'')+'" data-border-target="'+e.id+'" aria-pressed="'+(state.focusEnemy===e.id)+'"><span class="borderEnemyGlyphCard">'+html(e.glyph)+'</span><div><b>'+html(e.name)+'</b><small>'+warning+(e.intent.kind==='advance'?' · 向小队推进':' · 预计落点已标红')+'</small><i><em style="width:'+pct+'%"></em></i></div><strong>'+Math.ceil(e.hp)+'</strong></button>';}).join(''):'<div class="borderNoEnemy">当前舱段敌人已清除；检查终端并确认目标。</div>';}
-function updateTacticalControls(){var u=selectedUnit(),target=currentTarget(),acting=state.phase==='player'&&state.status==='active'&&u&&u.ap>0;
-  [['attack',!acting||!target||distance(u.cell,target.cell)>UNIT_DEFS[u.id].range||!clearLine(state,u.cell,target.cell)],['watch',!acting||u.overwatch||!livingEnemies(state).length],['brace',!acting||u.braced],['shove',!acting||!target||target.kind==='boss'||distance(u.cell,target.cell)!==1]].forEach(function(pair){var node=el(pair[0]);if(node)node.disabled=!!pair[1];});
-  if(acting&&target){var inRange=distance(u.cell,target.cell)<=UNIT_DEFS[u.id].range&&clearLine(state,u.cell,target.cell);el('targetHint').textContent=u.name+' → '+target.name+' · '+(inRange?'预计 '+attackDamage(state,u,target)+' 伤害 · 剩余 '+Math.max(0,target.hp-attackDamage(state,u,target))+' HP':'超出射程或被墙体遮挡')+' · 点击「确认射击」执行。';}
+function renderEnemies(){var host=el('enemy');if(!host||!state)return;var enemies=livingEnemies(state);el('enemySummary').textContent=String(enemies.length);host.innerHTML=enemies.length?enemies.map(function(e){var pct=Math.max(0,Math.min(100,Math.round(e.hp/e.maxHp*100))),warning=hasActiveIntent(e)?intentLabel(e.intent.kind)+(e.intent.kind==='advance'?' · 向小队推进':' · 预计落点已标红'):'暂被打断 · 下一次行动跳过';return'<button type="button" class="borderEnemyCard '+(state.focusEnemy===e.id?'isTarget':'')+'" data-border-target="'+e.id+'" aria-pressed="'+(state.focusEnemy===e.id)+'"><span class="borderEnemyGlyphCard">'+html(e.glyph)+'</span><div><b>'+html(e.name)+'</b><small>'+warning+'</small><i><em style="width:'+pct+'%"></em></i></div><strong>'+Math.ceil(e.hp)+'</strong></button>';}).join(''):'<div class="borderNoEnemy">当前舱段敌人已清除；检查终端并确认目标。</div>';}
+function updateTacticalControls(){var u=selectedUnit(),target=currentTarget(),view=getActionView(state,u&&u.id),abilityName=u?UNIT_DEFS[u.id].ability:'战术技能';
+  Object.keys(view).forEach(function(kind){var node=el(kind);if(!node)return;node.disabled=!view[kind].ok;node.title=view[kind].summary;if(typeof node.setAttribute==='function')node.setAttribute('aria-label',view[kind].summary);});
+  var attack=el('attack'),ability=el('ability'),interaction=el('interact');
+  if(attack)attack.textContent='确认射击'+(view.attack.ok?' · '+view.attack.damage+' 伤害':'')+' · 1 AP';
+  if(ability)ability.textContent=abilityName+(view.ability.ok?' → '+view.ability.targetName+' · '+(view.ability.healing?'恢复 '+view.ability.healing+' HP':view.ability.damage+' 伤害')+' · 1 AP':u&&u.cooldown?' · 冷却 '+u.cooldown:' · 消耗 1 AP');
+  if(interaction)interaction.textContent=view.interact.ok?'启动 '+view.interact.objectiveName+' · 1 AP':'靠近终端后启动 · 消耗 1 AP';
+  if(state.phase!=='player'||state.status!=='active')return;
+  var hint=el('targetHint'),parts=[];
+  if(actionReceipt)parts.push(actionReceipt);
+  if(state.sector===3&&!livingEnemies(state).length&&allObjectives(state)){parts.push('敌人与终端均已处理。把任意存活干员移动到 ⇧ 撤离标记完成行动。');}
+  else if(!u)parts.push('没有可行动干员。');
+  else{
+    if(target||state.focusEnemy){parts.push(view.attack.summary+'。');parts.push(view.ability.summary+'。');parts.push(view.shove.summary+'。');parts.push(targetToggleArmed?'再次点击当前敌人可取消目标锁定；取消后技能恢复自动选敌。':'已保留目标；点选敌人后再次点击可取消锁定，取消后技能恢复自动选敌。');}
+    else{parts.push(u.name+' · '+u.ap+' AP · 蓝格每次移动最多 '+movementRange(state)+' 格，消耗 1 AP；选择敌人再确认射击。');parts.push(view.ability.summary+'。');}
+    if(view.interact.ok)parts.push(view.interact.summary+'。');
+    if(!target&&u.ap<1)parts.push(view.watch.summary+'。');
+  }
+  if(hint){hint.textContent=parts.join(' ');hint.dataset.state='info';}
 }
 function renderLog(){var host=el('log');if(!host||!state)return;host.innerHTML=state.log.map(function(line){return'<p>'+html(line)+'</p>';}).join('');}
 function renderUpgrades(){var host=el('upgrade');if(!host||!state)return;var show=state.phase==='upgrade';host.classList.toggle('hidden',!show);if(!show)return;host.innerHTML='<div class="borderDraftHead"><span class="kicker">SECTOR CLEAR / FIELD REQUISITION</span><b>选择一项整备</b></div><div class="borderDraftCards">'+state.offers.map(function(id){var d=UPGRADE_DEFS[id];return'<button class="borderUpgradeCard" type="button" data-border-upgrade="'+id+'"><small>'+d.tag+'</small><b>'+d.name+'</b><span>'+d.desc+'</span></button>';}).join('')+'</div>';}
@@ -258,17 +361,16 @@ function renderResult(){if(!state)return;var clear=state.outcome==='clear',rewar
 function render(){if(!state||!active)return;if(state.status==='settling')settleLoaded();var complete=state.status==='complete';el('lobby').classList.add('hidden');el('mission').classList.toggle('hidden',complete);el('result').classList.toggle('hidden',!complete);if(complete){renderResult();return;}
   var labels=['','外环泊位','冷却反应堆','中央控制室'];el('sectorTag').textContent='SECTOR '+String(state.sector).padStart(2,'0')+' / '+['','DOCK','REACTOR','CORE'][state.sector];el('sectorTitle').textContent=labels[state.sector];el('objectiveText').textContent='终端 '+state.map.objectives.filter(function(o){return o.secured;}).length+'/'+state.map.objectives.length+' · 敌人 '+livingEnemies(state).length+' · '+(reactorHazard(state).length?'橙色泄压区将在 '+(3-(state.turn-1)%3)+' 回合后喷发；关闭全部阀门停止泄压':state.sector===3?'全部清除后移至撤离格 ⇧':'清空并启动全部终端后选择补给');el('turn').textContent='我方行动 · 第 '+state.turn+' 回合';el('alert').textContent='警戒 '+state.alert;el('score').textContent=String(state.score);
   renderBoard();renderSquad();renderEnemies();renderLog();renderUpgrades();
-  var unit=selectedUnit(),ability=el('ability'),objective=adjacentObjective(),allOut=sectorClear(state);ability.disabled=!unit||unit.ap<1||unit.cooldown>0||(unit.id==='medic'&&!state.units.some(function(u){return u.alive&&u.hp<u.maxHp&&distance(u.cell,unit.cell)<=2;}))||(unit.id!=='medic'&&!targetOptions(state,unit.cell,unit.id==='assault'?4:5).some(function(e){return !state.focusEnemy||e.id===state.focusEnemy;}));ability.textContent=unit?UNIT_DEFS[unit.id].ability+' · '+(unit.cooldown?'冷却 '+unit.cooldown:'消耗 1 AP'):'战术技能';
-  el('interact').disabled=!unit||!objective||unit.ap<1;el('interact').textContent=objective?'启动 '+objective.name+' · 消耗 1 AP':'靠近终端后启动 · 消耗 1 AP';el('endTurn').disabled=state.phase!=='player'||state.status!=='active';el('endTurn').textContent='结束我方回合 · '+aliveUnits(state).reduce(function(n,u){return n+u.ap;},0)+' AP 未用';el('next').classList.add('hidden');
-   if(state.phase==='upgrade')el('targetHint').textContent='本段目标已完成。选择一项补给，下一段会保留队伍生命和强化。';else if(allOut&&state.sector===3)el('targetHint').textContent=aliveUnits(state).some(function(u){return u.cell===state.map.exit;})?'全队已到达撤离点，档案正在回收。':'敌人与终端均已处理。把任意存活干员移动到 ⇧ 撤离标记完成行动。';else if(allOut)el('targetHint').textContent='本段目标已完成。选择一项补给，下一段会保留队伍生命和强化。';else if(!unit)el('targetHint').textContent='没有可行动干员。';else el('targetHint').textContent=unit.name+' · '+unit.ap+' 点行动 · 蓝格可移动，先选敌人再射击；也可消耗 1 AP 警戒、掩护或推击。';
-   if(checkpointConflict)setSaveStatus('另一页面已更新行动档案；本页操作没有写入存档。请返回大厅并重新载入最新进度，避免覆盖较新的行动。','warn');
-   updateTacticalControls();
+   el('endTurn').disabled=state.phase!=='player'||state.status!=='active';el('endTurn').textContent='结束我方回合 · '+aliveUnits(state).reduce(function(n,u){return n+u.ap;},0)+' AP 未用';el('next').classList.add('hidden');
+    if(state.phase==='upgrade')el('targetHint').textContent='本段目标已完成。选择一项补给，下一段会保留队伍生命和强化。';
+    updateTacticalControls();
+    if(checkpointConflict)setSaveStatus('另一页面已更新行动档案；本页操作没有写入存档。请返回大厅并重新载入最新进度，避免覆盖较新的行动。','warn');
 }
 function refreshVisibleState(){if(active&&state){if(state.status==='settling')settleLoaded();render();}else if(!active)refreshLobby();}
 function bind(){
   var grid=el('grid');if(grid)grid.addEventListener('click',function(e){var button=e.target&&e.target.closest?e.target.closest('[data-border-cell]'):null;if(button)onCell(Number(button.dataset.borderCell));});
   var roster=el('squad');if(roster)roster.addEventListener('click',function(e){var button=e.target&&e.target.closest?e.target.closest('[data-border-unit]'):null;if(button)selectUnit(button.dataset.borderUnit);});
-  var enemies=el('enemy');if(enemies)enemies.addEventListener('click',function(e){var button=e.target&&e.target.closest?e.target.closest('[data-border-target]'):null;if(button&&state&&state.phase==='player'){state.focusEnemy=button.dataset.borderTarget;render();}});
+  var enemies=el('enemy');if(enemies)enemies.addEventListener('click',function(e){var button=e.target&&e.target.closest?e.target.closest('[data-border-target]'):null;if(button)selectEnemy(button.dataset.borderTarget);});
   ['attack','watch','brace','shove'].forEach(function(kind){var button=el(kind);if(button)button.addEventListener('click',function(){tacticalAction(kind);});});
   var contracts=el('contractPicker');if(contracts)contracts.addEventListener('click',function(e){var button=e.target&&e.target.closest?e.target.closest('[data-border-contract]'):null;if(button)selectContract(button.dataset.borderContract);});
   var upgrades=el('upgrade');if(upgrades)upgrades.addEventListener('click',function(e){var button=e.target&&e.target.closest?e.target.closest('[data-border-upgrade]'):null;if(button)pickUpgrade(button.dataset.borderUpgrade);});
@@ -276,6 +378,6 @@ function bind(){
   root.addEventListener('pagehide',function(){if(state&&state.status==='active')persist();});root.addEventListener('pageshow',refreshVisibleState);document.addEventListener('visibilitychange',function(){if(document.hidden&&state&&state.status==='active')persist();else if(!document.hidden)refreshVisibleState();});
   refreshLobby();
 }
-root.NeonBorderTactics={enter:enter,leave:leave,refresh:refreshVisibleState,debug:{createCampaign:createCampaign,beginSector:beginSector,sectorClear:sectorClear,isStateValid:isStateValid,decodeEnvelope:decodeEnvelope,moveUnit:moveUnit,performAttack:performAttack,useAbility:useAbility,interactObjective:interactObjective,endTurn:endTurn,chooseUpgrade:chooseUpgrade,setOverwatch:setOverwatch,brace:brace,shove:shove,reactorHazard:reactorHazard,attackDamage:attackDamage,settle:settle,readCheckpoint:readCheckpoint,getState:function(){return state?clone(state):null;},setState:function(s){state=clone(s);},newOperation:function(contractId){contract=contractId||'recon';return newOperation(true);},continueOperation:continueOperation,saveCheckpoint:saveCheckpoint,loadSavedState:loadSavedState,clearCheckpoint:clearCheckpoint}};
+root.NeonBorderTactics={enter:enter,leave:leave,refresh:refreshVisibleState,debug:{createCampaign:createCampaign,beginSector:beginSector,sectorClear:sectorClear,isStateValid:isStateValid,decodeEnvelope:decodeEnvelope,moveUnit:moveUnit,performAttack:performAttack,useAbility:useAbility,interactObjective:interactObjective,endTurn:endTurn,chooseUpgrade:chooseUpgrade,setOverwatch:setOverwatch,brace:brace,shove:shove,reactorHazard:reactorHazard,attackDamage:attackDamage,inspectAction:inspectAction,getActionView:getActionView,settle:settle,readCheckpoint:readCheckpoint,getState:function(){return state?clone(state):null;},setState:function(s){state=clone(s);},newOperation:function(contractId){contract=contractId||'recon';return newOperation(true);},continueOperation:continueOperation,saveCheckpoint:saveCheckpoint,loadSavedState:loadSavedState,clearCheckpoint:clearCheckpoint}};
 bind();
 })(window);
