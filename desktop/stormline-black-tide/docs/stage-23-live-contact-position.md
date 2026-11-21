@@ -22,6 +22,6 @@
 
 总站 `npm run build` 后 `npm test` 均退出 0，网站源码、`dist/`、根 `LICENSE` 未改；日志/哈希记录于 `build/sync/stage-23-website.json`。本阶段仅白名单同步源码/测试/文档，不复制缓存、隔离档案、构建或证据目录。
 
-GitHub 提交及完整树、项目逐 blob 正文回读完成后记录在本机 `build/sync/stage-23.json`；推送本身不等于读回验证通过。
+实现提交 `48e7b75ce3b5f82962546242a0ee1c9e8e5f3a05` 已推送既有 GitHub `main` 并读回。实现树 SHA `f0243620d9468dccee2820c520dc5e2603e53ec1`，整仓 **423 个 blob** 完整树与提交一致；项目 **71 个文件** API blob 正文逐项与提交对象核验一致。开发源/镜像工作文件逐字节一致，经 Git 清洗后匹配远端内容。实现证据 `build/sync/stage-23-github-tree-48e7b75.json`、`build/sync/stage-23-project-blobs-48e7b75.json`；本条属于后续记录提交，最终提交与树另见 `build/sync/stage-23.json`。核验同时断言生产代码相对阶段 22 仅新增该位置赋值一行。
 
 本阶段不导出 EXE/PCK，不运行图形游戏或导出 EXE，不使用桌面自动化，不发布二进制或部署网页。实际 3D、字体、声音、镜头观感、性能和真人试玩仍未测。
