@@ -10,6 +10,9 @@ signal mute_requested
 signal quit_requested
 
 const Radar = preload("res://src/radar.gd")
+const Sim = preload("res://src/storm_sim.gd")
+# storm_sim._attach uses this literal; interaction_feedback probes its real predicate.
+const ATTACH_RELATIVE_SPEED := 4.2
 const CONTRACT_IDS := ["black-tide", "needle-bank"]
 const POWER_NAMES := ["推进", "搜索", "稳索"]
 const TEXT := Color("e9f5fa")
@@ -195,6 +198,7 @@ func _build_live() -> void:
 	_dock_tug = _label(dock_status, "", 18)
 	_dock_cargo = _label(dock_status, "", 18)
 	_dock_meter = _rail(dock_box, 1.0, GREEN, 6)
+	_dock_meter.step = 0.0 # Preserve normalized simulation ticks; other rails use percent steps.
 	_dock_instruction = _label(dock_box, "", 17, DIM, true)
 
 	var chart := _panel(_live, true)
@@ -270,14 +274,7 @@ func _present_live(view: Dictionary, contract: Dictionary) -> void:
 	_mission.text = String(contract.get("name", "黑潮回收"))
 	_phase.text = "拖带返航" if towing or phase == "return" else ("航迹已锁定" if scanned else "接近信号区")
 	_clock.text = ("剩余 " + _time(deadline - elapsed)) if deadline > 0.0 else ("已用 " + _time(elapsed))
-	_objective.text = String(view.get("objective", ""))
-	if _objective.text.is_empty():
-		if towing:
-			_objective.text = "带载返航，稳定拖缆并低速入港。"
-		elif scanned:
-			_objective.text = "低速靠近回收舱，按 Space 挂索。"
-		else:
-			_objective.text = "低速进入信号区，长按 E 使用声纳。"
+	_objective.text = _interaction_guidance(view, contract)
 	_notice.text = String(view.get("notice", ""))
 	_notice.visible = not _notice.text.is_empty() and _notice.text != _objective.text
 	_warning.text = _advisory(towing, tension, battery, minf(hull, cargo) if scanned else hull, deadline - elapsed if deadline > 0.0 else INF)
@@ -338,13 +335,54 @@ func _present_dock(view: Dictionary, towing: bool, harbor: Vector2, radius: floa
 		# Mission snapshot supplies the true normalized one-second hold. Do not
 		# integrate in the HUD: presentation may be throttled or paused.
 		_dock_meter.value = clampf(float(view.get("dock", 0.0)), 0.0, 1.0)
-		_dock_progress.text = "靠港   /   稳定 %.2f / 1.00 秒" % _dock_meter.value
+		_dock_progress.text = "靠港   /   稳定 %.2f / %.2f 秒" % [_dock_meter.value * Sim.DOCK_TIME, Sim.DOCK_TIME]
 	else:
 		var berthed := int(tug_in) + int(cargo_in)
 		_dock_meter.value = berthed * 0.5
 		_dock_progress.text = "靠港   /   已入港 %d / 2" % berthed
 	var cargo_velocity: Vector2 = view.get("cargo_velocity", Vector2.ZERO)
-	_dock_instruction.text = "船、舱均须入港，低速稳定 1 秒\n船 %.1f / 舱 %.1f m/s" % [velocity.length(), cargo_velocity.length()]
+	var tension := float(view.get("tension", 0.0))
+	var action := "保持稳定" if tug_in and cargo_in else "船舱均须入圈"
+	if velocity.length() > Sim.DOCK_SPEED or cargo_velocity.length() > Sim.DOCK_SPEED:
+		action = "船舱继续减速"
+	if tension >= Sim.DOCK_TENSION:
+		action = "松油门稳索"
+	var settled := tug_in and cargo_in and velocity.length() <= Sim.DOCK_SPEED \
+		and cargo_velocity.length() <= Sim.DOCK_SPEED and tension < Sim.DOCK_TENSION
+	_dock_instruction.text = "船 %.1f/≤%.1f · 舱 %.1f/≤%.1f m/s\n缆张 %.1f%% / <%.0f%% · %s" % [
+		velocity.length(), Sim.DOCK_SPEED, cargo_velocity.length(), Sim.DOCK_SPEED,
+		tension * 100.0, Sim.DOCK_TENSION * 100.0, action]
+	_dock_instruction.add_theme_color_override("font_color", GREEN if settled else AMBER)
+
+
+func _interaction_guidance(view: Dictionary, contract: Dictionary) -> String:
+	var phase := String(view.get("phase", "approach"))
+	var velocity: Vector2 = view.get("velocity", Vector2.ZERO)
+	var speed := velocity.length()
+	if phase == "approach":
+		if not bool(view.get("scanned", false)):
+			var progress := clampf(float(view.get("scan", 0.0)), 0.0, 1.0)
+			var action := "按住 E 扫描" if speed < Sim.SCAN_SPEED else "先减速再扫描"
+			# target_distance is the signal-centre distance before lock, NOT cargo range.
+			# Do not claim scan readiness or expose the hidden pod's exact position.
+			return "声纳范围 ≤%.0f m · 船速 <%.1f m/s\n当前 %.1f m/s · %s（%.0f%%）" % [
+				Sim.SCAN_RADIUS, Sim.SCAN_SPEED, speed, action, progress * 100.0]
+		var distance := float(view.get("target_distance", INF))
+		var cargo_velocity: Vector2 = view.get("cargo_velocity", Vector2.ZERO)
+		var relative_speed := (velocity - cargo_velocity).length()
+		var action := "可按 Space 挂索"
+		if distance > Sim.ATTACH_RADIUS:
+			action = "继续靠近回收舱"
+		elif speed > Sim.ATTACH_SPEED:
+			action = "船速过高，继续减速"
+		elif relative_speed > ATTACH_RELATIVE_SPEED:
+			action = "相对速过高，稳住船舱"
+		return "挂索 距离 %.1f/≤%.1f m · 船速 %.1f/≤%.1f\n相对速 %.1f/≤%.1f m/s · %s" % [
+			distance, Sim.ATTACH_RADIUS, speed, Sim.ATTACH_SPEED, relative_speed, ATTACH_RELATIVE_SPEED, action]
+	if phase == "return":
+		return "入港条件：船、舱均在港圈内\n速度 ≤%.1f m/s · 缆张 <%.0f%% · 稳定 %.0f 秒" % [
+			Sim.DOCK_SPEED, Sim.DOCK_TENSION * 100.0, Sim.DOCK_TIME]
+	return String(view.get("objective", contract.get("briefing", "")))
 
 func _advisory(towing: bool, tension: float, battery: float, integrity: float, remaining: float) -> String:
 	if towing and tension > 1.0:
