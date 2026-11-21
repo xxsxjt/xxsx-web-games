@@ -1,6 +1,7 @@
 (function(root){
   'use strict';
   var clamp=function(v,a,b){return Math.max(a,Math.min(b,v));};
+  var beaconRange=85,contestRange=125;
   function create(){return {width:3200,height:2400,camera:{x:0,y:0},stick:null,target:null,beacons:[{x:850,y:720,name:'维修站',charge:0,claimed:false},{x:2380,y:850,name:'弹药站',charge:0,claimed:false},{x:1800,y:1930,name:'核心站',charge:0,claimed:false}]};}
   function camera(f,p,w,h){f.camera.x=clamp(p.x-w/2,0,Math.max(0,f.width-w));f.camera.y=clamp(p.y-h/2,0,Math.max(0,f.height-h));return f.camera;}
   function spawn(f,p,w,h,random){
@@ -17,6 +18,7 @@
     e.x=clamp(e.x+(dx/d*forward-dy/d*side)*speed*dt,e.r,f.width-e.r);e.y=clamp(e.y+(dy/d*forward+dx/d*side)*speed*dt,e.r,f.height-e.r);
   }
   function dash(f,p){var x=p.dashX||0,y=p.dashY||0;if(!x&&!y)y=-1;var d=Math.hypot(x,y);return {x:clamp(p.x+x/d*110,28,f.width-28),y:clamp(p.y+y/d*110,28,f.height-28)};}
-  function beacons(f,p,enemies,dt){var rewards=[];f.beacons.forEach(function(b){if(b.claimed)return;var near=Math.hypot(b.x-p.x,b.y-p.y)<85,contested=enemies.some(function(e){return !e.dead&&Math.hypot(e.x-b.x,e.y-b.y)<125;});if(near&&!contested)b.charge=Math.min(5,b.charge+dt);else b.charge=Math.max(0,b.charge-dt*.35);if(b.charge>=5){b.claimed=true;rewards.push(b);}});return rewards;}
-  root.NeonFreeField={create:create,camera:camera,spawn:spawn,target:target,move:move,stick:stick,chase:chase,dash:dash,beacons:beacons};
+  function beaconStatus(b,p,enemies){if(b.claimed)return{id:'claimed',label:'已占领',radarLabel:'已占领'};if(Math.hypot(b.x-p.x,b.y-p.y)>=beaconRange)return{id:'out-of-range',label:'未进入范围',radarLabel:'未入范围'};if((enemies||[]).some(function(e){return !e.dead&&Math.hypot(e.x-b.x,e.y-b.y)<contestRange;}))return{id:'contested',label:'敌人干扰',radarLabel:'受干扰'};return{id:'charging',label:'正在充能',radarLabel:'充能中'};}
+  function beacons(f,p,enemies,dt){var rewards=[];f.beacons.forEach(function(b){if(b.claimed)return;if(beaconStatus(b,p,enemies).id==='charging')b.charge=Math.min(5,b.charge+dt);else b.charge=Math.max(0,b.charge-dt*.35);if(b.charge>=5){b.claimed=true;rewards.push(b);}});return rewards;}
+  root.NeonFreeField={create:create,camera:camera,spawn:spawn,target:target,move:move,stick:stick,chase:chase,dash:dash,beaconStatus:beaconStatus,beacons:beacons};
 })(typeof window!=='undefined'?window:globalThis);

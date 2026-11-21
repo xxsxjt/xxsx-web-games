@@ -6,8 +6,10 @@ const http = require('node:http');
 const path = require('node:path');
 
 const projectRoot = path.resolve(__dirname, '..');
-const v58CatalogPath = '/content/games.0756d5004458.json';
-const v58HubPath = '/static/hub.df59a9ef57b7.js';
+const cachedReleases = [
+  {version: 'V58', catalog: '/content/games.0756d5004458.json', hub: '/static/hub.df59a9ef57b7.js', count: 8},
+  {version: 'V59', catalog: '/content/games.7b005c44460f.json', hub: '/static/hub.c1ab18d37dc7.js', count: 9},
+];
 
 async function start(modeArgs) {
   const child = spawn(process.execPath, ['scripts/dev.mjs', '--no-vite', '--port', '0', ...modeArgs], {
@@ -90,12 +92,19 @@ async function distPreviewChecks() {
       assert.equal(asset.status, 200, url);
       assert.match(asset.type, type);
     }
-    const previousHub = await request(server.port, v58HubPath);
-    const previousCatalog = await request(server.port, v58CatalogPath);
-    assert.equal(previousHub.status, 200, 'cached V58 home pages can still load their script');
-    assert.equal(previousCatalog.status, 200, 'the V58 script can still fetch its own catalogue');
-    assert.ok(previousHub.body.includes(v58CatalogPath.slice(1)));
-    assert.equal(JSON.parse(previousCatalog.body).length, 8);
+    for (const {version, catalog, hub, count} of cachedReleases) {
+      const previousHub = await request(server.port, hub);
+      const previousCatalog = await request(server.port, catalog);
+      assert.equal(previousHub.status, 200, version + ' cached home pages can still load their script');
+      assert.equal(previousCatalog.status, 200, version + ' script can still fetch its own catalogue');
+      assert.ok(previousHub.body.includes(catalog.slice(1)));
+      const entries = JSON.parse(previousCatalog.body);
+      assert.equal(entries.length, count);
+      for (const entry of entries) {
+        assert.equal((await request(server.port, '/' + entry.cover)).status, 200, version + ' cover remains available: ' + entry.id);
+        if (entry.entry) assert.equal((await request(server.port, '/' + entry.entry)).status, 200, version + ' standalone route remains available: ' + entry.id);
+      }
+    }
     assert.equal((await request(server.port, '/tests/game-viewports.html')).status, 404);
     assert.equal((await request(server.port, '/package.json')).status, 404);
     assert.equal((await request(server.port, '/not-a-published-page')).status, 404, 'dist preview must not use SPA fallback');
