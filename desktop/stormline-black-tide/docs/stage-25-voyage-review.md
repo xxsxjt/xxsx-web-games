@@ -26,9 +26,13 @@
 - 镜像使用同一完整 QA 命令退出 0，全部必需检查通过、0 诊断；摘要为总仓库下 `desktop/stormline-black-tide/build/qa/20261121-055528-253709/summary.json`。47 项指纹前后不变且与开发源逐项相同，隔离用户目录没有最佳成绩文件；全部 83 份原始字节一致，19 份阶段差异按白名单复制、无删除。文档补记后只复核文档和既有 QA 指纹，不冒称重新跑过整套。
 - 本机初查白名单与修改前镜像哈希：`build/sync/stage-25-initial-whitelist.json`；定向复现及修复日志：`build/qa/stage25-smoke-{reproduction,corrected}/smoke.log`。
 
-## GitHub 同步门槛
+## GitHub 独立同步与读回
 
-开发源、PCK 和镜像现已满足当前字节门槛；接下来仅暂存上述 19 份桌面差异，正常提交/推送，再读取远端 main、commit、完整树和全部 83 份桌面正文。远端读回尚未完成，此处不预写同步结论。网页源码、根工作单、V61 产物及候选新系统均不纳入桌面提交。
+开发源、PCK 和镜像满足当前字节门槛后，仅显式暂存上述 **19 份桌面差异**，`git diff --cached --check` 退出 0；正常提交 **`b2e4b7ed885ab19be181924926689f9ccefba217`** 并推送既有 `origin/main`。提交前 fetch 后本地/远端均为 `da355904066a1ffea00b6f45d87614de2f9ec642`；未强推、未暂存网页源码、根工作单、V61 产物、本机日志/PCK、候选新系统或 LICENSE。
+
+推送后 `ls-remote`、fetch、GitHub main ref 和 commit API 均确认该实现提交；远端树 **`dd799afda004bc2b07772f050c5599f2e794bd6e`** 的完整 **470 个 blob** 路径/模式/SHA 与本地提交一致。逐项读取该提交下 **83/83 桌面远端正文**，重新计算 Git blob，与远端树、本地对象、Git 清洗后的镜像一致；开发源和镜像原始字节也逐项相同。六份冻结实现与两侧 47 项 QA 指纹仍未变。证据 `build/sync/stage-25-github-implementation.json` 和相邻 `-tree.json`。
+
+本节是实施提交后的独立记录；记录提交本身的最终 main/tree/83 正文读回登记于本机 `build/sync/stage-25-final.json`，避免在文档中自引用尚不存在的提交号。补记只复核文档与既有指纹，不声称又运行过整套 QA。
 
 ## 早期日志边界与未执行项
 
