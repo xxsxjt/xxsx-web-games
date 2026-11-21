@@ -21,6 +21,7 @@
 - 阶段 11（停泊最终 tick 的耗尽/超时优先级）：`docs/stage-11-terminal-priority.md`
 - 阶段 12（临港暂停/失焦、恢复与重开一致性）：`docs/stage-12-docking-lifecycle.md`
 - 阶段 13（针礁水道自然触礁后返航）：`docs/stage-13-needle-recovery.md`
+- 阶段 14（自然受损航次的暂停/失焦与重开）：`docs/stage-14-needle-lifecycle.md`
 - 持续开发和验证计划：`docs/task-plan.md`
 - 本机无窗口证据：`build/qa/<时间戳>/summary.json` 及相邻日志。
 - Windows 候选包：`build/releases/<时间戳>/`；EXE、独立 PCK、说明和校验随包放置。
@@ -39,7 +40,7 @@ python -X utf8 tools/regression.py --godot 'Godot_v4.3-stable_win64_console.exe'
 python -X utf8 tools/build_windows.py --godot 'Godot_v4.3-stable_win64_console.exe' --qa 'build/qa/<本次时间戳>/summary.json'
 ```
 
-构建器要求十五项 Godot 无窗口检查（导入与十四套脚本）及 `smoke_tool`（Python 探针自测）；完整 QA 命令会自动执行这十六项检查，含终局优先级、临港暂停/失焦和针礁触礁恢复套件。
+构建器要求十六项 Godot 无窗口检查（导入与十五套脚本）及 `smoke_tool`（Python 探针自测）；完整 QA 命令会自动执行这十七项检查，含终局优先级、临港生命周期、针礁触礁恢复及自然受损航次生命周期套件。
 
 导出后可用官方 Godot 的隔离无窗口脚本仅加载 PCK 资源。下述探针不执行游戏 EXE、不实例化主场景，只加载七个编译脚本和入口 PackedScene 资源、对无场景模拟器单步校验。用户目录和日志隔离；不播放音频、不截屏、不验证真实渲染/操控。
 
