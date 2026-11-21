@@ -86,6 +86,7 @@ func _exercise_contract(id: String) -> void:
 	_world.present(view, 0.0)
 	_check(view == paused and _projection(true, true, false),
 		label + " pause preserves contact projection without advancing its snapshot")
+	_moving_contact_fixtures(view, sim.contract, label)
 
 	# Return uses the known object but retires the approach-only marker.
 	sim.phase = "return"
@@ -160,6 +161,42 @@ func _exercise_contract(id: String) -> void:
 		label + " terminal success camera converges to a harbor-framed view")
 	_check(success_view == success_before and next_sim.snapshot()["phase"] == "success",
 		label + " terminal camera and visibility projection leave model/result unchanged")
+
+
+func _moving_contact_fixtures(base: Dictionary, contract: Dictionary, label: String) -> void:
+	# Synthetic snapshot positions, deliberately separate from natural-input voyages.
+	for offset: Vector2 in [Vector2(13.0, -6.0), Vector2(-7.0, 9.0), Vector2.ZERO]:
+		var view := base.duplicate(true)
+		var contact: Vector2 = contract.target + offset
+		view.screen = "running"
+		view.cargo_position = contact
+		view.position = contact + Vector2(8.0, 0.0)
+		view.target_distance = 8.0
+		var original := view.duplicate(true)
+		_world.present(view, 0.0, true)
+		var marker: Node3D = _world.get("_target_marker")
+		var caption: Label3D = _world.get("_target_label")
+		_check(marker.visible and marker.position == Vector3(contact.x, 0.0, contact.y)
+			and Vector2(caption.global_position.x, caption.global_position.z) == contact,
+			label + " moving contact ring and inherited label follow the live capsule at " + str(offset))
+		_check(view == original and _world.get("_target") == contract.target,
+			label + " contact projection leaves the snapshot and configured initial target unchanged")
+		view.screen = "paused"
+		_world.present(view, 0.75)
+		_check(marker.position == Vector3(contact.x, 0.0, contact.y) and marker.visible,
+			label + " paused contact stays at the measured capsule position")
+	var hidden := base.duplicate(true)
+	hidden.cargo_position = contract.target + Vector2(21.0, 17.0)
+	hidden.target_visible = false
+	_world.present(hidden, 0.0)
+	_check(not _world.get("_target_marker").visible and not _world.get("_cargo").visible,
+		label + " moving contact still respects snapshot concealment")
+	hidden.target_visible = true
+	_world.present(hidden, 0.0)
+	_check(_world.get("_target_marker").visible
+		and _world.get("_target_marker").position == Vector3(hidden.cargo_position.x, 0.0, hidden.cargo_position.y),
+		label + " newly disclosed contact uses the current capsule rather than the previous contact position")
+	_world.present(base, 0.0)
 
 
 func _projection(marker: bool, capsule: bool, cable: bool) -> bool:

@@ -728,6 +728,7 @@ func _update_world(view: Dictionary, delta: float, snap_camera: bool) -> void:
 	var has_recovery_object := tow_attached or target_visible
 	_cargo.visible = has_recovery_object
 	_cargo.rotation.y = -_velocity_heading(cargo_velocity, heading)
+	_target_marker.position = _to_world(cargo_position)
 	_target_marker.visible = target_visible and not tow_attached and phase == "approach"
 	_target_label.text = "SONAR LOCK   /   RECOVERY CAPSULE" if scanned else "VISUAL CONTACT   /   RECOVERY CAPSULE"
 	_update_wakes(position_2d, velocity, cargo_position, cargo_velocity, tow_attached, storm)

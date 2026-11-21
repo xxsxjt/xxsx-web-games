@@ -30,6 +30,7 @@
 - 阶段 20（阈值附近的反馈读数）：`docs/stage-20-threshold-readings.md`
 - 阶段 21（场景标记可见状态生命周期）：`docs/stage-21-world-visibility-lifecycle.md`
 - 阶段 22（正式应用 HUD/雷达/世界切屏一致性）：`docs/stage-22-presentation-lifecycle.md`
+- 阶段 23（锁定目标标记跟随漂移舱体）：`docs/stage-23-live-contact-position.md`
 - 持续开发和验证计划：`docs/task-plan.md`
 - 本机无窗口证据：`build/qa/<时间戳>/summary.json` 及相邻日志。
 - Windows 候选包：`build/releases/<时间戳>/`；EXE、独立 PCK、说明和校验随包放置。

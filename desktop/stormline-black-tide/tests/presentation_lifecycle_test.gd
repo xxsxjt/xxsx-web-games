@@ -132,6 +132,8 @@ func _voyage(app: Node, mode: String) -> void:
 	var matched := true
 	var projected := true
 	var samples := 0
+	var contact_samples := 0
+	var max_contact_offset := 0.0
 	var paused: Dictionary = {}
 	var observed := {"scan": false, "attach": false, "collision": false, "overload": false, "dock": false, "notice_expired": false}
 	for tick in range(Route.MAX_TICKS):
@@ -173,11 +175,17 @@ func _voyage(app: Node, mode: String) -> void:
 			app.call("_process", DT)
 			projected = _projection(app) and projected and sim.snapshot() == after
 			samples += 1
+			if after.target_visible and not after.tow_attached and after.phase == "approach":
+				var contact: Vector3 = app.get("world").get("_target_marker").position
+				contact_samples += 1
+				max_contact_offset = maxf(max_contact_offset, Vector2(contact.x, contact.z).distance_to(after.cargo_position))
 		if tick % 600 == 0:
 			await process_frame
 	_check(matched and route.ticks == model_route.ticks, mode + " every official polling tick matches the independent same-input model")
 	_check(projected and samples > 100 and observed.scan and observed.attach and observed.collision
 		and observed.notice_expired, mode + " sampled scan/attach/collision/expiry frames have current read-only visible projection: " + _first_projection_error)
+	_check(contact_samples > 10 and max_contact_offset < 0.0001,
+		mode + " naturally drifting acquired contact stays over the live capsule; samples=%d max_offset=%.6f m" % [contact_samples, max_contact_offset])
 	_check(paused.has("scan") and paused.has("attach") and paused.has("collision"), mode + " natural milestones exercise both manual and focus-driven pauses")
 	if mode == "recover":
 		_check(sim.phase == "success" and route.ticks == 8231 and paused.has("dock") and observed.dock,
@@ -220,8 +228,8 @@ func _voyage(app: Node, mode: String) -> void:
 	_check(app.get("selected_contract") == "black-tide" and _projection(app)
 		and _record_bytes() == saved, mode + " post-voyage contract switch shows only the new briefing/world")
 	Driver.edge(root, KEY_2)
-	print("APP presentation_lifecycle/%s: %s tickwise_match=%s projection_match=%s samples=%d" % [
-		mode, route.metrics(terminal), str(matched), str(projected), samples])
+	print("APP presentation_lifecycle/%s: %s tickwise_match=%s projection_match=%s samples=%d contact_samples=%d max_contact_offset=%.6f" % [
+		mode, route.metrics(terminal), str(matched), str(projected), samples, contact_samples, max_contact_offset])
 
 
 func _projection(app: Node) -> bool:
@@ -253,6 +261,10 @@ func _projection(app: Node) -> bool:
 	var cargo_position: Vector3 = world.get("_cargo").position
 	if Vector2(boat_position.x, boat_position.z) != view.position or Vector2(cargo_position.x, cargo_position.z) != view.cargo_position:
 		return _projection_error("world positions lag behind the published snapshot")
+	if world.get("_target_marker").visible:
+		var contact_position: Vector3 = world.get("_target_marker").position
+		if Vector2(contact_position.x, contact_position.z) != view.cargo_position:
+			return _projection_error("visible acquired contact stays at initial target instead of live capsule; offset=%.6f m" % Vector2(contact_position.x, contact_position.z).distance_to(view.cargo_position))
 	if not view.tow_attached and (world.get("_tow_label").visible or not String(world.get("_tow_label").text).is_empty()
 			or world.get("_cable_light").light_energy != 0.0):
 		return _projection_error("detached tow leaves a warning/light behind")
