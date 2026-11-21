@@ -121,6 +121,10 @@ func _fixtures(hud: Node, dimensions: Vector2i, id: String) -> void:
 		["cargo-fast", 2.0, 2.0, 0.0, Sim.DOCK_SPEED + 0.001, 0.0],
 		["tension-edge", 2.0, 2.0, 0.0, 0.0, Sim.DOCK_TENSION],
 		["tension-out", 2.0, 2.0, 0.0, 0.0, Sim.DOCK_TENSION + 0.001],
+		["tug-speed-rounding", 2.0, 2.0, Sim.DOCK_SPEED + 0.0001, 0.0, 0.0],
+		["cargo-speed-rounding", 2.0, 2.0, 0.0, Sim.DOCK_SPEED + 0.0001, 0.0],
+		["tension-rounding-below", 2.0, 2.0, 0.0, 0.0, Sim.DOCK_TENSION - 0.00001],
+		["tension-rounding-above", 2.0, 2.0, 0.0, 0.0, Sim.DOCK_TENSION + 0.00001],
 		["overload", 2.0, 2.0, 3.0, 3.0, 1.2],
 	]
 	for fixture: Array in dock_cases:
@@ -150,8 +154,17 @@ func _fixtures(hud: Node, dimensions: Vector2i, id: String) -> void:
 			and is_equal_approx(hud.get("_dock_meter").value, view.dock),
 			label + "/" + String(fixture[0]) + " progress consumes snapshot, never predicts or integrates")
 		_check(hud.get("_objective").text.contains("≤%.1f" % Sim.DOCK_SPEED)
-			and hud.get("_dock_instruction").text.contains("<%.0f%%" % (Sim.DOCK_TENSION * 100.0)),
+			and hud.get("_dock_instruction").text.contains("/ <68%"),
 			label + "/" + String(fixture[0]) + " uses the actual inclusive speed and exclusive tension limits")
+		var dock_text: String = hud.get("_dock_instruction").text
+		if String(fixture[0]) in ["tug-speed-rounding", "cargo-speed-rounding"]:
+			_check(dock_text.contains(">%.1f" % Sim.DOCK_SPEED), label + "/" + String(fixture[0]) + " marks a rounded over-limit speed")
+		if String(fixture[0]) == "tension-rounding-below":
+			_check(dock_text.contains("<68.0%"), label + " just-under exclusive tension remains visibly below the limit")
+		if String(fixture[0]) == "tension-edge":
+			_check(dock_text.contains("≥68.0%"), label + " exact exclusive tension edge is not presented as eligible")
+		if String(fixture[0]) == "tension-rounding-above":
+			_check(dock_text.contains(">68.0%"), label + " rounded over-limit tension remains visibly above the limit")
 		_check(_layout_ok(hud, dimensions), label + "/" + String(fixture[0]) + " dock, collision notice and warning fit")
 		var instruction: String = hud.get("_dock_instruction").text
 		view.screen = "paused"
@@ -163,6 +176,38 @@ func _fixtures(hud: Node, dimensions: Vector2i, id: String) -> void:
 	view.tow_attached = false
 	hud.present(view)
 	_check(not hud.get("_dock").visible, label + " unattached tow never presents docking readiness")
+	await _threshold_rounding_fixtures(hud, label)
+
+
+func _threshold_rounding_fixtures(hud: Node, label: String) -> void:
+	var scan_view := {"phase": "approach", "scanned": false, "velocity": Vector2(Sim.SCAN_SPEED - 0.0001, 0.0), "scan": 0.9999}
+	var scan_text: String = hud.call("_interaction_guidance", scan_view, {})
+	_check(scan_text.contains("<%.1f" % Sim.SCAN_SPEED) and scan_text.contains("<100%"),
+		label + " incomplete scan and just-under scan speed do not round into false completion/threshold")
+	scan_view.velocity = Vector2(Sim.SCAN_SPEED, 0.0)
+	scan_text = hud.call("_interaction_guidance", scan_view, {})
+	_check(scan_text.contains("≥%.1f" % Sim.SCAN_SPEED) and scan_text.contains("先减速"),
+		label + " strict scan-speed equality remains explicitly blocked")
+
+	var cases := [
+		["distance", Sim.ATTACH_RADIUS + 0.0001, 2.0, 0.0, ">%.1f" % Sim.ATTACH_RADIUS],
+		["speed", 15.0, Sim.ATTACH_SPEED + 0.0001, 0.0, ">%.1f" % Sim.ATTACH_SPEED],
+		["relative", 15.0, 2.0, HUD.ATTACH_RELATIVE_SPEED + 0.0001, ">%.1f" % HUD.ATTACH_RELATIVE_SPEED],
+		["speed-safe", 15.0, Sim.ATTACH_SPEED - 0.0001, 0.0, "<%.1f" % Sim.ATTACH_SPEED],
+	]
+	for fixture: Array in cases:
+		var probe := Sim.new()
+		probe.phase = "approach"
+		probe.scanned = true
+		probe.position = Vector2.ZERO
+		probe.cargo_position = Vector2(fixture[1], 0.0)
+		probe.velocity = Vector2(fixture[2], 0.0)
+		probe.cargo_velocity = Vector2(fixture[2] - fixture[3], 0.0)
+		var text: String = hud.call("_interaction_guidance", probe.snapshot(), probe.contract)
+		_check(text.contains(fixture[4]), label + "/attach-%s shows rounded threshold direction" % fixture[0])
+		probe._attach(Vector2.UP)
+		_check(text.contains("可按 Space 挂索") == probe.tow_attached,
+			label + "/attach-%s guidance still matches actual attach gate" % fixture[0])
 
 
 func _natural_voyages() -> void:

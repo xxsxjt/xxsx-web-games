@@ -356,9 +356,10 @@ func _present_dock(view: Dictionary, towing: bool, harbor: Vector2, radius: floa
 		action = "松油门稳索"
 	var settled := tug_in and cargo_in and velocity.length() <= Sim.DOCK_SPEED \
 		and cargo_velocity.length() <= Sim.DOCK_SPEED and tension < Sim.DOCK_TENSION
-	_dock_instruction.text = "船 %.1f/≤%.1f · 舱 %.1f/≤%.1f m/s\n缆张 %s / <%.0f%% · %s" % [
-		velocity.length(), Sim.DOCK_SPEED, cargo_velocity.length(), Sim.DOCK_SPEED,
-		_tow_load_percent(tension), Sim.DOCK_TENSION * 100.0, action]
+	_dock_instruction.text = "船 %s/≤%.1f · 舱 %s/≤%.1f m/s\n缆张 %s / <%.0f%% · %s" % [
+		_threshold_reading(velocity.length(), Sim.DOCK_SPEED, true), Sim.DOCK_SPEED,
+		_threshold_reading(cargo_velocity.length(), Sim.DOCK_SPEED, true), Sim.DOCK_SPEED,
+		_threshold_reading(tension * 100.0, Sim.DOCK_TENSION * 100.0, false) + "%", Sim.DOCK_TENSION * 100.0, action]
 	_dock_instruction.add_theme_color_override("font_color", GREEN if settled else AMBER)
 
 
@@ -372,8 +373,8 @@ func _interaction_guidance(view: Dictionary, contract: Dictionary) -> String:
 			var action := "按住 E 扫描" if speed < Sim.SCAN_SPEED else "先减速再扫描"
 			# target_distance is the signal-centre distance before lock, NOT cargo range.
 			# Do not claim scan readiness or expose the hidden pod's exact position.
-			return "声纳范围 ≤%.0f m · 船速 <%.1f m/s\n当前 %.1f m/s · %s（%.0f%%）" % [
-				Sim.SCAN_RADIUS, Sim.SCAN_SPEED, speed, action, progress * 100.0]
+			return "声纳范围 ≤%.0f m · 船速 <%.1f m/s\n当前 %s m/s · %s（%s）" % [
+				Sim.SCAN_RADIUS, Sim.SCAN_SPEED, _threshold_reading(speed, Sim.SCAN_SPEED, false), action, _progress_percent(progress)]
 		var distance := float(view.get("target_distance", INF))
 		var cargo_velocity: Vector2 = view.get("cargo_velocity", Vector2.ZERO)
 		var relative_speed := (velocity - cargo_velocity).length()
@@ -384,8 +385,10 @@ func _interaction_guidance(view: Dictionary, contract: Dictionary) -> String:
 			action = "船速过高，继续减速"
 		elif relative_speed > ATTACH_RELATIVE_SPEED:
 			action = "相对速过高，稳住船舱"
-		return "挂索 距离 %.1f/≤%.1f m · 船速 %.1f/≤%.1f\n相对速 %.1f/≤%.1f m/s · %s" % [
-			distance, Sim.ATTACH_RADIUS, speed, Sim.ATTACH_SPEED, relative_speed, ATTACH_RELATIVE_SPEED, action]
+		return "挂索 距离 %s/≤%.1f m · 船速 %s/≤%.1f\n相对速 %s/≤%.1f m/s · %s" % [
+			_threshold_reading(distance, Sim.ATTACH_RADIUS, true), Sim.ATTACH_RADIUS,
+			_threshold_reading(speed, Sim.ATTACH_SPEED, true), Sim.ATTACH_SPEED,
+			_threshold_reading(relative_speed, ATTACH_RELATIVE_SPEED, true), ATTACH_RELATIVE_SPEED, action]
 	if phase == "return":
 		return "入港条件：船、舱均在港圈内\n速度 ≤%.1f m/s · 缆张 <%.0f%% · 稳定 %.0f 秒" % [
 			Sim.DOCK_SPEED, Sim.DOCK_TENSION * 100.0, Sim.DOCK_TIME]
@@ -429,6 +432,23 @@ func _measured_percent(fraction: float) -> String:
 	if fraction < 1.0 and rounded == "100.0%":
 		return "<100%"
 	return rounded
+
+
+func _progress_percent(progress: float) -> String:
+	var percent := roundi(clampf(progress, 0.0, 1.0) * 100.0)
+	return "<100%" if progress < 1.0 and percent >= 100 else "%d%%" % percent
+
+
+func _threshold_reading(value: float, limit: float, inclusive_limit: bool) -> String:
+	var reading := "%.1f" % value
+	var boundary := "%.1f" % limit
+	if reading != boundary:
+		return reading
+	if value > limit:
+		return ">%s" % boundary
+	if value < limit:
+		return "<%s" % boundary
+	return reading if inclusive_limit else "≥%s" % boundary
 
 
 func _advisory(battery: float, integrity: float, remaining: float) -> String:
