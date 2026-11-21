@@ -22,4 +22,4 @@
 
 ## 阶段状态
 
-GitHub `main` 已同步：实现/记录提交 `40a266ce0c9799025bd7e8b1a42d9cf833edf826`，父提交 `473a939d3bf990c20d89df4637202be3605e3657`。完整 GitHub 树 SHA `15eff962e1fe17c6cc23d10d05736cb62d4f7174`，整仓 418 个 blob；`desktop/stormline-black-tide/` 66 个文件工作树与开发源逐字节一致，GitHub API blob 正文全部读回核验一致。同步证据：`build/sync/stage-20.json`、`build/sync/stage-20-github-tree-40a266c.json`、`build/sync/stage-20-project-blobs-40a266c.json`。`dist/`、网站源码和根 `LICENSE` 均未改动；没有部署网站或发布二进制。下一阶段候选仍见 `docs/task-plan.md`。
+阶段实现提交 `40a266ce0c9799025bd7e8b1a42d9cf833edf826` 已同步 GitHub `main`，基于 `473a939d3bf990c20d89df4637202be3605e3657`；回读记录由后续文档提交收录。**实现提交**的完整 GitHub 树 SHA 为 `15eff962e1fe17c6cc23d10d05736cb62d4f7174`，整仓 418 个 blob；`desktop/stormline-black-tide/` 66 个文件的 API blob 正文全部读回核验。实现后的文档提交与最终树单独记录于本机 `build/sync/stage-20.json`，不把实现树当作后续文档树。实现树证据：`build/sync/stage-20-github-tree-40a266c.json`、`build/sync/stage-20-project-blobs-40a266c.json`。最终同步核验还逐文件比较开发源、镜像工作树与 Git 清洗后的远端内容。`dist/`、网站源码和根 `LICENSE` 均未改动；没有部署网站或发布二进制。下一阶段候选仍见 `docs/task-plan.md`。
