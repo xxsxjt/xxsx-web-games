@@ -22,4 +22,4 @@
 
 ## 阶段状态
 
-实现和验证记录；GitHub 同步完成后追加远端提交、完整树与逐 blob 读回结果。
+GitHub `main` 已同步：实现/记录提交 `40a266ce0c9799025bd7e8b1a42d9cf833edf826`，父提交 `473a939d3bf990c20d89df4637202be3605e3657`。完整 GitHub 树 SHA `15eff962e1fe17c6cc23d10d05736cb62d4f7174`，整仓 418 个 blob；`desktop/stormline-black-tide/` 66 个文件工作树与开发源逐字节一致，GitHub API blob 正文全部读回核验一致。同步证据：`build/sync/stage-20.json`、`build/sync/stage-20-github-tree-40a266c.json`、`build/sync/stage-20-project-blobs-40a266c.json`。`dist/`、网站源码和根 `LICENSE` 均未改动；没有部署网站或发布二进制。下一阶段候选仍见 `docs/task-plan.md`。
