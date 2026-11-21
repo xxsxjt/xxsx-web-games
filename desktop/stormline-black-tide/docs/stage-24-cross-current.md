@@ -58,6 +58,14 @@
 - 最终 `--headless --audio-driver Dummy --export-pack "Windows x86_64"` 退出 0、0 诊断；PCK 338128 字节、18 项资源，SHA-256 `de30cfbc487a2f6611f328e69d3fb45d8ee37360f46c930af8bcc2d8cf97725a`，只留在本机 `build/pack-probe/stage-24-final-20261121-030804-864699/`，未生成 EXE。命令/哈希记录 `build/sync/stage-24-pack-final.json`。
 - 开发源与镜像分别运行 `tools/smoke_export.py` 验证同一 PCK，均退出 0、0 诊断：18 项静态校验通过、7 脚本和入口 PackedScene 可加载、三合同 reset/step 均正确、主场景未实例化、无成绩写入、独立用户目录。证据分别为 `C:/Users/xxsx/AppData/Local/Temp/opencode/stormline-stage24-pck-probe/stormline-pck-probe-jdd_00nr/smoke.json` 和 `C:/Users/xxsx/AppData/Local/Temp/opencode/stormline-stage24-mirror-pck-probe/stormline-pck-probe-9cpp9jgz/smoke.json`。该探针不是可玩包、真人试玩或发布证明。
 
+## GitHub 阶段同步
+
+实现提交 **`67a1479c32e6fc9873a130b80698f5c7ea4b8d00`** 已正常推送既有 `origin/main`，仅包含上述 **22 份桌面文件**。提交前 `fetch` 后本地与远端均为 `aeb1b9032e1ca75fcb90bae70850a8e61895a537`；暂存清单与白名单逐项相同，`git diff --cached --check` 退出 0，未暂存网页 `package.json`、根工作单或任何玩法改动。
+
+推送后 `ls-remote`、`fetch` 和 GitHub commit API 均确认实现 SHA；远端 commit 指向树 **`c17541ba249b654ebfabb6f0fa75318ae9955b8c`**，完整 **441 个 blob** 的路径/SHA 与本地提交一致。桌面 **78/78 文件**逐项读取该提交下远端正文，重新计算 Git blob，与 API 文件树、本地提交对象及 Git 清洗后的镜像比较一致；开发源和镜像原始字节也逐项一致。完整清单与远端读回证据位于开发源 `build/sync/stage-24-github-implementation.json`，暂存核验为 `build/sync/stage-24-staged.json` 和相邻 `.diff`。
+
+本节属于后续同步记录，最终记录提交 SHA 与最新 main/tree/blob 复核另存本机 `build/sync/stage-24-final.json`，避免在文档内写入自身尚不存在的提交号。文档登记后只重新核验文档内容和既有 44 项 QA 指纹，不将其描述为再次运行全套。
+
 ## 未执行边界
 
 未执行 GUI、截图、真实渲染观察、OS 键盘/真人试玩或音频播放；未生成/运行游戏 EXE，未创建 Windows ZIP 候选，未发布任何二进制或部署 Sites。网页打捞与余烬未冻结增量、网页测试配置准备改动及根集成工作单不纳入本桌面提交；不运行共享网页 build/test。
