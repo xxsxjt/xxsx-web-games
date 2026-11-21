@@ -37,6 +37,6 @@
 
 ## 同步状态
 
-已完成开发源、镜像和候选验证；准备推送到既有 `xxsxjt/xxsx-web-games` 的 `desktop/stormline-black-tide/`，本阶段仅更新七个明确白名单文件。远端分支、完整树与逐文件 blob 读回完成后补录；最终 GitHub 回读证据使用本机忽略文件 `build/sync/stage-13.json`。不上传候选包/缓存/玩家档案。
+已同步到既有 `xxsxjt/xxsx-web-games` 的 `main`，实现提交 `9ea8113ef1566b7094d5e1a945bbaa29044bf5a9`；本阶段仅更新七个明确白名单文件。GitHub 整仓 404 个 blob 的路径/模式/SHA 与提交树一致，52 个桌面项目文件均经 GitHub blob API 读回正文，与开发源及镜像逐字节一致。最终收尾提交和再次回读以本机忽略文件 `build/sync/stage-13.json` 为准。不上传候选包/缓存/玩家档案。
 
 不运行导出 EXE，不实例化候选包主场景，不发布二进制、不部署网页；没有进行图形、音频播放、实际键鼠或真人试玩。
