@@ -21,6 +21,6 @@ Godot `4.3.stable.official.77dcf97d8` 开发源与镜像全套无窗口 QA 均 *
 
 总站 `npm run build` 后 `npm test` 均退出 0；网站源码、`dist/` 和根 `LICENSE` 无差异。日志与哈希记录在本机 `build/sync/stage-22-website.json` 及相邻日志。
 
-本阶段实现与文档按白名单同步到既有 GitHub 总仓库。提交及远端树/blob 正文读回完成后以本机 `build/sync/stage-22.json` 为准，不把仅已推送当成核验完成。
+实现提交 `31f443ff9bd02b8dc4495fab34fd70137a137afe` 已同步既有 GitHub `main` 并读回。实现树 SHA `ae5d397f1ee3712e9a50f1cf551de8c2dc547048`，整仓 **422 个 blob** 的完整树与提交一致；项目 **70 个文件** 的 API blob 正文逐项读回匹配提交对象，开发源与镜像工作文件逐字节一致、Git 清洗后匹配远端。实现树/正文清单为 `build/sync/stage-22-github-tree-31f443f.json`、`build/sync/stage-22-project-blobs-31f443f.json`。本条记录属于后续文档提交，最终提交与树另外保存于 `build/sync/stage-22.json`，不把实现树误报为后续文档树。
 
 本阶段不导出 EXE/PCK、不运行图形游戏或导出 EXE、不使用桌面自动化、不访问玩家存档、不发布二进制或部署网页。实际 3D、字体、声音、性能和真人试玩仍未测。
