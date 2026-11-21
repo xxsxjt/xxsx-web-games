@@ -283,6 +283,10 @@ static func _snapshot_valid(s: Dictionary, data: Variant, terminal: bool = true)
 	if not terminal:
 		return snap.hull > 0 and snap.battery > 0 and snap.cargo_integrity > 0 and snap.time < float(contract.deadline) and snap.overload < 1 and snap.dock < 1 and snap.fail_reason.is_empty() and (snap.phase != "return" or (snap.scanned and snap.tow_attached))
 	if snap.phase == "success":
+		if contract.has("tide_stations"):
+			var survey: Variant = snap.get("tide_survey")
+			if not survey is Dictionary or not _integer(survey.get("completed"), contract.tide_stations.size(), contract.tide_stations.size()):
+				return false
 		return snap.scanned and snap.tow_attached and is_equal_approx(float(snap.dock), 1.0) and snap.hull > 0 and snap.battery > 0 and snap.cargo_integrity > 0 and snap.time < float(contract.deadline) and snap.fail_reason.is_empty()
 	return not snap.fail_reason.is_empty() and (snap.hull <= 0 or snap.battery <= 0 or snap.cargo_integrity <= 0 or snap.time >= float(contract.deadline) or snap.overload >= 1)
 

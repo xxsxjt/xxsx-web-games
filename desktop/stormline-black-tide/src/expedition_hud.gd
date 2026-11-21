@@ -354,6 +354,11 @@ func _build_result(body: VBoxContainer, actions: HBoxContainer) -> void:
 	_label(result, "用时 %s  ·  船体 %.1f%%  ·  舱体 %.1f%%  ·  余电 %.1f%%  ·  峰张 %s" % [
 		_time(float(voyage.time)), float(voyage.hull), float(voyage.cargo_integrity), float(voyage.battery),
 		"≥150%" if float(voyage.peak_tension) >= Cockpit.TOW_DISPLAY_LIMIT else "%.1f%%" % (float(voyage.peak_tension) * 100.0)], 18)
+	if voyage.has("tide_survey"):
+		var survey: Dictionary = voyage.tide_survey
+		var logged: bool = voyage.phase == "success" and not bool(_view.pending)
+		_label(result, "潮流取样 %d / %d · %s" % [int(survey.completed), survey.stations.size(),
+			"缓流时窗已入档，可用于同区主回收。" if logged else "缓流时窗未入档。"], 18, TEAL if logged else AMBER)
 	_label(result, "本部署不计入三合同快玩历史最佳。远征不能按 R 免费重开。", 17, MUTED)
 	if _view.pending:
 		_pending_summary(body)
@@ -437,6 +442,8 @@ func _build_confirmation(body: VBoxContainer, actions: HBoxContainer, kind: Stri
 			title = "出航确认  /  " + String(offer.get("name", ""))
 			text = "%s\n\n船体 %.1f%% · 电量 %.1f%% · 构筑：%s\n将支付 %d 资金，剩余 %d。只有保存成功才进入真实驾驶。" % [
 				_quote(offer), float(state.hull), float(state.battery), module_names(state.equipped), int(offer.launch_cost), int(_view.launch.state.credits)]
+			if offer.has("tide_stations"):
+				text += "\n\n" + String(offer.briefing)
 			accept = "支付并出航"
 		"abandon", "abandon_quit", "recover_interrupted":
 			var loading := kind == "recover_interrupted"
@@ -486,13 +493,16 @@ func _resource_strip(parent: Control, state: Dictionary) -> void:
 
 
 func _quote(offer: Dictionary) -> String:
-	return "海况基准 %.1f%% · 舱重 %.2f · 窗口 %s\n航费 %d · 报酬上限 %d · 交付材料 +%d" % [
+	var text := "海况基准 %.1f%% · 舱重 %.2f · 窗口 %s\n航费 %d · 报酬上限 %d · 交付材料 +%d" % [
 		float(offer.severity) * 100.0, float(offer.mass), _time(float(offer.deadline)),
 		int(offer.launch_cost), int(offer.reward), int(offer.parts_reward)]
+	if offer.has("current_scale"):
+		text += "\n已测缓流时窗 · 局部涡流 ×%.2f" % float(offer.current_scale)
+	return text
 
 
 func _leg_name(sector: int, leg: int) -> String:
-	return "勘测／打捞（二选一）" if leg == 0 else ("旗舰回收" if sector == 3 else "主回收")
+	return "潮标／打捞／制图" if leg == 0 else ("旗舰回收" if sector == 3 else "主回收")
 
 
 static func module_names(ids: Array) -> String:

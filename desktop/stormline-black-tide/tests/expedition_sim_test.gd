@@ -45,7 +45,7 @@ func _test_catalog() -> void:
 	for sector in range(1, 4):
 		for leg in range(2):
 			var quotes := Catalog.offers(sector, leg, prefix, 3)
-			if not _expect(quotes.size() == (4 if leg == 0 else 2), "both risks offered on each branch"):
+			if not _expect(quotes.size() == (6 if leg == 0 else 2), "both risks offered on each branch, including charting"):
 				return
 			_expect(not Catalog.sector_name(sector).is_empty() and quotes[0].sector_name == Catalog.sector_name(sector),
 				"available quote and pre-unlock sector name come from the same source")
@@ -72,8 +72,9 @@ func _test_catalog() -> void:
 				for key: String in GEOMETRY:
 					_expect(sim.contract[key] == base[key], "original geometry retained: " + key)
 			if leg == 0:
-				_expect(quotes[0].branch == "survey" and quotes[2].branch == "salvage"
-					and quotes[2].parts_reward > quotes[0].parts_reward, "different side contracts trade chart data for salvage materials")
+				_expect(quotes[0].branch == "survey" and quotes[2].branch == "salvage" and quotes[4].branch == "chart"
+					and quotes[2].parts_reward > quotes[0].parts_reward and quotes[4].launch_cost > quotes[0].launch_cost,
+					"original tide logger and salvage remain alongside the more costly physical chart route")
 			prefix.append(quotes[0].id)
 	_expect(Catalog.offers(3, 1, [], 0).is_empty() and Catalog.offers(0, 0, [], 0).is_empty()
 		and Catalog.build_contract(RECOVERY, 0, [RECOVERY]).is_empty()

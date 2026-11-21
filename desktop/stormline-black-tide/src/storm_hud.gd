@@ -292,6 +292,8 @@ func _present_live(view: Dictionary, contract: Dictionary) -> void:
 	var phase := String(view.get("phase", "approach"))
 	var scanned := bool(view.get("scanned", false))
 	var towing := bool(view.get("tow_attached", false))
+	var survey := _dictionary(view.get("tide_survey", {}))
+	var sampling: bool = not survey.is_empty() and int(survey.completed) < survey.stations.size()
 	var elapsed := maxf(0.0, float(view.get("time", 0.0)))
 	var deadline := float(view.get("deadline", contract.get("deadline", 0.0)))
 	var tension := clampf(float(view.get("tension", 0.0)), 0.0, TOW_DISPLAY_LIMIT)
@@ -310,6 +312,8 @@ func _present_live(view: Dictionary, contract: Dictionary) -> void:
 	if _keys_tow.text != hint:
 		_keys_tow.text = hint
 	_phase.text = "拖带返航" if towing or phase == "return" else ("航迹已锁定" if scanned else "接近信号区")
+	if sampling:
+		_phase.text = "实测制图 %d/%d" % [int(survey.completed), survey.stations.size()]
 	_clock.text = ("剩余 " + _time(deadline - elapsed)) if deadline > 0.0 else ("已用 " + _time(elapsed))
 	_objective.text = _interaction_guidance(view, contract)
 	# An old overload event can outlast the actual hazard by several seconds.
@@ -339,9 +343,14 @@ func _present_live(view: Dictionary, contract: Dictionary) -> void:
 			_rig.text = rig
 	_rope.text = "索长 %.1f m   ·   峰值 %s" % [rope_length, _tow_load_percent(float(view.get("peak_tension", 0.0)))] if towing else ("绞盘待命 · Space 挂索" if scanned else "绞盘待命 · 须先锁定")
 	_present_tow_risk(towing, tension, overload, scan, rope_length, profile)
+	if sampling:
+		_gauges["sonar_load"].caption.text = "潮流取样 · %s 站" % _station_letter(int(survey.completed))
+		_set_gauge("sonar_load", float(survey.progress) * 100.0, TEAL, _progress_percent(float(survey.progress)))
 	var contact := "舱距" if scanned else "距信号区中心"
 	if towing:
 		contact = "带载返航"
+	elif sampling:
+		contact = "测站 %s %.0f m" % [_station_letter(int(survey.completed)), position.distance_to(survey.stations[int(survey.completed)])]
 	else:
 		contact += " %.0f m" % float(view.get("target_distance", 0.0))
 	_ranges.text = "%s   /   港距 %.0f m" % [contact, home_distance]
@@ -357,6 +366,8 @@ func _present_live(view: Dictionary, contract: Dictionary) -> void:
 	if view.has("beacon") or contract.has("beacon"):
 		radar_view["beacon"] = view.get("beacon", contract.get("beacon"))
 	radar_view["hazards"] = view.get("hazards", contract.get("hazards", []))
+	if not survey.is_empty() and not towing:
+		radar_view["tide_survey"] = survey
 	if cross_current:
 		var current_index := 0
 		var current_landmarks: Array[Dictionary] = []
@@ -449,6 +460,20 @@ func _interaction_guidance(view: Dictionary, contract: Dictionary) -> String:
 	# Outfitting changes scan progress and rated force, not the shared scan,
 	# attach or docking gates. Use the same constants as both modes in StormSim.
 	if phase == "approach":
+		var survey: Dictionary = view.get("tide_survey", {})
+		if not survey.is_empty() and int(survey.completed) < survey.stations.size():
+			var position: Vector2 = view.get("position", Vector2.ZERO)
+			var distance := position.distance_to(survey.stations[int(survey.completed)])
+			var radius := float(survey.radius)
+			var limit := float(survey.speed_limit)
+			var action := "持续按 E 取样"
+			if distance > radius:
+				action = "去 %s 站；途中松 E 省电" % _station_letter(int(survey.completed))
+			elif speed >= limit:
+				action = "先减速；超速中断取样"
+			return "测站距离 %s/≤%.0f m · 船速 %s/<%.1f\n%s（%s）" % [
+				_threshold_reading(distance, radius, true), radius, _threshold_reading(speed, limit, false), limit,
+				action, _progress_percent(float(survey.progress))]
 		if not bool(view.get("scanned", false)):
 			var progress := clampf(float(view.get("scan", 0.0)), 0.0, 1.0)
 			var action := "按住 E 扫描" if speed < Sim.SCAN_SPEED else "先减速再扫描"
@@ -474,6 +499,10 @@ func _interaction_guidance(view: Dictionary, contract: Dictionary) -> String:
 		return "入港条件：船、舱均在港圈内\n速度 ≤%.1f m/s · 缆张 <%.0f%% · 稳定 %.0f 秒" % [
 			Sim.DOCK_SPEED, Sim.DOCK_TENSION * 100.0, Sim.DOCK_TIME]
 	return String(view.get("objective", contract.get("briefing", "")))
+
+
+func _station_letter(index: int) -> String:
+	return "A" if index == 0 else "B"
 
 func _present_tow_risk(towing: bool, tension: float, overload: float, scan: float, rope_length: float, power: int) -> void:
 	if not towing:

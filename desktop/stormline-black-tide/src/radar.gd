@@ -9,6 +9,7 @@ const SIGNAL := Color("eeb575")
 const CARGO := Color("ff9c63")
 const REEF := Color("f58c91")
 const CURRENT := Color("a6a4f5")
+const SURVEY := Color("b3eaff")
 
 var world_radius := 118.0
 var _snapshot: Dictionary = {}
@@ -30,6 +31,7 @@ func _draw() -> void:
 	var beacon: Vector2 = _snapshot.get("beacon", harbor)
 	var harbor_radius := maxf(0.0, float(_snapshot.get("harbor_radius", 0.0)))
 	var hazards: Array = _snapshot.get("hazards", [])
+	var survey: Dictionary = _snapshot.get("tide_survey", {})
 	# Stable north-up chart: only public chart features contribute to its extent.
 	var origin := harbor.lerp(beacon, 0.42)
 	var extent := maxf(maxf(world_radius, 25.0), origin.distance_to(harbor) + harbor_radius + 8.0)
@@ -38,6 +40,8 @@ func _draw() -> void:
 		if raw is Dictionary and raw.get("position") is Vector2:
 			var point: Vector2 = raw.get("position")
 			extent = maxf(extent, origin.distance_to(point) + maxf(0.0, float(raw.get("radius", 0.0))) + 8.0)
+	for station: Vector2 in survey.get("stations", []):
+		extent = maxf(extent, origin.distance_to(station) + float(survey.radius) + 8.0)
 	var scale := radius / (ceilf(extent / 25.0) * 25.0)
 	_draw_grid(center, radius, scale)
 
@@ -82,6 +86,9 @@ func _draw() -> void:
 		draw_circle(region, uncertainty, Color(SIGNAL, 0.10))
 		_broken_ring(region, uncertainty, SIGNAL)
 
+	if not survey.is_empty():
+		_draw_tide_stations(survey, center, origin, scale)
+
 	if _snapshot.has("position"):
 		var heading := float(_snapshot.get("heading", 0.0))
 		var forward := Vector2(sin(heading), -cos(heading))
@@ -89,6 +96,25 @@ func _draw() -> void:
 		var ship := PackedVector2Array([tug_mark + forward * 9.0, tug_mark - forward * 5.0 + side * 5.0, tug_mark - forward * 2.0, tug_mark - forward * 5.0 - side * 5.0])
 		draw_colored_polygon(ship, TUG)
 	_draw_wind(_snapshot.get("wind", Vector2.ZERO))
+
+
+func _draw_tide_stations(survey: Dictionary, center: Vector2, origin: Vector2, scale: float) -> void:
+	var complete := int(survey.completed)
+	var font := get_theme_default_font()
+	for i in survey.stations.size():
+		var point: Vector2 = survey.stations[i]
+		var at := center + (point - origin) * scale
+		var radius := maxf(5.0, float(survey.radius) * scale)
+		var tint := SURVEY if i == complete else Color(SURVEY, 0.5)
+		if i == complete:
+			draw_circle(at, radius, Color(SURVEY, 0.17))
+		_broken_ring(at, radius, tint)
+		if i == complete and float(survey.progress) > 0.0:
+			draw_arc(at, radius + 2.0, -PI * 0.5, -PI * 0.5 + TAU * float(survey.progress), 24, SURVEY, 2.0, true)
+		var label := ("A" if i == 0 else "B") + ("✓" if i < complete else "")
+		var width := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 16).x
+		draw_circle(at, 9.0, Color("132b3b"))
+		draw_string(font, at + Vector2(-width * 0.5, 5.5), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, tint)
 
 func _draw_grid(center: Vector2, radius: float, scale: float) -> void:
 	draw_circle(center, radius + 5.0, Color("132b3b"))

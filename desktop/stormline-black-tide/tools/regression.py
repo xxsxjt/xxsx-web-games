@@ -22,6 +22,7 @@ SCRIPT_SUITES = (
     "rule_threshold_language",
     "voyage_review", "voyage_review_app",
     "expedition_state", "expedition_store", "expedition_sim", "expedition_app",
+    "tide_survey", "tide_survey_app",
 )
 REQUIRED_CHECKS = ("import", *SCRIPT_SUITES, "smoke_tool")
 

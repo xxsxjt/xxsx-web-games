@@ -68,6 +68,7 @@ const CONTRACTS := {
 const _EXPEDITION_SPEC_KEYS := ["token", "offer_id", "contract", "loadout", "hull", "battery", "pressure", "path"]
 const _EXPEDITION_OVERRIDES := ["id", "name", "briefing", "base_contract", "sector", "sector_name", "leg",
 	"risk", "branch", "flagship", "reward", "parts_reward", "launch_cost", "severity", "mass", "deadline", "wind_angle"]
+const _OPTIONAL_EXPEDITION_OVERRIDES := ["tide_stations", "current_scale"]
 const _EXPEDITION_THRESHOLDS := {
 	"scan_radius": SCAN_RADIUS, "scan_speed": SCAN_SPEED, "attach_radius": ATTACH_RADIUS, "attach_speed": ATTACH_SPEED,
 	"attach_relative_speed": ATTACH_RELATIVE_SPEED, "slow_target": SLOW_TARGET, "dock_speed": DOCK_SPEED,
@@ -115,6 +116,10 @@ var _expedition: Dictionary = {}
 var _profiles: Array = PROFILES
 var _tug_mass := 1.0
 var _energy_multiplier := 1.0
+var _current_scale := 1.0
+var _tide_stations: Array = []
+var _tide_completed := 0
+var _tide_hold := 0.0
 
 
 func _init() -> void:
@@ -128,6 +133,8 @@ func reset(id: String = "black-tide") -> void:
 	_profiles = PROFILES
 	_tug_mass = 1.0
 	_energy_multiplier = 1.0
+	_current_scale = 1.0
+	_tide_stations = []
 	_reset_voyage(100.0, 100.0)
 
 
@@ -142,13 +149,17 @@ func reset_expedition(spec: Dictionary) -> bool:
 	if effects.is_empty():
 		return false
 	var overlay := Catalog.build_contract(spec.offer_id, spec.pressure, spec.path)
+	var keys := _EXPEDITION_OVERRIDES.duplicate()
+	for key: String in _OPTIONAL_EXPEDITION_OVERRIDES:
+		if overlay.has(key):
+			keys.append(key)
 	if overlay.is_empty() or not CONTRACTS.has(overlay.base_contract) \
-			or spec.contract.size() != _EXPEDITION_OVERRIDES.size() or overlay.size() != _EXPEDITION_OVERRIDES.size():
+			or spec.contract.size() != keys.size() or overlay.size() != keys.size():
 		return false
 	# Use the rebuilt values, not the caller's contract. Reject extra fields,
 	# malformed values, stale quotes and attempts to smuggle in geometry.
 	var next_contract: Dictionary = CONTRACTS[overlay.base_contract].duplicate(true)
-	for key: String in _EXPEDITION_OVERRIDES:
+	for key: String in keys:
 		var quoted: Variant = spec.contract.get(key)
 		if not overlay.has(key) or typeof(quoted) != typeof(overlay[key]) or quoted != overlay[key]:
 			return false
@@ -159,6 +170,8 @@ func reset_expedition(spec: Dictionary) -> bool:
 	contract = next_contract
 	_tug_mass = float(effects.mass)
 	_energy_multiplier = float(effects.energy)
+	_current_scale = float(overlay.get("current_scale", 1.0))
+	_tide_stations = overlay.get("tide_stations", []).duplicate()
 	_profiles = _effective_profiles(effects) if not spec.loadout.is_empty() else PROFILES
 	_expedition = overlay
 	_expedition.merge({"token": spec.token, "offer_id": spec.offer_id, "path": spec.path.duplicate(),
@@ -225,6 +238,8 @@ func _reset_voyage(initial_hull: float, initial_battery: float) -> void:
 	_tug_impact_at = -3.0
 	_cargo_impact_at = -3.0
 	_danger = false
+	_tide_completed = 0
+	_tide_hold = 0.0
 
 
 func set_power_profile(value: int) -> void:
@@ -272,7 +287,12 @@ func step(delta: float, input: Dictionary = {}) -> Dictionary:
 	var cargo_accel: Vector2 = (pod_flow - cargo_velocity) * 0.56 + wind * 0.38
 	if not tow_attached:
 		cargo_accel += (Vector2(contract.target) - cargo_position) * 0.50
-	if scanning and position.distance_to(cargo_position) <= SCAN_RADIUS and initial_speed < SCAN_SPEED:
+	# E is routed to the active survey station before it can lock the capsule.
+	# Its draw still goes through the same sonar energy budget below.
+	var taking_tide_sample := _tide_completed < _tide_stations.size()
+	if taking_tide_sample:
+		_update_tide_sample(scanning, initial_speed, float(profile.sensors), dt)
+	elif scanning and position.distance_to(cargo_position) <= SCAN_RADIUS and initial_speed < SCAN_SPEED:
 		scan_progress = minf(1.0, scan_progress + dt * (0.23 + float(profile.sensors) * 0.49))
 		if scan_progress >= 1.0:
 			scanned = true
@@ -347,7 +367,9 @@ func _bounded_control(value: Variant) -> float:
 func _attach(forward: Vector2) -> void:
 	if phase != "approach":
 		return
-	if not scanned:
+	if _tide_completed < _tide_stations.size():
+		_emit("denied", "先在 A、B 两个潮流测站依次取样。")
+	elif not scanned:
 		_emit("denied", "目标尚未锁定。靠近信号区域后按住 E 扫描。")
 	elif position.distance_to(cargo_position) > ATTACH_RADIUS:
 		_emit("denied", "挂索距离过远：靠近到 15.5 米以内。")
@@ -358,6 +380,19 @@ func _attach(forward: Vector2) -> void:
 		tow_attached = true
 		rope_length = clampf(_stern_position(forward).distance_to(cargo_position) + 0.7, 9.0, ROPE_MAX)
 		_emit("tow_attached", "挂索成功。切到 3 稳索返航，注意舱体切弯与缆绳张力。")
+
+
+func _update_tide_sample(sampling: bool, speed: float, sensors: float, dt: float) -> void:
+	var station: Vector2 = _tide_stations[_tide_completed]
+	if not sampling or speed >= Catalog.TIDE_SPEED or position.distance_to(station) > Catalog.TIDE_RADIUS:
+		_tide_hold = 0.0
+		return
+	_tide_hold += dt * (0.52 + 0.48 * sensors) / Catalog.TIDE_WORK
+	if _tide_hold >= 1.0 - 1e-9:
+		_tide_completed += 1
+		_tide_hold = 0.0
+		_emit("tide_sample", "测站 A 已记录，前往 B 站。" if _tide_completed < _tide_stations.size()
+			else "两处潮流样本已记录。追踪橙色信号，带回回收舱才算完成制图。")
 
 
 func _update_weather() -> void:
@@ -375,7 +410,8 @@ func _flow(at: Vector2) -> Vector2:
 		var falloff := 1.0 - offset.length() / float(hazard.radius)
 		if falloff > 0.0:
 			var tangent := Vector2(-offset.y, offset.x) / maxf(offset.length(), 2.5)
-			result += (tangent * (0.82 + storm_intensity) + Vector2(0.24, -0.57)) * falloff * 3.2
+			var eddy := (tangent * (0.82 + storm_intensity) + Vector2(0.24, -0.57)) * falloff * 3.2
+			result += eddy if _current_scale == 1.0 else eddy * _current_scale
 	var lee := clampf(1.0 - at.distance_to(contract.harbor) / 24.0, 0.0, 1.0)
 	return result * (1.0 - lee * 0.72)
 
@@ -480,6 +516,8 @@ func objective_text() -> String:
 		if position.distance_to(contract.harbor) < float(contract.harbor_radius) + 7.0:
 			return "拖船和回收舱均入港；低于 2.6 m/s、低张力稳定一秒。"
 		return "带载返航，沿雷达青色港圈过礁。转向前松油门。"
+	if _tide_completed < _tide_stations.size():
+		return "前往海图 %s 站，减速并持续按 E 取样。" % ("A" if _tide_completed == 0 else "B")
 	if scanned:
 		return "减速到 2.9 m/s 以下，15.5 米内按空格挂索。"
 	return "追踪橙色信号；保持低速，按住 E 扫描。"
@@ -513,4 +551,7 @@ func snapshot() -> Dictionary:
 		view["expedition"] = expedition
 		view["expedition_token"] = expedition.token
 		view["offer_id"] = expedition.offer_id
+		if not _tide_stations.is_empty():
+			view["tide_survey"] = {"stations": _tide_stations.duplicate(), "completed": _tide_completed,
+				"progress": _tide_hold, "radius": Catalog.TIDE_RADIUS, "speed_limit": Catalog.TIDE_SPEED}
 	return view

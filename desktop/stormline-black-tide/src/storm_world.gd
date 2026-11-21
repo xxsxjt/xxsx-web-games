@@ -3,6 +3,7 @@ extends Node3D
 ## Standalone procedural 3D presentation for Stormline: Black Tide.
 ## The simulation owns all gameplay state; this node only consumes configure/present.
 
+const Catalog = preload("res://src/expedition_catalog.gd")
 const MAP_LIMIT := 140.0
 const SEA_SIZE := 440.0
 const CABLE_LINKS := 14
@@ -45,6 +46,7 @@ var _beacon := Vector2.ZERO
 var _target := Vector2(0.0, -86.0)
 var _harbor_radius := 15.0
 var _hazards: Array[Dictionary] = []
+var _station_markers: Array[Node3D] = []
 
 
 func _ready() -> void:
@@ -111,6 +113,7 @@ func _rebuild_world() -> void:
 	if is_instance_valid(_world_root):
 		_detach_dummy_meshes()
 		_cable_links.clear()
+		_station_markers.clear()
 		remove_child(_world_root)
 		_world_root.queue_free()
 	_world_root = Node3D.new()
@@ -126,6 +129,7 @@ func _rebuild_world() -> void:
 	_build_capsule()
 	_build_tow_system()
 	_build_target_contact()
+	_build_tide_stations()
 	_build_camera()
 
 
@@ -690,6 +694,27 @@ func _build_target_contact() -> void:
 	_target_marker.add_child(_target_label)
 
 
+func _build_tide_stations() -> void:
+	for at: Vector2 in _contract.get("tide_stations", []):
+		var station := Node3D.new()
+		var letter := "A" if _station_markers.is_empty() else "B"
+		station.name = "TideStation" + letter
+		station.position = _to_world(at)
+		station.hide()
+		_world_root.add_child(station)
+		_station_markers.append(station)
+		_add_ring(station, Vector3(0, 0.38, 0), Catalog.TIDE_RADIUS, 0.17, Color("a3e6ff"), 48)
+		_add_cylinder(station, 0.32, 2.4, Vector3(0, 1.15, 0), _mat(Color("417caa")))
+		_add_sphere(station, 0.38, Vector3(0, 2.6, 0), _mat(Color("b3eaff"), 0.4, true))
+		var tag := Label3D.new()
+		tag.text = "测站 " + letter
+		tag.font_size = 25
+		tag.outline_size = 6
+		tag.position.y = 3.9
+		tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		station.add_child(tag)
+
+
 func _build_camera() -> void:
 	_camera = Camera3D.new()
 	_camera.name = "IndependentTacticalFollowCamera"
@@ -731,6 +756,11 @@ func _update_world(view: Dictionary, delta: float, snap_camera: bool) -> void:
 	_target_marker.position = _to_world(cargo_position)
 	_target_marker.visible = target_visible and not tow_attached and phase == "approach"
 	_target_label.text = "SONAR LOCK   /   RECOVERY CAPSULE" if scanned else "VISUAL CONTACT   /   RECOVERY CAPSULE"
+	if not _station_markers.is_empty():
+		var survey: Dictionary = view.get("tide_survey", {})
+		var active := int(survey.get("completed", -1))
+		for index in _station_markers.size():
+			_station_markers[index].visible = phase == "approach" and index == active
 	_update_wakes(position_2d, velocity, cargo_position, cargo_velocity, tow_attached, storm)
 	_update_towline(position_2d, cargo_position, cargo_velocity, heading, tow_attached, tension, overload_risk, storm, phase)
 	_update_sea_and_lights(storm, wind, hull, phase, screen)

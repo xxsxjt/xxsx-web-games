@@ -613,8 +613,9 @@ func _launch(app: Node, path: String, id: String) -> bool:
 		and sim.contract.severity == offer.severity and sim.contract.mass == offer.mass and view.deadline == offer.deadline
 		and hud.get("_mission").text == offer.name and not chart.has("cargo_position"),
 		"quote, real world, clock and native radar are the same deployment; unscanned pod is hidden")
+	var radius := float(view.tide_survey.radius) if view.has("tide_survey") else float(meta.thresholds.scan_radius)
 	_check(String(hud.get("_rig").text).contains("声纳 %.2f" % float(meta.profile.sensors))
-		and hud.get("_objective").text.contains("≤%.0f m" % float(meta.thresholds.scan_radius)), "cockpit uses effective module profile and true scan threshold")
+		and hud.get("_objective").text.contains("≤%.0f m" % radius), "cockpit uses effective module profile and true objective threshold")
 	return true
 
 
