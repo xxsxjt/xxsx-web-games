@@ -34,7 +34,9 @@
 - 本机 Windows x64 v0.1.1 候选：`build/releases/20261120-190854-480772/Stormline-Black-Tide-v0.1.1-windows-x64/`，回归 manifest 与开发源 35 项指纹一致；PE 静态检查、18 个 PCK 条目校验、ZIP CRC 与逐文件 round-trip 均由构建器通过。ZIP SHA-256：`fef048b0b2197a3a0c5c1eb0ef36f9a25e768998faab54a640a1af6a0199abcd`；PCK SHA-256：`7af37cad0476b5b67f0d7d9ff11e077446cc3c0e03c544e6a142f05128502449`。
 - 仓外 PCK-only 探针：`C:/Users/xxsx/AppData/Local/Temp/opencode/stormline-stage16/stormline-pck-probe-_9pj4ks4/smoke.json`，18 项静态内容校验及七个编译脚本/入口 PackedScene 资源加载通过，退出 0、诊断 0；模型单步有效、没有创建成绩文件，未实例化候选主场景。
 - 网页总站 `npm run build` 与 `npm test` 均通过；Git 工作区确认 `dist/`、网页源码与根 `LICENSE` 无变更，未部署网页。
-- 镜像完整 QA 和 GitHub 推送后整仓树/项目文件正文回读正在执行；最终提交、 blob 数及证据路径将在读回后填入，不以本地复制或 push 成功代替远端核验。
+- 镜像完整 QA：`desktop/stormline-black-tide/build/qa/20261120-191348-742258/summary.json`，**19/19** 通过，与开发源 35 项指纹相同；本阶段 443 项断言结果一致。
+- 已推送到 `xxsxjt/xxsx-web-games` 的 `main`，提交 `28da99c54c37494a4d0a73a77ad7730680105173`。GitHub API 回读确认远端分支指向该提交，递归完整树 411 blob 与提交树一致；桌面项目 59 个文件均通过 blob API 逐一读取正文，并与开发源字节完全相同。证据：本机忽略的 `build/sync/stage-16.json`、`build/sync/stage-16-github-tree-28da99c.json`、`build/sync/stage-16-project-blobs-28da99c.json`。
+- 阶段提交白名单仅有 README、两份阶段/开发文档、计划、测试及 QA 注册；未改网页 `dist/`、生产场景源码或根 `LICENSE`。推送的是源码与文档，不是二进制发行或网页部署。
 
 ## 验证边界
 
