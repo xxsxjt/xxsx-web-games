@@ -13,6 +13,9 @@ const Radar = preload("res://src/radar.gd")
 const Sim = preload("res://src/storm_sim.gd")
 # storm_sim._attach uses this literal; interaction_feedback probes its real predicate.
 const ATTACH_RELATIVE_SPEED := 4.2
+# Matches the raw-tension gate and snapshot cap in storm_sim.step().
+const TOW_RATED_LOAD := 1.0
+const TOW_DISPLAY_LIMIT := 1.5
 const CONTRACT_IDS := ["black-tide", "needle-bank"]
 const POWER_NAMES := ["推进", "搜索", "稳索"]
 const TEXT := Color("e9f5fa")
@@ -59,6 +62,7 @@ var _speed: Label
 var _wind: Label
 var _power: Label
 var _rope: Label
+var _tow_action: Label
 
 var _contract_cards: Dictionary = {}
 var _brief_name: Label
@@ -229,7 +233,7 @@ func _build_live() -> void:
 	_add_gauge(meters, "hull", "拖船船体", GREEN)
 	_add_gauge(meters, "cargo", "回收舱完整度", GREEN)
 	_add_gauge(meters, "battery", "电量", TEAL)
-	_add_gauge(meters, "tension", "拖缆张力", AMBER, 150.0)
+	_add_gauge(meters, "tension", "拖缆张力", AMBER, TOW_DISPLAY_LIMIT * 100.0)
 	_add_gauge(meters, "sonar_load", "声纳锁定", LILAC)
 
 	var helm := _panel(_live)
@@ -241,6 +245,8 @@ func _build_live() -> void:
 	_rule(helm_box)
 	_power = _label(helm_box, "", 19, TEAL)
 	_rope = _label(helm_box, "", 18, DIM)
+	_tow_action = _label(helm_box, "", 17, AMBER, true)
+	_tow_action.hide()
 	_mute_button(helm_box, Vector2(0, 37))
 
 	var footer := _panel(_live)
@@ -260,7 +266,7 @@ func _present_live(view: Dictionary, contract: Dictionary) -> void:
 	var towing := bool(view.get("tow_attached", false))
 	var elapsed := maxf(0.0, float(view.get("time", 0.0)))
 	var deadline := float(contract.get("deadline", 0.0))
-	var tension := clampf(float(view.get("tension", 0.0)), 0.0, 1.5)
+	var tension := clampf(float(view.get("tension", 0.0)), 0.0, TOW_DISPLAY_LIMIT)
 	var overload := clampf(float(view.get("overload", 0.0)), 0.0, 1.0)
 	var hull := clampf(float(view.get("hull", 100.0)), 0.0, 100.0)
 	var cargo := clampf(float(view.get("cargo_integrity", 100.0)), 0.0, 100.0)
@@ -275,25 +281,26 @@ func _present_live(view: Dictionary, contract: Dictionary) -> void:
 	_phase.text = "拖带返航" if towing or phase == "return" else ("航迹已锁定" if scanned else "接近信号区")
 	_clock.text = ("剩余 " + _time(deadline - elapsed)) if deadline > 0.0 else ("已用 " + _time(elapsed))
 	_objective.text = _interaction_guidance(view, contract)
-	_notice.text = String(view.get("notice", ""))
+	# An old overload event can outlast the actual hazard by several seconds.
+	# Live gauges and the helm action replace that event, not other notices.
+	_notice.text = "" if String(view.get("event_kind", "")) == "overload" else String(view.get("notice", ""))
 	_notice.visible = not _notice.text.is_empty() and _notice.text != _objective.text
-	_warning.text = _advisory(towing, tension, battery, minf(hull, cargo) if scanned else hull, deadline - elapsed if deadline > 0.0 else INF)
+	_warning.text = _advisory(battery, minf(hull, cargo) if scanned else hull, deadline - elapsed if deadline > 0.0 else INF)
 	_warning.visible = not _warning.text.is_empty()
 
 	_set_gauge("hull", hull, AMBER if hull <= 30.0 else GREEN)
 	_set_gauge("cargo", cargo if scanned else 0.0, AMBER if cargo <= 30.0 else GREEN, "" if scanned else "未锁定")
 	_set_gauge("battery", battery, AMBER if battery <= 25.0 else TEAL)
-	_set_gauge("tension", tension * 100.0, AMBER if tension > 1.0 else TEAL, ("%.1f%%" % (tension * 100.0)) if towing else "未挂索")
-	_gauges["sonar_load"].caption.text = "持续过载" if towing else "声纳锁定"
 	var scan := 1.0 if scanned else clampf(float(view.get("scan", 0.0)), 0.0, 1.0)
-	_set_gauge("sonar_load", (overload if towing else scan) * 100.0, AMBER if towing else LILAC)
 
 	var compass := posmod(roundi(rad_to_deg(heading)), 360)
 	_speed.text = "%.1f m/s    ·    %03d°" % [velocity.length(), compass]
 	_wind.text = "风速 %.1f m/s   ·   风暴 %.0f%%" % [wind.length(), clampf(float(view.get("storm", 0.0)), 0.0, 1.0) * 100.0]
 	var profile := clampi(int(view.get("power", 0)), 0, POWER_NAMES.size() - 1)
+	var rope_length := float(view.get("rope_length", 0.0))
 	_power.text = "[%d] %s   /   %s" % [profile + 1, POWER_NAMES[profile], "慢车" if bool(view.get("speed_mode", false)) else "常速"]
-	_rope.text = "索长 %.1f m   ·   峰值 %.1f%%" % [float(view.get("rope_length", 0.0)), float(view.get("peak_tension", 0.0)) * 100.0] if towing else ("绞盘待命 · Space 挂索" if scanned else "绞盘待命 · 须先锁定")
+	_rope.text = "索长 %.1f m   ·   峰值 %s" % [rope_length, _tow_load_percent(float(view.get("peak_tension", 0.0)))] if towing else ("绞盘待命 · Space 挂索" if scanned else "绞盘待命 · 须先锁定")
+	_present_tow_risk(towing, tension, overload, scan, rope_length, profile)
 	var contact := "舱距" if scanned else "距信号区中心"
 	if towing:
 		contact = "带载返航"
@@ -349,9 +356,9 @@ func _present_dock(view: Dictionary, towing: bool, harbor: Vector2, radius: floa
 		action = "松油门稳索"
 	var settled := tug_in and cargo_in and velocity.length() <= Sim.DOCK_SPEED \
 		and cargo_velocity.length() <= Sim.DOCK_SPEED and tension < Sim.DOCK_TENSION
-	_dock_instruction.text = "船 %.1f/≤%.1f · 舱 %.1f/≤%.1f m/s\n缆张 %.1f%% / <%.0f%% · %s" % [
+	_dock_instruction.text = "船 %.1f/≤%.1f · 舱 %.1f/≤%.1f m/s\n缆张 %s / <%.0f%% · %s" % [
 		velocity.length(), Sim.DOCK_SPEED, cargo_velocity.length(), Sim.DOCK_SPEED,
-		tension * 100.0, Sim.DOCK_TENSION * 100.0, action]
+		_tow_load_percent(tension), Sim.DOCK_TENSION * 100.0, action]
 	_dock_instruction.add_theme_color_override("font_color", GREEN if settled else AMBER)
 
 
@@ -384,9 +391,47 @@ func _interaction_guidance(view: Dictionary, contract: Dictionary) -> String:
 			Sim.DOCK_SPEED, Sim.DOCK_TENSION * 100.0, Sim.DOCK_TIME]
 	return String(view.get("objective", contract.get("briefing", "")))
 
-func _advisory(towing: bool, tension: float, battery: float, integrity: float, remaining: float) -> String:
-	if towing and tension > 1.0:
-		return "拖缆过载！松油门、减小转角；用 3 稳索、Shift 慢车。"
+func _present_tow_risk(towing: bool, tension: float, overload: float, scan: float, rope_length: float, power: int) -> void:
+	if not towing:
+		_tow_action.hide()
+		_gauges["tension"].caption.text = "拖缆张力"
+		_gauges["sonar_load"].caption.text = "声纳锁定"
+		_set_gauge("tension", 0.0, TEAL, "未挂索")
+		_set_gauge("sonar_load", scan * 100.0, LILAC)
+		return
+	var overloaded := tension >= TOW_RATED_LOAD
+	var recovering := not overloaded and overload > 0.0
+	_gauges["tension"].caption.text = "拖缆张力 · 过载" if overloaded else "拖缆张力 · 额定内"
+	_gauges["sonar_load"].caption.text = "断索风险 · 累积" if overloaded else ("断索风险 · 回落" if recovering else "断索风险")
+	_set_gauge("tension", tension * 100.0, AMBER if overloaded else TEAL, _tow_load_percent(tension))
+	_set_gauge("sonar_load", overload * 100.0, AMBER if overloaded else (LILAC if recovering else TEAL), _measured_percent(overload))
+	if overloaded:
+		var action := "减载：松油门、减小转角"
+		if rope_length < Sim.ROPE_MAX:
+			action += " · F 放缆"
+		if power != 2:
+			action += " · 3 稳索"
+		_tow_action.text = action
+	elif recovering:
+		_tow_action.text = "保持低张力 · 风险仍在回落"
+	_tow_action.visible = overloaded or recovering
+
+
+func _tow_load_percent(load_ratio: float) -> String:
+	return "≥%.0f%%" % (TOW_DISPLAY_LIMIT * 100.0) if load_ratio >= TOW_DISPLAY_LIMIT else _measured_percent(load_ratio)
+
+
+func _measured_percent(fraction: float) -> String:
+	# Do not round a live risk to a misleading empty/full reading.
+	var rounded := "%.1f%%" % (fraction * 100.0)
+	if fraction > 0.0 and rounded == "0.0%":
+		return "<0.1%"
+	if fraction < 1.0 and rounded == "100.0%":
+		return "<100%"
+	return rounded
+
+
+func _advisory(battery: float, integrity: float, remaining: float) -> String:
 	if battery <= 12.0:
 		return "电量告急 · 避免空扫和全速急转。"
 	if remaining <= 20.0:
@@ -522,7 +567,7 @@ func _present_report(view: Dictionary, contract: Dictionary) -> void:
 	_result_stats["hull"].text = "%.0f%%" % float(report.get("hull", view.get("hull", 0.0)))
 	_result_stats["cargo"].text = "%.0f%%" % float(report.get("cargo", view.get("cargo_integrity", 0.0)))
 	_result_stats["battery"].text = "%.0f%%" % float(report.get("battery", view.get("battery", 0.0)))
-	_result_stats["peak_tension"].text = "%.1f%%" % (float(report.get("peak_tension", view.get("peak_tension", 0.0))) * 100.0)
+	_result_stats["peak_tension"].text = _tow_load_percent(float(report.get("peak_tension", view.get("peak_tension", 0.0))))
 	var status := String(view.get("record_status", ""))
 	_result_record.text = status if not status.is_empty() else ("未收到纪录更新" if success else "本航次未完成，不计入最佳纪录。")
 	_result_best.text = _best_text(_contract_id)
@@ -531,7 +576,7 @@ func _best_text(id: String) -> String:
 	var record := _dictionary(_records.get(id, {}))
 	if record.is_empty():
 		return "历史最佳  /  暂无完成记录"
-	return "历史最佳  /  %d 分 · %s 级 · %s · 船体 %.0f%% · 峰值张力 %.1f%%" % [int(record.get("score", 0)), String(record.get("grade", "—")), _time(float(record.get("time", 0.0))), float(record.get("hull", 0.0)), float(record.get("peak_tension", 0.0)) * 100.0]
+	return "历史最佳  /  %d 分 · %s 级 · %s · 船体 %.0f%% · 峰值张力 %s" % [int(record.get("score", 0)), String(record.get("grade", "—")), _time(float(record.get("time", 0.0))), float(record.get("hull", 0.0)), _tow_load_percent(float(record.get("peak_tension", 0.0)))]
 
 func _add_gauge(parent: Control, id: String, caption: String, ink: Color, maximum := 100.0) -> void:
 	var group := _column(parent, 3)
@@ -540,12 +585,14 @@ func _add_gauge(parent: Control, id: String, caption: String, ink: Color, maximu
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var value_label := _label(pair, "", 18, TEXT)
 	var rail := _rail(group, maximum, ink, 7)
+	if id in ["tension", "sonar_load"]:
+		rail.step = 0.0
 	if id == "tension":
 		var notch := ColorRect.new()
 		notch.color = AMBER
 		notch.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		rail.add_child(notch)
-		notch.anchor_left = 2.0 / 3.0
+		notch.anchor_left = TOW_RATED_LOAD / TOW_DISPLAY_LIMIT
 		notch.anchor_right = notch.anchor_left
 		notch.anchor_bottom = 1.0
 		notch.offset_top = -2.0

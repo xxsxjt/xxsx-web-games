@@ -14,7 +14,7 @@ SCRIPT_SUITES = (
     "app", "journey", "records", "audio", "layout", "input", "docking", "robustness",
     "cargo_tow", "recovery", "recovery_app", "terminal_priority", "docking_lifecycle",
     "needle_recovery", "needle_lifecycle", "needle_keyboard", "needle_held_lifecycle",
-    "interaction_feedback",
+    "interaction_feedback", "tow_risk_feedback",
 )
 REQUIRED_CHECKS = ("import", *SCRIPT_SUITES, "smoke_tool")
 
