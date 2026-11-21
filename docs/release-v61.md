@@ -1,6 +1,6 @@
 # V61：既有两作扩展的安全集成
 
-日期：2026-11-21。**V61 在共享工作树构建成功，完整 26 条回归通过；未部署 Sites。** 远端读回结果单列于下方。本轮只收口既有两作扩展，不增加网页游戏数量；后续开发主线为独立的 Godot Stormline，不纳入 V61。
+日期：2026-11-21。**V61 共享构建和完整 26 条回归通过，源码与 `dist/` 已同步 GitHub 并完成实施提交全树读回；未部署 Sites。** 本轮只收口既有两作扩展，不增加网页游戏数量；后续开发主线为独立的 Godot Stormline，不纳入 V61。
 
 ## 范围与冻结门槛
 
@@ -29,7 +29,11 @@
 
 ## GitHub 同步
 
-仅显式暂存 23 份网页源码、测试、配置及必要文档和 12 份 `dist/` 差异。桌面、许可、本机日志、PCK 和玩家档案不进入网页提交。推送和全树/逐文件读回与构建分开记录。
+实施提交 [`dc5d7e9fc41bd4a9a927ddf5a311447c039f542c`](https://github.com/xxsxjt/xxsx-web-games/commit/dc5d7e9fc41bd4a9a927ddf5a311447c039f542c) 正常推送到 `origin/main`。推送前 fetch 确认基线为独立桌面收尾提交 `7b2de90a17e59ff89b383fdf3af579176ccbaae7`；实施只暂存 23 份网页源码、测试、配置及必要文档与 12 份 `dist/` 差异，共 35 个路径。暂存内容与本地原始字节一致，`git diff --cached --check` 通过；桌面源码、许可证、托管配置和本机日志、PCK、玩家档案均未进入网页提交。
+
+推送后，`ls-remote` 和 GitHub API 确认实施提交为远端 `main`；非截断的递归树 `83ab3c8aac2b75d5ded53ad8c7e85f49f490de82` 的 534 个目录/文件条目与本地提交逐项一致，包括 **497 个 blob**。按实施提交逐文件读取 **497/497** 份远端 HTTP 正文并重算 blob，与远端树和本地提交匹配，其中 `dist/` 的 **107/107** 条历史资源也与固定 SHA-256 完全一致。证据：上述临时目录的 `github-implementation.json` 和 `github-implementation-tree.json`。
+
+本节及两份根工作单属于独立的收尾记录提交，不改源码、测试或 `dist/`。该文档提交本身的最终 `main`、完整树及逐文件读回单列于同一证据目录的 `github-final.json` 与 `github-final-tree.json`。
 
 桌面阶段 25 已锁定，阶段 26 / v0.2.0 已独立完成同指纹规范源/镜像 QA、PCK-only 及最终源码同步，见 [阶段记录](../desktop/stormline-black-tide/docs/stage-26-expedition.md)。桌面结果不纳入 npm 或 V61 验证。
 
