@@ -35,7 +35,8 @@
 - 同源码 v0.1.1 候选：`build/releases/20261120-193624-802779/Stormline-Black-Tide-v0.1.1-windows-x64/`。PE 静态检查、18 个 PCK 条目及其校验、ZIP CRC 与逐文件 round-trip 通过，manifest 的 36 项指纹与完整 QA 相同。ZIP SHA-256：`01772fc51a76d4c34eb10504eef10c1945736c921fa72af77ebef60dd17567a4`；PCK SHA-256：`20a15f0ebf8302d8e69980db4c9fe94f53df62d636db6881e2beec51b535ef8a`。
 - 仓外 PCK-only 探针：`C:/Users/xxsx/AppData/Local/Temp/opencode/stormline-stage17/stormline-pck-probe-iox29m7x/smoke.json`，退出 0、诊断 0；七脚本与入口资源加载、独立模型单步通过，没有创建成绩文件，未实例化候选主场景。
 - 镜像完整 QA：`desktop/stormline-black-tide/build/qa/20261120-193825-094745/summary.json`，**20/20**、诊断 0，与开发源和候选 36 项指纹相同，656 项断言也全部通过。
-- 总站 `npm run build` 后执行 `npm test`，均通过；网页源码、`dist/` 与根 `LICENSE` 无变更，未部署网页。GitHub 完整树/桌面文件正文回读正在执行；实际完成后登记，不以本地复制代替远端同步。
+- 总站 `npm run build` 后执行 `npm test`，均通过；网页源码、`dist/` 与根 `LICENSE` 无变更，未部署网页。
+- 已推送到 `xxsxjt/xxsx-web-games` 的 `main`，实现提交 `3d64291874744cf46b66d1dbf7c31a1903914675`。GitHub API 回读确认递归完整树 413 个 blob 与本地提交一致，桌面项目 61 份文件的远端 blob 正文逐字节匹配开发源。本机证据：`build/sync/stage-17.json`，同目录带提交短 SHA 的整树与逐 blob 明细。
 
 ## 边界
 
