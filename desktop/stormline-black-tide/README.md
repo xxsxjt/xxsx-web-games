@@ -1,6 +1,6 @@
 # 风暴线：黑潮回收 / Stormline: Black Tide
 
-独立桌面 3D 拖带驾驶游戏，Godot 4.3 Compatibility。v0.2.1 在三海区、六部署远征中加入可选的实测制图：实际绕航取样、节约声纳电量，交付后为同区主回收取得缓流时窗。合同支线/风险、持续损伤和电量、维修/充电、有限改装与奖励共同影响下一次出航。原「黑潮回收」「针礁水道」「碎潮回廊」三合同快玩、成绩和航次复盘保留。本作不属于网页总站，不共享网页存档或版本；无登录、无联网依赖。
+独立桌面 3D 拖带驾驶游戏，Godot 4.3 Compatibility。v0.2.2 为三海区、六部署远征加入进水损管：触礁留下结构破口，排水耗电、低速封堵消耗预装材料，临时措施不能替代下一航次的付费结构维修。实测制图的绕航取样与交付后同区缓流保留。合同支线/风险、持续损伤和电量、维修/充电、有限改装与奖励共同影响下一次出航。原「黑潮回收」「针礁水道」「碎潮回廊」三合同快玩、成绩和航次复盘保留。本作不属于网页总站，不共享网页存档或版本；无登录、无联网依赖。
 
 任务闭环：任务台选约 → 驶向搜索海区 → 低速扫描 → 挂索 → 管理功率、缆长与惯性带舱返航 → 船舱同时入港稳住 1 秒 → 结算并保存本机最佳。结算点击「航次复盘」或按 V 查看真实采集的用时、损失、公开峰张与关键事件；只保留本次航行的有限数据，不写档、不重放。程序化场景和音效，不需要外部素材服务。
 
@@ -39,6 +39,7 @@
 - 阶段 25（成功/失败航次复盘 / 总 QA 与镜像）：`docs/stage-25-voyage-review.md`；实现及自然航次：`docs/voyage-review.md`
 - 阶段 26（远征经营与真实驾驶闭环）：`docs/stage-26-expedition.md`；规则/档案、物理与正式应用证据：`docs/expedition-{state,simulation,interface}.md`。实施者文档冻结在候选验收时点，后续整合状态以阶段 26 记录为准。
 - 阶段 27（实测制图 / 同区局部缓流）：`docs/stage-27-tide-survey.md`；玩法、冻结候选证据和余量边界：`docs/tide-survey.md`。规范源、镜像验证和源码同步以阶段 27 记录分别登记，不以候选通过替代。
+- 阶段 28（进水损管 / 跨航次结构维修）：`docs/stage-28-damage-control.md`；操作、成本、旧档显式启用与真实规则：`docs/damage-control.md`。新建损管远征使用 G 排水、H 连续低速临封，旧档读入不静默改变玩法。
 - 碎潮回廊的流场编号、船舱边界读数与定向验证：`docs/cross-current-onboarding.md`
 - 持续开发和验证计划：`docs/task-plan.md`
 - 本机无窗口证据：`build/qa/<时间戳>/summary.json` 及相邻日志。
@@ -58,9 +59,9 @@ python -X utf8 tools/regression.py --godot 'Godot_v4.3-stable_win64_console.exe'
 python -X utf8 tools/build_windows.py --godot 'Godot_v4.3-stable_win64_console.exe' --qa 'build/qa/<本次时间戳>/summary.json'
 ```
 
-构建器要求三十五项 Godot 无窗口检查（导入与三十四套脚本）及 `smoke_tool`（Python 探针自测），共三十六项。阶段 26 的三十四项顺序不变，新 `tide_survey`、`tide_survey_app` 放在 Godot 套件末尾；检查列表以 `tools/regression.py` 的 `REQUIRED_CHECKS` 为准。显式旧版本 oracle 对照另行运行、不要求普通源码检出带有历史夹具。规则夹具、模型输入旅程和正式场景/存储旅程分别登记。
+构建器要求三十七项 Godot 无窗口检查（导入与三十六套脚本）及 `smoke_tool`（Python 探针自测），共三十八项。原 Godot 套件顺序不变，`damage_control`、`damage_control_app` 追加在 Godot 套件末尾；检查列表以 `tools/regression.py` 的 `REQUIRED_CHECKS` 为准。显式旧版本 oracle 对照另行运行、不要求普通源码检出带有历史夹具。规则夹具、模型输入旅程和正式场景/存储旅程分别登记。
 
-导出后可用官方 Godot 的隔离无窗口脚本仅加载 PCK 资源。阶段 26/27 探针只读十二个脚本（含复盘、远征目录/状态/存储/界面）、入口 PackedScene 和模拟脚本的三合同常量；不实例化主场景或运行模拟器、游戏 EXE。用户目录和日志隔离；不播放音频、不截屏、不验证真实渲染/操控。十二资源强制清单与实际加载集合均检查，陈旧 manifest/probe 不能一起遗漏新依赖后仍通过。
+导出后可用官方 Godot 的隔离无窗口脚本仅加载 PCK 资源。阶段 28 探针只读十三个脚本（含复盘、远征与损管模型）、入口 PackedScene 和模拟脚本的三合同常量；不实例化主场景或运行模拟器、游戏 EXE。用户目录和日志隔离；不播放音频、不截屏、不验证真实渲染/操控。十三资源强制清单与实际加载集合均检查，陈旧 manifest/probe 不能一起遗漏新依赖后仍通过。
 
 ```powershell
 python -X utf8 tools/smoke_export.py --godot 'Godot_v4.3-stable_win64_console.exe' --pck 'build/pack-probe/<本次目录>/Stormline-Black-Tide.pck' --sandbox-dir '<本机允许的临时目录>/stormline-pck-probe'

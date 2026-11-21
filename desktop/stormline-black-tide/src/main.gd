@@ -38,6 +38,7 @@ var _terminal: Dictionary = {}
 # with its original CAS revision, not a newly calculated settlement.
 var _pending: Dictionary = {}
 var _tow_queued := false
+var _pump_queued := false
 var _record_status := ""
 
 
@@ -92,7 +93,11 @@ func _physics_process(delta: float) -> void:
 		"slow": Input.is_key_pressed(KEY_SHIFT),
 		"reel": float(Input.is_key_pressed(KEY_F)) - float(Input.is_key_pressed(KEY_Q)),
 	}
+	if mode == "expedition" and expedition_state.has("damage_control"):
+		controls["pump_pressed"] = _pump_queued
+		controls["patch"] = Input.is_key_pressed(KEY_H)
 	_tow_queued = false
+	_pump_queued = false
 	_advance_simulation(delta, controls)
 
 
@@ -149,6 +154,7 @@ func _reset_mission() -> void:
 	sim.reset(selected_contract)
 	review.clear()
 	_tow_queued = false
+	_pump_queued = false
 	_record_status = ""
 
 
@@ -175,6 +181,7 @@ func _on_pause_requested() -> void:
 	if screen == "running":
 		screen = "paused"
 		_tow_queued = false
+		_pump_queued = false
 	elif screen == "paused":
 		if mode == "expedition" and (not _pending.is_empty() or not _confirmation.is_empty()):
 			return
@@ -258,6 +265,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		match key:
 			KEY_SPACE:
 				_tow_queued = true
+			KEY_G:
+				if mode == "expedition" and expedition_state.has("damage_control"):
+					_pump_queued = true
 			KEY_1:
 				sim.set_power_profile(0)
 			KEY_2:
@@ -351,7 +361,7 @@ func _on_expedition_action(action: String, value: String) -> void:
 			match action:
 				"new":
 					if not _archive.exists and not _archive.backup_available:
-						if _save_expedition(ExpeditionState.new_campaign(), -1, "已创建独立远征档案。"):
+						if _save_expedition(ExpeditionState.new_campaign(true), -1, "已创建进水损管远征。触礁可留破口；出航前可预装封堵包。"):
 							screen = "dock"
 				"continue":
 					if not expedition_state.is_empty():
@@ -372,8 +382,11 @@ func _on_expedition_action(action: String, value: String) -> void:
 						_confirmation = "launch"
 				"buy", "equip", "unequip":
 					_apply_dock_change(action, {"module_id": value})
-				"repair", "recharge":
+				"repair", "recharge", "prepare_kit", "unload_kit":
 					_apply_dock_change(action)
+				"enable_damage":
+					if not expedition_state.has("damage_control"):
+						_confirmation = "enable_damage"
 				"retreat":
 					if expedition_state.status == "dock":
 						_confirmation = "retreat"
@@ -398,6 +411,7 @@ func _ask_confirmation(action: String) -> void:
 	if screen == "running":
 		screen = "paused"
 		_tow_queued = false
+		_pump_queued = false
 	_confirmation = action
 	_present_expedition()
 	_publish(0.0)
@@ -419,7 +433,7 @@ func _accept_confirmation() -> void:
 				expedition_state = restored.state
 			_expedition_conflict = bool(restored.conflict)
 			_feedback(String(restored.message), not bool(restored.ok))
-		"recover_interrupted", "retreat", "restart":
+		"recover_interrupted", "retreat", "restart", "enable_damage":
 			if _apply_dock_change(action):
 				_enter_dock()
 		"discard_pending":
@@ -446,6 +460,7 @@ func _launch_expedition() -> void:
 	screen = "running"
 	_terminal = {}
 	_tow_queued = false
+	_pump_queued = false
 	world.configure(sim.contract)
 	review.begin(sim.snapshot())
 	_publish(0.0, true)
@@ -542,7 +557,7 @@ func _present_expedition() -> void:
 			selected = offers.front()
 			_offer_id = String(selected.id)
 		launch = _can_launch()
-		for action: String in ["repair", "recharge"]:
+		for action: String in ["repair", "recharge", "prepare_kit", "unload_kit", "enable_damage"]:
 			services[action] = ExpeditionState.act(expedition_state, action)
 		for id: String in Catalog.modules():
 			var action := "unequip" if id in expedition_state.equipped else ("equip" if id in expedition_state.owned else "buy")

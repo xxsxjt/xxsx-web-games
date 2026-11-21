@@ -23,6 +23,7 @@ SCRIPT_SUITES = (
     "voyage_review", "voyage_review_app",
     "expedition_state", "expedition_store", "expedition_sim", "expedition_app",
     "tide_survey", "tide_survey_app",
+    "damage_control", "damage_control_app",
 )
 REQUIRED_CHECKS = ("import", *SCRIPT_SUITES, "smoke_tool")
 

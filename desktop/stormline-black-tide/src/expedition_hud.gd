@@ -6,6 +6,7 @@ signal requested(action: String, value: String)
 
 const Catalog = preload("res://src/expedition_catalog.gd")
 const State = preload("res://src/expedition_state.gd")
+const Damage = preload("res://src/damage_control.gd")
 const Cockpit = preload("res://src/storm_hud.gd")
 const INK := Color("e9f5fa")
 const MUTED := Color("a9c4d3")
@@ -16,6 +17,7 @@ const LEDGER_NAMES := {
 	"buy": "采购模块", "equip": "安装模块", "unequip": "卸下模块", "repair": "维修船体",
 	"recharge": "补充电池", "launch": "支付出航费", "settle": "部署结算",
 	"abandon": "主动放弃", "recover_interrupted": "中断返港", "retreat": "结束远征",
+	"enable_damage": "明确启用损管", "prepare_kit": "预装封堵包", "unload_kit": "卸回封堵包",
 }
 const OUTCOME_NAMES := {"success": "已交付", "failed": "失败／无报酬", "interrupted": "已撤回／无报酬", "retreated": "已撤退"}
 const EFFECT_NAMES := {"thrust": "推进力", "energy": "耗电", "rating": "拖缆额定", "sensors": "声纳效率", "stability": "抗漂移", "mass": "船重"}
@@ -186,7 +188,8 @@ func _build_archive(body: VBoxContainer, actions: HBoxContainer) -> void:
 				_action(actions, "恢复备份…", "restore", true)
 		elif not archive.exists and not _view.conflict:
 			_label(panel, "尚未建立远征。只有按下新建才会写入独立档案。", 18, MUTED)
-			_action(actions, "新建远征", "new", true)
+			_label(panel, "新远征启用进水损管：触礁留下跨航次破口，排水耗电，临时封堵消耗预装材料。旧档案不会自动启用。", 18, TEAL)
+			_action(actions, "新建损管远征", "new", true)
 		else:
 			_label(panel, "不会覆盖坏档。请在游戏外先保留主档；排除路径或版本问题后，再用“重查档案”。", 18, AMBER)
 	elif not state.is_empty():
@@ -316,6 +319,7 @@ func _build_outfit(body: VBoxContainer, state: Dictionary) -> void:
 	var services := _row(body, 8)
 	_service(services, state, "repair", "维修船体", "hull", State.REPAIR_AMOUNT, State.REPAIR_COST, State.REPAIR_PARTS, State.REPAIR_PRESSURE)
 	_service(services, state, "recharge", "补充电池", "battery", State.RECHARGE_AMOUNT, State.RECHARGE_COST, 0, State.RECHARGE_PRESSURE)
+	_build_damage_outfit(body, state)
 	_label(body, "整备耗用风暴窗口。也可带伤继续：船体至少 %d%%、电量至少 %d%%，并能支付出航费。" % [int(State.MIN_LAUNCH_HULL), int(State.MIN_LAUNCH_BATTERY)], 17, MUTED)
 
 
@@ -328,8 +332,27 @@ func _service(parent: Control, state: Dictionary, action: String, title: String,
 	if change.ok:
 		_label(card, "预计 %.1f%% → %.1f%%；压力 %d → %d" % [float(state[field]), float(next[field]), int(state.pressure), int(next.pressure)], 17, TEAL)
 	else:
-		_label(card, "当前已满。" if float(state[field]) >= 100.0 else "资金或材料不足。", 17, MUTED)
+		_label(card, String(change.message), 17, MUTED)
 	_action(card, title, action, false, not bool(change.ok) or bool(_view.conflict))
+	if action == "repair" and state.has("damage_control"):
+		_label(card, "同时修复结构破口最多 %.1f；不返还用掉的封堵包。" % Damage.REPAIR_BREACH, 17, MUTED)
+
+
+func _build_damage_outfit(body: VBoxContainer, state: Dictionary) -> void:
+	var panel := _card(body, "进水损管  /  结构修复与海上应急")
+	if not state.has("damage_control"):
+		_label(panel, "此为旧规则远征，读取不会改变物理。可明确启用损管扩展；不可用旧程序读回扩展档案。既有船损不追溯生成破口。", 18, MUTED)
+		_action(panel, "明确启用损管…", "enable_damage", false, bool(_view.conflict))
+		return
+	_label(panel, "结构破口 %.2f / %.0f  ·  预装封堵包 %d / %d" % [float(state.damage_control.breach), Damage.MAX_BREACH, int(state.damage_control.kits), Damage.MAX_KITS], 19, TEAL)
+	_label(panel, "仓库材料与预装包一比一转移；最多携两包。G 切换排水泵，实际排水每秒耗电 %.2f。H 连续封堵 %.0f 秒：船速 <%.1f、油门 ≤%.2f、缆张 <68%%；松键或超限中断，完成才耗一包。每包暂封最多 %.1f，结构仍须返港付费维修。" % [Damage.PUMP_DRAW, Damage.PATCH_SECONDS, Damage.PATCH_SPEED, Damage.PATCH_THROTTLE, Damage.PATCH_AMOUNT], 17, MUTED)
+	var row := _row(panel, 8)
+	for pair: Array in [["prepare_kit", "预装一包 · 1 材料"], ["unload_kit", "卸回一包 · +1 材料"]]:
+		var action := String(pair[0])
+		var result: Dictionary = _view.services[action]
+		var button := _action(row, String(pair[1]), action, false, not bool(result.ok) or bool(_view.conflict))
+		button.tooltip_text = String(result.message)
+	_label(panel, "带破口出航会从干舱重新进水；港内排干与临时封堵不修结构。失联中断会损失全部预装包并另增 0.35 破口。", 17, AMBER)
 
 
 func _build_paused(body: VBoxContainer, actions: HBoxContainer) -> void:
@@ -339,6 +362,7 @@ func _build_paused(body: VBoxContainer, actions: HBoxContainer) -> void:
 	_label(panel, "已用 %s   ·   船体 %.1f%%   ·   电量 %.1f%%" % [_time(float(voyage.time)), float(voyage.hull), float(voyage.battery)], 20, TEAL)
 	_label(panel, "当前构筑：%s  /  %s" % [module_names(meta.get("loadout", [])), effect_text(meta.get("effects", {}))], 18)
 	_label(panel, "远征禁用 R 重开。可继续驾驶；放弃或正常退出会按当前损耗办理救援，无交付报酬。", 18, AMBER)
+	_damage_summary(panel, voyage)
 	if not _view.pending:
 		_action(actions, "继续驾驶 [P / Esc]", "resume", true)
 		_action(actions, "放弃本次部署…", "abandon", false)
@@ -359,6 +383,7 @@ func _build_result(body: VBoxContainer, actions: HBoxContainer) -> void:
 		var logged: bool = voyage.phase == "success" and not bool(_view.pending)
 		_label(result, "潮流取样 %d / %d · %s" % [int(survey.completed), survey.stations.size(),
 			"缓流时窗已入档，可用于同区主回收。" if logged else "缓流时窗未入档。"], 18, TEAL if logged else AMBER)
+	_damage_summary(result, voyage)
 	_label(result, "本部署不计入三合同快玩历史最佳。远征不能按 R 免费重开。", 17, MUTED)
 	if _view.pending:
 		_pending_summary(body)
@@ -417,6 +442,16 @@ func _build_ledger(body: VBoxContainer, history: Array) -> void:
 		_label(row, text, 18, TEAL if entry.event == "settle" and entry.outcome == "success" else INK)
 		_label(row, "资金 %+d · 材料 %+d   |   船体 %.1f%% · 电量 %.1f%% · 压力 %d" % [
 			int(entry.credits_delta), int(entry.parts_delta), float(entry.hull), float(entry.battery), int(entry.pressure)], 17, MUTED)
+		if entry.has("damage_control"):
+			_label(row, "结构破口 %.2f · 剩余封堵包 %d" % [float(entry.damage_control.breach), int(entry.damage_control.kits)], 17, MUTED)
+
+
+func _damage_summary(parent: Control, voyage: Dictionary) -> void:
+	if not voyage.has("damage_control"):
+		return
+	var d: Dictionary = voyage.damage_control
+	_label(parent, "舱底进水 %.1f%% · 结构破口 %.2f · 临时封堵 %.2f · 耗包 %d / 剩余 %d" % [float(d.water), float(d.breach), float(d.sealed), int(d.patches_used), int(d.kits)], 18, AMBER if d.water >= 40 else TEAL)
+	_label(parent, "入港只排干积水，临时封堵不跨航次；结构破口与未用封堵包按实际结果入账。", 17, MUTED)
 
 
 func _ledger_contract(id: String) -> String:
@@ -444,6 +479,8 @@ func _build_confirmation(body: VBoxContainer, actions: HBoxContainer, kind: Stri
 				_quote(offer), float(state.hull), float(state.battery), module_names(state.equipped), int(offer.launch_cost), int(_view.launch.state.credits)]
 			if offer.has("tide_stations"):
 				text += "\n\n" + String(offer.briefing)
+			if state.has("damage_control"):
+				text += "\n\n结构破口 %.2f · 封堵包 %d。破口会持续进水；G 排水耗电，H 低速连续封堵，临封不能替代返港维修。" % [float(state.damage_control.breach), int(state.damage_control.kits)]
 			accept = "支付并出航"
 		"abandon", "abandon_quit", "recover_interrupted":
 			var loading := kind == "recover_interrupted"
@@ -451,6 +488,8 @@ func _build_confirmation(body: VBoxContainer, actions: HBoxContainer, kind: Stri
 			var baseline := "按出航登记（船体 %.1f%%、电量 %.1f%%）；不恢复航行末帧。" % [float(state.hull), float(state.battery)] if loading else \
 				"按当前真实耗损（船体 %.1f%%、电量 %.1f%%），不会回补。" % [float(voyage.hull), float(voyage.battery)]
 			text = "%s\n救援再扣船体 %.0f 点、电量 %.0f 点，压力最多 +%d；不退航费、不发奖、不推进航图。" % [baseline, State.INTERRUPTED_HULL_LOSS, State.INTERRUPTED_BATTERY_LOSS, State.INTERRUPTED_PRESSURE]
+			if state.has("damage_control"):
+				text += "\n中断按出航破口另 +0.35，并损失全部预装封堵包；无末帧恢复。" if loading else "\n保留当前真实破口和未用封堵包；临封不代替结构修复。"
 			accept = "结算放弃并退出" if kind == "abandon_quit" else "确认返港"
 		"restore":
 			title = "恢复上一份有效备份"
@@ -464,6 +503,10 @@ func _build_confirmation(body: VBoxContainer, actions: HBoxContainer, kind: Stri
 			title = "另起独立远征"
 			text = "将新建六部署航图，不继承本次奖励。上一份终局会进入同档 .bak；后续提交会轮换该备份。"
 			accept = "确认新建"
+		"enable_damage":
+			title = "明确启用进水损管扩展"
+			text = "保留当前远征资金、材料、航图与原损伤；不追溯新增破口。自下一次出航起，触礁可造成跨航次结构破口与进水；需在耗电排水、预装材料封堵、船坞维修之间权衡。读取本身不升级，确认保存成功后才生效。扩展档案不能用旧程序读取；不影响三合同快玩。"
+			accept = "启用并保存"
 		"discard_pending":
 			title = "舍弃待保存结果"
 			text = "重读磁盘将舍弃本机会话未提交的结果。不会合并或覆盖其他会话；若磁盘仍登记出航，需要按中断规则返港。"
@@ -490,6 +533,8 @@ func _resource_strip(parent: Control, state: Dictionary) -> void:
 		var cell := _card(row, "")
 		var label := _label(cell, "%s  %s" % [pair[0], pair[1]], 18, TEAL)
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	if state.has("damage_control"):
+		_label(parent, "%s结构破口 %.2f / %.0f · %s封堵包 %d / %d（港内排水不修结构）" % [origin, float(state.damage_control.breach), Damage.MAX_BREACH, origin, int(state.damage_control.kits), Damage.MAX_KITS], 16, MUTED)
 
 
 func _quote(offer: Dictionary) -> String:

@@ -3,6 +3,7 @@ extends RefCounted
 ## Coordinates are metres on x/z; heading zero points north (-Y), positive turns right.
 
 const Catalog = preload("res://src/expedition_catalog.gd")
+const Damage = preload("res://src/damage_control.gd")
 const WORLD_LIMIT := 140.0
 const SCAN_RADIUS := 27.0
 const SCAN_SPEED := 5.5
@@ -120,6 +121,7 @@ var _current_scale := 1.0
 var _tide_stations: Array = []
 var _tide_completed := 0
 var _tide_hold := 0.0
+var _damage: RefCounted
 
 
 func _init() -> void:
@@ -135,11 +137,17 @@ func reset(id: String = "black-tide") -> void:
 	_energy_multiplier = 1.0
 	_current_scale = 1.0
 	_tide_stations = []
+	_damage = null
 	_reset_voyage(100.0, 100.0)
 
 
 func reset_expedition(spec: Dictionary) -> bool:
-	if spec.size() != _EXPEDITION_SPEC_KEYS.size() or not spec.has_all(_EXPEDITION_SPEC_KEYS):
+	var spec_keys := _EXPEDITION_SPEC_KEYS.duplicate()
+	if spec.has("damage_control"):
+		spec_keys.append("damage_control")
+		if not Damage.valid_persistent(spec.damage_control):
+			return false
+	if spec.size() != spec_keys.size() or not spec.has_all(spec_keys):
 		return false
 	if not _valid_deployment_token(spec.token) or not spec.offer_id is String or not spec.contract is Dictionary \
 			or not spec.loadout is Array or not spec.pressure is int or not spec.path is Array \
@@ -178,6 +186,7 @@ func reset_expedition(spec: Dictionary) -> bool:
 		"pressure": spec.pressure, "loadout": spec.loadout.duplicate(), "effects": effects,
 		"thresholds": _EXPEDITION_THRESHOLDS, "initial_hull": float(spec.hull), "initial_battery": float(spec.battery)})
 	_reset_voyage(float(spec.hull), float(spec.battery))
+	_damage = Damage.new(spec.damage_control, storm_intensity) if spec.has("damage_control") else null
 	return true
 
 
@@ -267,6 +276,8 @@ func step(delta: float, input: Dictionary = {}) -> Dictionary:
 	var right := Vector2(-forward.y, forward.x)
 	var initial_speed := velocity.length()
 	var yaw_rate: float = float(profile.yaw) / (1.0 + initial_speed * 0.065)
+	if _damage != null and _damage.water > 0.0:
+		yaw_rate *= 1.0 - float(_damage.water) * 0.002
 	if tow_attached:
 		yaw_rate *= 0.83
 	heading = wrapf(heading + steer * yaw_rate * dt, -PI, PI)
@@ -278,6 +289,8 @@ func step(delta: float, input: Dictionary = {}) -> Dictionary:
 		drive = clampf((throttle * SLOW_TARGET - velocity.dot(forward)) * 2.5, -6.2, 5.0)
 	elif is_zero_approx(throttle):
 		drive = -velocity.dot(forward) * (0.24 if tow_attached else 0.66)
+	if _damage != null and _damage.water > 0.0:
+		drive *= 1.0 - float(_damage.water) * 0.0035
 	var tug_flow := _flow(position)
 	var pod_flow := _flow(cargo_position)
 	var relative := velocity - tug_flow
@@ -332,6 +345,11 @@ func step(delta: float, input: Dictionary = {}) -> Dictionary:
 	position = _clamp_world(position + velocity * dt)
 	cargo_position = _clamp_world(cargo_position + cargo_velocity * dt)
 	_apply_reefs(dt)
+	# A contact on the would-be completion tick interrupts the work before any
+	# kit can be consumed. Flooding affects drive from the next fixed tick.
+	if _damage != null:
+		if _damage.step(dt, input, initial_speed, throttle, cable_tension, storm_intensity):
+			_emit("patched", "临时封堵完成，耗用一包。已封最多 1.0 破口；结构损伤仍须返港维修。")
 	var energy_draw := 0.13 + absf(throttle) * (0.40 if power_profile == 0 else 0.30)
 	if scanning:
 		energy_draw += 0.20 + float(profile.sensors) * 0.22
@@ -339,6 +357,8 @@ func step(delta: float, input: Dictionary = {}) -> Dictionary:
 		energy_draw += 0.08 + absf(reel) * 0.19
 	if _energy_multiplier != 1.0:
 		energy_draw *= _energy_multiplier
+	if _damage != null:
+		energy_draw += float(_damage.pump_draw)
 	battery = maxf(0.0, battery - energy_draw * dt)
 	if hull <= 0.0:
 		_fail("船体耐久归零，拖船失去动力。", "collision")
@@ -348,6 +368,8 @@ func step(delta: float, input: Dictionary = {}) -> Dictionary:
 		_fail("电量耗尽，任务终止。", "power_lost")
 	elif mission_time >= float(contract.deadline):
 		_fail("风暴窗口关闭，拖船必须撤离。", "timeout")
+	elif _damage != null and _damage.water >= 100.0:
+		_fail("舱底进水达到 100%，拖船失去浮力。", "flooded")
 	if phase == "return":
 		_update_docking(dt)
 	return snapshot()
@@ -433,9 +455,13 @@ func _apply_reefs(dt: float) -> void:
 			position = center + normal * margin
 			velocity += normal * inbound_speed * 1.18
 			hull = maxf(0.0, hull - dt * 7.0)
+			if _damage != null:
+				_damage.add_breach(dt * 0.025)
 			if mission_time - _tug_impact_at > 0.54 and inbound_speed > 0.6:
 				_tug_impact_at = mission_time
 				hull = maxf(0.0, hull - inbound_speed * 4.3)
+				if _damage != null:
+					_damage.add_breach(clampf((inbound_speed - 0.6) * 0.20, 0.08, 0.90))
 				if mission_time - _collision_notice_at > 0.54:
 					_collision_notice_at = mission_time
 					_emit("collision", "船体碰撞：%s。倒车脱离，再绕标线。" % hazard.name)
@@ -551,6 +577,8 @@ func snapshot() -> Dictionary:
 		view["expedition"] = expedition
 		view["expedition_token"] = expedition.token
 		view["offer_id"] = expedition.offer_id
+		if _damage != null:
+			view["damage_control"] = _damage.snapshot()
 		if not _tide_stations.is_empty():
 			view["tide_survey"] = {"stations": _tide_stations.duplicate(), "completed": _tide_completed,
 				"progress": _tide_hold, "radius": Catalog.TIDE_RADIUS, "speed_limit": Catalog.TIDE_SPEED}

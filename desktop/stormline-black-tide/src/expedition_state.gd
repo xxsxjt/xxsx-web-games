@@ -2,6 +2,7 @@ extends RefCounted
 ## Pure campaign rules. Catalog owns every mission reward, price and physical modifier.
 
 const Catalog = preload("res://src/expedition_catalog.gd")
+const Damage = preload("res://src/damage_control.gd")
 const VERSION := 1
 const HISTORY_LIMIT := 24
 const REPAIR_COST := 14
@@ -26,17 +27,22 @@ const ACTIVE_KEYS := ["token", "offer_id", "sector", "leg", "pressure", "path", 
 const HISTORY_KEYS := ["event", "offer_id", "token", "outcome", "credits_delta", "parts_delta", "hull", "battery", "pressure"]
 
 
-static func new_campaign() -> Dictionary:
-	return {"version": VERSION, "revision": 0, "campaign_id": Crypto.new().generate_random_bytes(12).hex_encode(),
+static func new_campaign(damage_enabled: bool = false) -> Dictionary:
+	var s := {"version": VERSION, "revision": 0, "campaign_id": Crypto.new().generate_random_bytes(12).hex_encode(),
 		"deployment": 0, "sector": 1, "leg": 0, "credits": 180, "parts": 6,
 		"hull": 100.0, "battery": 100.0, "pressure": 0, "owned": [], "equipped": [],
 		"path": [], "active": {}, "history": [], "status": "dock"}
+	if damage_enabled:
+		s["damage_control"] = Damage.fresh()
+	return s
 
 
 static func validate(data: Variant) -> bool:
-	if not data is Dictionary or not _keys(data, STATE_KEYS):
+	if not data is Dictionary or not _extension_keys(data, STATE_KEYS):
 		return false
 	var s: Dictionary = data
+	if s.has("damage_control") and not Damage.valid_persistent(s.damage_control):
+		return false
 	if not _integer(s.version, VERSION, VERSION) or not _integer(s.revision, 0, 1000000):
 		return false
 	if not s.campaign_id is String or s.campaign_id.length() != 24 or not s.campaign_id.is_valid_hex_number(false):
@@ -65,9 +71,11 @@ static func validate(data: Variant) -> bool:
 	if not s.active is Dictionary:
 		return false
 	if s.status == "active":
-		if not _keys(s.active, ACTIVE_KEYS) or s.deployment < 1:
+		if not _extension_keys(s.active, ACTIVE_KEYS) or s.deployment < 1:
 			return false
 		var a: Dictionary = s.active
+		if a.has("damage_control") != s.has("damage_control") or (s.has("damage_control") and a.damage_control != s.damage_control):
+			return false
 		if not a.token is String or not a.offer_id is String or not _integer(a.sector, 1, 3) or not _integer(a.leg, 0, 1) or not _integer(a.pressure, 0, 99):
 			return false
 		if a.token != _token(s) or a.sector != s.sector or a.leg != s.leg or a.pressure != s.pressure:
@@ -81,9 +89,13 @@ static func validate(data: Variant) -> bool:
 	if not s.history is Array or s.history.size() > HISTORY_LIMIT:
 		return false
 	for entry in s.history:
-		if not entry is Dictionary or not _keys(entry, HISTORY_KEYS):
+		if not entry is Dictionary or not _extension_keys(entry, HISTORY_KEYS):
 			return false
-		if not entry.event is String or not entry.event in ["buy", "equip", "unequip", "repair", "recharge", "launch", "settle", "recover_interrupted", "abandon", "retreat"]:
+		if entry.has("damage_control") and (not s.has("damage_control") or not Damage.valid_persistent(entry.damage_control)):
+			return false
+		if not entry.event is String or not entry.event in ["buy", "equip", "unequip", "repair", "recharge", "launch", "settle", "recover_interrupted", "abandon", "retreat", "enable_damage", "prepare_kit", "unload_kit"]:
+			return false
+		if entry.event in ["enable_damage", "prepare_kit", "unload_kit"] and not entry.has("damage_control"):
 			return false
 		if not entry.offer_id is String or entry.offer_id.length() > 96 or not entry.token is String or entry.token.length() > 40:
 			return false
@@ -106,10 +118,13 @@ static func launch_spec(state: Dictionary) -> Dictionary:
 	if not validate(state) or state.status != "active":
 		return {}
 	var a: Dictionary = state.active
-	return {"token": a.token, "offer_id": a.offer_id,
+	var spec := {"token": a.token, "offer_id": a.offer_id,
 		"contract": Catalog.build_contract(a.offer_id, int(a.pressure), a.path.duplicate(true)),
 		"loadout": a.loadout.duplicate(), "hull": a.hull, "battery": a.battery,
 		"pressure": int(a.pressure), "path": a.path.duplicate(true)}
+	if a.has("damage_control"):
+		spec["damage_control"] = a.damage_control.duplicate(true)
+	return spec
 
 
 static func act(state: Dictionary, action: String, payload: Dictionary = {}) -> Dictionary:
@@ -121,7 +136,7 @@ static func act(state: Dictionary, action: String, payload: Dictionary = {}) -> 
 	if action == "restart":
 		if not payload.is_empty() or not s.status in ["completed", "retreated"]:
 			return _result(false, state, "先明确终止或完成当前远征，才能新开。")
-		var fresh := new_campaign()
+		var fresh := new_campaign(s.has("damage_control"))
 		fresh.revision = int(s.revision) + 1
 		return _result(true, fresh, "已新开远征；旧远征不会转移奖励。保存成功后生效。")
 	if s.status in ["completed", "retreated"]:
@@ -150,11 +165,18 @@ static func act(state: Dictionary, action: String, payload: Dictionary = {}) -> 
 				return_battery = float(payload.snapshot.battery)
 			s.hull = maxf(0, return_hull - INTERRUPTED_HULL_LOSS)
 			s.battery = maxf(0, return_battery - INTERRUPTED_BATTERY_LOSS)
+			if s.has("damage_control"):
+				if action == "abandon":
+					s.damage_control = Damage.persistent(payload.snapshot.damage_control)
+				else:
+					s.damage_control = {"breach": minf(Damage.MAX_BREACH, float(s.active.damage_control.breach) + Damage.INTERRUPTED_BREACH), "kits": 0}
 			s.pressure = mini(99, int(s.pressure) + INTERRUPTED_PRESSURE)
 			s.status = "dock"
 			s.active = {}
 			outcome = "interrupted"
 			message = "主动放弃按实际船体/电池另扣 -15/-20、压力 +2；出航费不退，不发奖励。" if action == "abandon" else "中断返港按出航记录扣船体15、电池20、压力+2；未保存航行帧及途中消耗，不退费或发奖。"
+			if s.has("damage_control"):
+				message += " 保留实际破口与剩余封堵包，港内排水不等于结构修复。" if action == "abandon" else " 中断救援破口另 +0.35，预装封堵包全部损失；不恢复临时封堵或途中帧。"
 		else:
 			if not _keys(payload, ["token", "snapshot"]) or payload.token != s.active.token or not _snapshot_valid(s, payload.snapshot):
 				return _result(false, state, "拒绝结算：令牌、任务身份、终态或快照字段不合法。")
@@ -162,6 +184,8 @@ static func act(state: Dictionary, action: String, payload: Dictionary = {}) -> 
 			var offer: Dictionary = _offer(s, event_offer)
 			s.hull = float(snap.hull)
 			s.battery = float(snap.battery)
+			if s.has("damage_control"):
+				s.damage_control = Damage.persistent(snap.damage_control)
 			outcome = String(snap.phase)
 			if outcome == "success":
 				s.credits = mini(999999, int(s.credits) + floori(float(offer.reward) * float(snap.cargo_integrity) / 100.0))
@@ -212,13 +236,38 @@ static func act(state: Dictionary, action: String, payload: Dictionary = {}) -> 
 					s.equipped.erase(id)
 				message = "模块变更成功；下次出航按实际装备生效。"
 			"repair":
-				if not payload.is_empty() or s.hull >= 100.0 or s.credits < REPAIR_COST or s.parts < REPAIR_PARTS:
-					return _result(false, state, "维修需非满船体、14 资金及 1 材料；每次最多 +25 船体，压力 +1。")
+				var damaged_structure: bool = s.has("damage_control") and float(s.damage_control.breach) > 0.0
+				if not payload.is_empty() or (s.hull >= 100.0 and not damaged_structure) or s.credits < REPAIR_COST or s.parts < REPAIR_PARTS:
+					return _result(false, state, "维修需受损船体或结构破口、14 资金及 1 材料；每次最多 +25 船体，压力 +1。")
 				s.hull = minf(100, float(s.hull) + REPAIR_AMOUNT)
+				if s.has("damage_control"):
+					s.damage_control.breach = maxf(0.0, float(s.damage_control.breach) - Damage.REPAIR_BREACH)
 				s.credits = int(s.credits) - REPAIR_COST
 				s.parts = int(s.parts) - REPAIR_PARTS
 				s.pressure = mini(99, int(s.pressure) + REPAIR_PRESSURE)
 				message = "维修完成：最多 +25 船体，-14 资金、-1 材料、压力 +1。"
+				if s.has("damage_control"):
+					message += " 同时修复最多 1.0 结构破口；不返还海上耗用的封堵包。"
+			"enable_damage":
+				if not payload.is_empty() or s.has("damage_control"):
+					return _result(false, state, "损管已启用，或操作参数无效。")
+				s["damage_control"] = Damage.fresh()
+				message = "已明确启用进水损管；从下一次出航起触礁可造成破口，旧损伤不追溯计算。旧程序不能读取扩展档案。"
+			"prepare_kit", "unload_kit":
+				if not payload.is_empty() or not s.has("damage_control"):
+					return _result(false, state, "请先明确启用进水损管；封堵包操作不接受额外数据。")
+				if action == "prepare_kit":
+					if s.parts < 1 or s.damage_control.kits >= Damage.MAX_KITS:
+						return _result(false, state, "预装一包需仓库材料 1；最多携带两包。")
+					s.parts = int(s.parts) - 1
+					s.damage_control.kits = int(s.damage_control.kits) + 1
+					message = "已将 1 仓库材料预装成封堵包；海上完成封堵才耗用，不修复结构破口。"
+				else:
+					if s.damage_control.kits < 1 or s.parts >= 999:
+						return _result(false, state, "没有封堵包可卸回，或仓库已满。")
+					s.parts = int(s.parts) + 1
+					s.damage_control.kits = int(s.damage_control.kits) - 1
+					message = "已将未用封堵包卸回 1 仓库材料；不产生新材料。"
 			"recharge":
 				if not payload.is_empty() or s.battery >= 100.0 or s.credits < RECHARGE_COST:
 					return _result(false, state, "充电需非满电池及 10 资金；每次最多 +40 电量，压力 +1。")
@@ -237,6 +286,8 @@ static func act(state: Dictionary, action: String, payload: Dictionary = {}) -> 
 				s.active = {"token": _token(s), "offer_id": offer.id, "sector": int(s.sector), "leg": int(s.leg),
 					"pressure": int(s.pressure), "path": s.path.duplicate(true), "hull": float(s.hull),
 					"battery": float(s.battery), "loadout": s.equipped.duplicate()}
+				if s.has("damage_control"):
+					s.active["damage_control"] = s.damage_control.duplicate(true)
 				s.status = "active"
 				event_offer = String(offer.id)
 				event_token = String(s.active.token)
@@ -253,6 +304,8 @@ static func act(state: Dictionary, action: String, payload: Dictionary = {}) -> 
 	s.history.append({"event": action, "offer_id": event_offer, "token": event_token, "outcome": outcome,
 		"credits_delta": int(s.credits) - before_credits, "parts_delta": int(s.parts) - before_parts,
 		"hull": float(s.hull), "battery": float(s.battery), "pressure": int(s.pressure)})
+	if s.has("damage_control"):
+		s.history.back()["damage_control"] = s.damage_control.duplicate(true)
 	while s.history.size() > HISTORY_LIMIT:
 		s.history.pop_front()
 	if not validate(s):
@@ -270,6 +323,11 @@ static func _snapshot_valid(s: Dictionary, data: Variant, terminal: bool = true)
 	var contract: Dictionary = Catalog.build_contract(s.active.offer_id, int(s.active.pressure), s.active.path)
 	if contract.is_empty() or snap.expedition_token != s.active.token or snap.offer_id != s.active.offer_id or snap.contract_id != contract.base_contract:
 		return false
+	if snap.has("damage_control") != s.active.has("damage_control"):
+		return false
+	if s.active.has("damage_control") and not Damage.valid_live(snap.damage_control, s.active.damage_control):
+		return false
+	var flooded: bool = snap.has("damage_control") and float(snap.damage_control.water) >= 100.0
 	if not snap.phase is String or not snap.phase in (["success", "failed"] if terminal else ["approach", "return"]):
 		return false
 	if not _number(snap.hull, 0, float(s.active.hull)) or not _number(snap.battery, 0, float(s.active.battery)):
@@ -281,14 +339,14 @@ static func _snapshot_valid(s: Dictionary, data: Variant, terminal: bool = true)
 	if not snap.fail_reason is String or snap.fail_reason.length() > 256:
 		return false
 	if not terminal:
-		return snap.hull > 0 and snap.battery > 0 and snap.cargo_integrity > 0 and snap.time < float(contract.deadline) and snap.overload < 1 and snap.dock < 1 and snap.fail_reason.is_empty() and (snap.phase != "return" or (snap.scanned and snap.tow_attached))
+		return not flooded and snap.hull > 0 and snap.battery > 0 and snap.cargo_integrity > 0 and snap.time < float(contract.deadline) and snap.overload < 1 and snap.dock < 1 and snap.fail_reason.is_empty() and (snap.phase != "return" or (snap.scanned and snap.tow_attached))
 	if snap.phase == "success":
 		if contract.has("tide_stations"):
 			var survey: Variant = snap.get("tide_survey")
 			if not survey is Dictionary or not _integer(survey.get("completed"), contract.tide_stations.size(), contract.tide_stations.size()):
 				return false
-		return snap.scanned and snap.tow_attached and is_equal_approx(float(snap.dock), 1.0) and snap.hull > 0 and snap.battery > 0 and snap.cargo_integrity > 0 and snap.time < float(contract.deadline) and snap.fail_reason.is_empty()
-	return not snap.fail_reason.is_empty() and (snap.hull <= 0 or snap.battery <= 0 or snap.cargo_integrity <= 0 or snap.time >= float(contract.deadline) or snap.overload >= 1)
+		return not flooded and snap.scanned and snap.tow_attached and is_equal_approx(float(snap.dock), 1.0) and snap.hull > 0 and snap.battery > 0 and snap.cargo_integrity > 0 and snap.time < float(contract.deadline) and snap.fail_reason.is_empty()
+	return not snap.fail_reason.is_empty() and (flooded or snap.hull <= 0 or snap.battery <= 0 or snap.cargo_integrity <= 0 or snap.time >= float(contract.deadline) or snap.overload >= 1)
 
 
 static func _path_valid(path: Variant) -> bool:
@@ -343,6 +401,13 @@ static func _keys(value: Dictionary, expected: Array) -> bool:
 		if not value.has(key):
 			return false
 	return true
+
+
+static func _extension_keys(value: Dictionary, base: Array) -> bool:
+	var expected := base.duplicate()
+	if value.has("damage_control"):
+		expected.append("damage_control")
+	return _keys(value, expected)
 
 
 static func _integer(value: Variant, low: int, high: int) -> bool:

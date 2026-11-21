@@ -13,6 +13,7 @@ signal expedition_requested
 const Radar = preload("res://src/radar.gd")
 const Sim = preload("res://src/storm_sim.gd")
 const Catalog = preload("res://src/expedition_catalog.gd")
+const Damage = preload("res://src/damage_control.gd")
 const ATTACH_RELATIVE_SPEED := Sim.ATTACH_RELATIVE_SPEED
 # Matches the raw-tension gate and snapshot cap in storm_sim.step().
 const TOW_RATED_LOAD := 1.0
@@ -66,6 +67,7 @@ var _rig: Label
 var _rope: Label
 var _tow_action: Label
 var _keys_tow: Label
+var _damage_status: Label
 
 var _contract_cards: Dictionary = {}
 var _brief_name: Label
@@ -216,6 +218,8 @@ func _build_live() -> void:
 	_objective = _label(mission_box, "", 20, TEXT, true)
 	_notice = _label(mission_box, "", 18, DIM, true)
 	_warning = _label(mission_box, "", 18, AMBER, true)
+	_damage_status = _label(mission_box, "", 17, TEAL, true)
+	_damage_status.hide()
 
 	_dock = _panel(port, true)
 	_dock.hide()
@@ -322,6 +326,14 @@ func _present_live(view: Dictionary, contract: Dictionary) -> void:
 	_notice.visible = not _notice.text.is_empty() and _notice.text != _objective.text
 	_warning.text = _advisory(battery, minf(hull, cargo) if scanned else hull, deadline - elapsed if deadline > 0.0 else INF)
 	_warning.visible = not _warning.text.is_empty()
+	_damage_status.visible = view.has("damage_control")
+	if _damage_status.visible:
+		var d: Dictionary = view.damage_control
+		_damage_status.text = "进水 %.1f%% · 入流 %.2f/s · G 泵%s\n破口 %.2f / 临封 %.2f · 包 %d · H 封堵 %s" % [
+			float(d.water), float(d.inflow), "运行 -%.2f电/s" % float(d.pump_draw) if d.pump_active else ("待机" if d.pump_on else "关闭"),
+			float(d.breach), float(d.sealed), int(d.kits), _progress_percent(float(d.patch_progress))]
+		_damage_status.text += "\n连续 %.0fs：速度 <%.1f、松油门、缆张 <68%%" % [Damage.PATCH_SECONDS, Damage.PATCH_SPEED]
+		_damage_status.add_theme_color_override("font_color", AMBER if float(d.water) >= 40.0 or float(d.breach) > float(d.sealed) else TEAL)
 
 	_set_gauge("hull", hull, AMBER if hull <= 30.0 else GREEN)
 	_set_gauge("cargo", cargo if scanned else 0.0, AMBER if cargo <= 30.0 else GREEN, "" if scanned else "未锁定")

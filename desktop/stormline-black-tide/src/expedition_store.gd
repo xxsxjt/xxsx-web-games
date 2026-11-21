@@ -43,7 +43,7 @@ func save_state(state: Dictionary, expected_revision: int) -> Dictionary:
 	else:
 		if expected_revision != -1 or state.revision != 0:
 			return _result(false, {}, "无档只能以 expected_revision=-1 保存 revision=0 初始远征。", false, true)
-		var initial := State.new_campaign()
+		var initial := State.new_campaign(state.has("damage_control"))
 		initial.campaign_id = state.campaign_id
 		if state != initial:
 			return _result(false, {}, "无档只允许创建未出航的新远征。")
@@ -173,6 +173,10 @@ func _read(path: String) -> Dictionary:
 			entry[key] = int(entry[key])
 		for key in ["hull", "battery"]:
 			entry[key] = float(entry[key])
+	for data: Dictionary in [canonical, canonical.active] + canonical.history:
+		if data.has("damage_control"):
+			data.damage_control.breach = float(data.damage_control.breach)
+			data.damage_control.kits = int(data.damage_control.kits)
 	result.state = canonical
 	result.message = "有效远征档案。"
 	return result
