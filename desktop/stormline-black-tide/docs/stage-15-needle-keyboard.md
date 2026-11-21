@@ -45,7 +45,7 @@
 
 ## 同步状态
 
-开发源、镜像和候选验证完成，准备以七个明确白名单文件推送至既有 `xxsxjt/xxsx-web-games` 的桌面子目录；远端分支/完整树/逐 blob 回读尚未完成。最终本机证据使用 `build/sync/stage-15.json`，不上传候选、缓存或档案。测试成绩只写 `.testdata/needle-keyboard-*` 隔离目录并清理，不访问玩家档案。
+已同步至既有 `xxsxjt/xxsx-web-games` 的 `main`，实现提交 `61a91616c07f9876dac75c1c8da742bdfb7bb01a`；本阶段仅更新七个明确白名单文件。GitHub 整仓 409 个 blob 的路径/模式/SHA 与提交树一致，57 个桌面项目文件经 blob API 读回正文，与开发源及镜像逐字节相同。最终收尾提交和再次回读以本机忽略文件 `build/sync/stage-15.json` 为准，不上传候选、缓存或档案。测试成绩只写 `.testdata/needle-keyboard-*` 隔离目录并清理，不访问玩家档案。
 
 ## 验证边界
 
