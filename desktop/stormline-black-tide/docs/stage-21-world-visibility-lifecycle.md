@@ -20,4 +20,4 @@
 
 总站 `npm run build` 与 `npm test` 通过，`dist/`、网站源码和根 `LICENSE` 未变；未部署网页。未导出 EXE/PCK，未启动图形游戏、未用桌面自动化、未触碰玩家存档、未真人试玩。3D 渲染、字体、镜头实际观感及设备性能仍未测。
 
-远端提交与 GitHub 完整树、项目逐 blob 正文读回证据在同步完成后写入 `build/sync/stage-21.json` 和对应 tree/blob 明细。
+实现提交 `cbfc5a889b9c076782a6919d8f9c990cc22bcac4` 已在 GitHub `main` 读回确认；实现树 SHA `2c12d02279f903c4534e2f3885ba426ffeb76c23`，整仓 420 个 blob、项目 **68 个文件**，逐项 API blob 正文与 Git 提交对象一致；开发源/镜像工作文件逐字节一致，经 Git 清洗后也匹配远端。明细 `build/sync/stage-21-github-tree-cbfc5a8.json`、`build/sync/stage-21-project-blobs-cbfc5a8.json`。后续文档提交与最终树另在 `build/sync/stage-21.json` 记录，不混用实现树与最终树。README 重复入口和旧 QA 数目已在记录收尾时更正。
