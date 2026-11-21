@@ -28,6 +28,8 @@
 - 阶段 18（拖缆负载与风险反馈）：`docs/stage-18-tow-risk-feedback.md`
 - 阶段 19（3D 拖缆标签状态同步）：`docs/stage-19-towline-visual-feedback.md`
 - 阶段 20（阈值附近的反馈读数）：`docs/stage-20-threshold-readings.md`
+- 阶段 21（场景标记可见状态生命周期）：`docs/stage-21-world-visibility-lifecycle.md`
+- 阶段 21（场景标记可见状态生命周期）：`docs/stage-21-world-visibility-lifecycle.md`
 - 持续开发和验证计划：`docs/task-plan.md`
 - 本机无窗口证据：`build/qa/<时间戳>/summary.json` 及相邻日志。
 - Windows 候选包：`build/releases/<时间戳>/`；EXE、独立 PCK、说明和校验随包放置。

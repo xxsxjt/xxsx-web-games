@@ -15,6 +15,7 @@ SCRIPT_SUITES = (
     "cargo_tow", "recovery", "recovery_app", "terminal_priority", "docking_lifecycle",
     "needle_recovery", "needle_lifecycle", "needle_keyboard", "needle_held_lifecycle",
     "interaction_feedback", "tow_risk_feedback", "towline_visual_feedback",
+    "world_visibility_lifecycle",
 )
 REQUIRED_CHECKS = ("import", *SCRIPT_SUITES, "smoke_tool")
 
