@@ -68,7 +68,51 @@
         '##########',
       ],
     },
+    {
+      title: '错开的双门', topic: '错峰',
+      goal: '借 1 号门送回声到上层 2 号板，再从下层穿过 2 号门；最后两块板都要保持受压。',
+      tip: '上下两条支路只在起点相通。先检查回声何时到上层压板，再安排下层门前的等待。',
+      rows: [
+        '##########',
+        '#1.#######',
+        '##.##2####',
+        '##S.A.####',
+        '##.#######',
+        '##...BX###',
+        '##########',
+      ],
+    },
+    {
+      title: '末班回声', topic: '名额管理',
+      goal: '1 号板打开入口与左侧弯道的门。两段回声错峰通过入口，分守左右两块 2 号板。',
+      tip: '左支路更长，入口只能单列通行。三槽满后不能封存；移除会失去该段的压板贡献，可重录调整顺序。',
+      rows: [
+        '#########',
+        '###X#####',
+        '#2AB#####',
+        '##..2####',
+        '###.#####',
+        '###A#####',
+        '###S.1###',
+        '#########',
+      ],
+    },
   ].map(compileRoom));
+
+  const PRACTICE_INDEX = -1;
+  const PRACTICE = Object.freeze({ ...compileRoom({
+    title: '自由练习场', topic: '练习',
+    goal: '两块 1 号板要同时有人。门可以从上下两侧进；尝试不同录制与等待路线，不计入主线。',
+    tip: '自由录制、重试、移除或清空。返回主线或刷新会丢弃本局，主线已通关记录不变。',
+    rows: [
+      '#########',
+      '#1.....1#',
+      '#.....###',
+      '#..S#AX##',
+      '#.....###',
+      '#########',
+    ],
+  }, ROOMS.length), hash: '#practice' });
 
   function compileRoom({ rows, ...info }, index) {
     const width = rows[0].length;
@@ -202,6 +246,7 @@
   }
 
   function roomFromHash(hash, cleared) {
+    if (hash === PRACTICE.hash) return PRACTICE_INDEX;
     const index = ROOMS.findIndex(room => room.hash === hash);
     return index >= 0 && index <= cleared ? index : Math.min(cleared, ROOMS.length - 1);
   }
@@ -260,6 +305,8 @@
     const roomTitle = byId('room-title');
     const trace = byId('timeline');
     const picks = ROOMS.map(room => byId(`pick-${room.number}`));
+    const practicePick = byId('practice-room');
+    const practiceReturn = byId('return-mainline');
     const erase = ECHO_IDS.map(id => byId(`erase-${id}`));
     const moveButtons = { U: byId('move-up'), L: byId('move-left'), R: byId('move-right'),
       D: byId('move-down'), '.': byId('move-wait') };
@@ -275,7 +322,8 @@
       return node;
     };
 
-    let roomIndex = -1;
+    let roomIndex;
+    let returnIndex = roomFromHash('', progress.cleared);
     let run;
     let restored = false;
     let tiles;
@@ -390,6 +438,7 @@
     function render(message) {
       const cleared = progress.cleared;
       const finished = done();
+      const practice = roomIndex === PRACTICE_INDEX;
       const acting = run.phase === 'playing' && !restored;
       byId('clock').hidden = restored;
       byId('clear-stamp').hidden = !restored;
@@ -398,12 +447,18 @@
       byId('memory').textContent = `回声 ${run.echoes.length} / ${ECHO_IDS.length}`;
       byId('play-controls').hidden = finished;
       byId('result-actions').hidden = !finished;
-      next.hidden = !finished || roomIndex === ROOMS.length - 1;
-      finish.hidden = !finished || roomIndex !== ROOMS.length - 1;
+      next.hidden = !finished || practice || roomIndex === ROOMS.length - 1;
+      finish.hidden = !finished || practice || roomIndex !== ROOMS.length - 1;
       for (const button of Object.values(moveButtons)) button.disabled = !acting;
       seal.disabled = finished || !canSeal(run);
       retry.disabled = finished || run.beat === 0;
       byId('echo-tools').hidden = finished || run.echoes.length === 0;
+      byId('practice-actions').hidden = !practice;
+      if (practice) practicePick.setAttribute('aria-current', 'page');
+      else practicePick.removeAttribute('aria-current');
+      byId('seal-note').textContent = finished ? '' : run.echoes.length === ECHO_IDS.length ?
+        '三槽已满，无法再封存。移除会停止该段回声，压板贡献也会消失；重录的新段排在剩余回声之后。' :
+        '封存会补齐等待并重启本轮；刷新、换房或进入练习场会丢弃本局路线。';
       erase.forEach((button, index) => {
         button.hidden = finished || !run.echoes.some(echo => echo.id === ECHO_IDS[index]);
       });
@@ -415,8 +470,9 @@
         else button.removeAttribute('aria-current');
         button.setAttribute('aria-label', `第 ${index + 1} 间${complete ? '，已通关' : button.disabled ? '，未解锁' : ''}`);
       });
-      byId('save-note').textContent = progress.local ? '仅在此浏览器记录通关；不保存每轮路线。' :
-        '无法使用本机存档。未保存的通关进度只保留到本页关闭或刷新。';
+      byId('save-note').textContent = progress.local ?
+        '仅在此浏览器记录主线通关；不保存每轮路线，刷新会丢局。练习场不写入主线进度。' :
+        '无法使用本机存档。主线通关进度只保留到本页关闭或刷新；每轮路线刷新会丢失，练习场不计主线。';
 
       drawBoard();
       drawTimeline();
@@ -425,8 +481,7 @@
       feedback.textContent = message;
     }
 
-    function setHash(index, replace) {
-      const { hash } = ROOMS[index];
+    function setHash(hash, replace) {
       if (win.location.hash === hash) return;
       if (replace) {
         try {
@@ -438,29 +493,32 @@
     }
 
     function openRoom(index, focus = false) {
+      const practice = index === PRACTICE_INDEX;
+      const room = practice ? PRACTICE : ROOMS[index];
       roomIndex = index;
-      const room = ROOMS[index];
+      if (!practice) returnIndex = index;
       run = newRun(room);
-      restored = index < progress.cleared;
+      restored = !practice && index < progress.cleared;
       reviewBeat.value = '';
-      byId('room-code').textContent = `房间 ${twoDigits(room.number)} / ${twoDigits(ROOMS.length)} · ${room.topic}`;
+      byId('room-code').textContent = practice ? '练习场 · 不计入主线' :
+        `房间 ${twoDigits(room.number)} / ${twoDigits(ROOMS.length)} · ${room.topic}`;
       roomTitle.textContent = room.title;
       byId('room-goal').textContent = room.goal;
       initializeBoard(room);
-      render(restored ? (index === ROOMS.length - 1 ? '四间房已通关。可重玩本房，或返回游戏厅。' :
+      render(restored ? (index === ROOMS.length - 1 ? '六间主线房已通关。可重玩本房、进入练习场或返回游戏厅。' :
         '本房已通关。可继续下一间，或重玩本房。') : room.tip);
       if (focus) roomTitle.focus();
     }
 
     function syncHash() {
       const index = roomFromHash(win.location.hash, progress.cleared);
-      setHash(index, true);
+      setHash(index === PRACTICE_INDEX ? PRACTICE.hash : ROOMS[index].hash, true);
       if (index !== roomIndex) openRoom(index);
     }
 
     function selectRoom(index) {
       if (index > progress.cleared || !ROOMS[index] || index === roomIndex) return;
-      setHash(index, false);
+      setHash(ROOMS[index].hash, false);
       openRoom(index, true);
     }
 
@@ -472,10 +530,12 @@
       run = updated;
       reviewBeat.value = '';
       if (run.phase === 'won') {
-        progress.complete(roomIndex);
-        const winMessage = roomIndex === ROOMS.length - 1 ? '四间房已通关。实验完成。' : '同步成功，本房已通关。';
-        render(`${winMessage}${progress.local ? '' : '本次通关仅保留在当前页面。'}`);
-        (next.hidden ? finish : next).focus({ preventScroll: true });
+        const practice = roomIndex === PRACTICE_INDEX;
+        if (!practice) progress.complete(roomIndex);
+        const winMessage = practice ? '练习成功。本次不计入主线；可清空练习、重玩或返回主线。' :
+          (roomIndex === ROOMS.length - 1 ? '六间房已通关。实验完成。' : '同步成功，本房已通关。');
+        render(`${winMessage}${practice || progress.local ? '' : '本次通关仅保留在当前页面。'}`);
+        (practice ? practiceReturn : next.hidden ? finish : next).focus({ preventScroll: true });
       } else {
         render(beatMessage(run));
         if (run.phase === 'spent' && wasOnMove) (seal.disabled ? retry : seal).focus({ preventScroll: true });
@@ -486,14 +546,15 @@
       if (done()) return;
       const recorded = sealRun(run);
       if (recorded === run) {
-        if (run.echoes.length === ECHO_IDS.length) feedback.textContent = '回声槽已满。移除一段回声会腾出槽位，并重启本轮。';
+        if (run.echoes.length === ECHO_IDS.length) feedback.textContent =
+          '回声槽已满，无法封存。移除会腾出槽位并重启本轮，也会失去该段的动作和压板贡献。';
         else if (!run.beat) feedback.textContent = '先走一步或等待一拍，再封存回声。';
         return;
       }
       const id = recorded.echoes.at(-1).id;
       run = recorded;
       reviewBeat.value = '';
-      render(`回声 ${id} 已封存，全员回到起点。${run.echoes.length === ECHO_IDS.length ? '回声槽已满。' : ''}`);
+      render(`回声 ${id} 已封存，全员回到起点。${run.echoes.length === ECHO_IDS.length ? '三槽已满，无法再封存；移除会失去该段的压板贡献。' : ''}`);
       board.focus({ preventScroll: true });
     }
 
@@ -522,10 +583,27 @@
       if (updated === run) return;
       run = updated;
       reviewBeat.value = '';
-      render(`已移除回声 ${id}，本轮重启。`);
-      board.focus();
+      render(`已移除回声 ${id}，本轮重启。该段不再行动，压板贡献也会消失；剩余回声按原封存顺序播放。`);
+      board.focus({ preventScroll: true });
     }));
-    next.addEventListener('click', () => { if (done()) selectRoom(roomIndex + 1); });
+    byId('practice-reset').addEventListener('click', () => {
+      if (roomIndex !== PRACTICE_INDEX) return;
+      run = newRun(PRACTICE);
+      reviewBeat.value = '';
+      render('所有回声和本轮路线已清空。主线通关进度不变。');
+      board.focus({ preventScroll: true });
+    });
+    next.addEventListener('click', () => {
+      if (done() && roomIndex !== PRACTICE_INDEX) selectRoom(roomIndex + 1);
+    });
+    practicePick.addEventListener('click', () => {
+      if (roomIndex === PRACTICE_INDEX) return;
+      setHash(PRACTICE.hash, false);
+      openRoom(PRACTICE_INDEX, true);
+    });
+    practiceReturn.addEventListener('click', () => {
+      if (roomIndex === PRACTICE_INDEX) selectRoom(returnIndex);
+    });
     replay.addEventListener('click', () => {
       if (!done()) return;
       restored = false;
@@ -555,8 +633,8 @@
   }
 
   if (typeof module === 'object' && module.exports) {
-    module.exports = Object.freeze({ BEATS, SAVE_KEY, ECHO_IDS, ROOMS, newRun, advance, canSeal, sealRun,
-      retryRun, removeEcho, activeCircuits, timeline, openProgress, roomFromHash });
+    module.exports = Object.freeze({ BEATS, SAVE_KEY, ECHO_IDS, ROOMS, PRACTICE, newRun, advance, canSeal,
+      sealRun, retryRun, removeEcho, activeCircuits, timeline, openProgress, roomFromHash });
   }
   if (typeof document !== 'undefined') mount(document, window);
 })();

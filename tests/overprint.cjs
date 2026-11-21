@@ -204,7 +204,8 @@ function pointerPrint(page, type, row, column) {
 const view = mount('#unknown');
 assert.equal(view.hash(), '#level/01');
 assert.equal(view.replacements(), 1);
-view.window.location.hash = '#level/02';
+// A02 is now a real route; keep the original invalid-route fallback assertions using an unknown order.
+view.window.location.hash = '#level/99';
 view.fire('hashchange');
 assert.equal(view.hash(), '#level/01');
 assert.equal(view.replacements(), 2);

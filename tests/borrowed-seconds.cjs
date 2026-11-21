@@ -17,6 +17,8 @@ const SOLUTIONS = [
   ['UULL', '....RRRRUU'],
   ['LLUUL', '.LLL', 'R....RDRD'],
   ['UUU', 'R..RRRUU', '...RRRRD', '....RRRRRR'],
+  ['UUL', 'R..RRU', 'DDRR..RR'],
+  ['RR', '..UUULUL', '...UUUR', '....UUU.UU'],
 ];
 
 function move(run, commands) {
@@ -39,6 +41,12 @@ function setup(index, ...recordings) {
 }
 
 const eventAt = (frames, beat, actor) => frames[beat - 1].events.find(event => event.actor === actor);
+
+// Share the exact same action driver and DOM contract with the expansion test.
+if (require.main !== module) {
+  module.exports = { G, SOLUTIONS, move, eventAt, mount };
+  return;
+}
 
 assert.equal(G.ROOMS.length, SOLUTIONS.length);
 for (const [index, solution] of SOLUTIONS.entries()) {
@@ -149,7 +157,9 @@ storage.setItem(G.SAVE_KEY, JSON.stringify({ v: 1, cleared: 4 }));
 record.complete(1);
 assert.equal(record.cleared, 4, 'Completing in an older tab cannot replace a higher count');
 
-for (const invalid of ['{', 'null', '{"v":2,"cleared":4}', '{"v":1,"cleared":5}', '{"v":1,"cleared":-1}',
+// The old invalid boundary (5) is now a real room count; retain the same strict
+// out-of-range assertion at the new first invalid boundary (7).
+for (const invalid of ['{', 'null', '{"v":2,"cleared":4}', '{"v":1,"cleared":7}', '{"v":1,"cleared":-1}',
   '{"v":1,"cleared":0.5}', '{"v":1,"cleared":"4"}']) {
   assert.equal(G.openProgress(() => memoryStorage([[G.SAVE_KEY, invalid]])).cleared, 0);
 }
@@ -163,7 +173,7 @@ assert.equal(G.openProgress(denied).local, false, 'Even a denied localStorage ge
 assert.equal(G.openProgress(() => undefined).local, false);
 assert.equal(G.roomFromHash('#room-4', 0), 0, 'Hash links do not let the player skip locked rooms');
 assert.equal(G.roomFromHash('#room-1', 3), 0, 'Hash links can reopen earlier rooms');
-assert.equal(G.roomFromHash('', 4), 3, 'All rooms cleared defaults to the final results');
+assert.equal(G.roomFromHash('', 4), 4, 'Finishing the old four rooms defaults to the newly unlocked fifth room');
 
 // Minimal DOM contract smoke test, not a substitute for a real browser layout pass.
 function mount({ hash = '', getStorage = () => undefined } = {}) {
@@ -259,7 +269,7 @@ assert.equal(node('memory').textContent, '回声 1 / 3');
 const touch = { U: 'move-up', D: 'move-down', L: 'move-left', R: 'move-right', '.': 'move-wait' };
 for (const command of SOLUTIONS[0][1]) blockedStorage.click(touch[command]);
 assert.match(node('feedback').textContent, /仅保留在当前页面/);
-assert.equal(node('progress-count').textContent, '通关 1 / 4');
+assert.equal(node('progress-count').textContent, '通关 1 / 6');
 assert.equal(blockedStorage.active(), node('next-room'));
 blockedStorage.click('next-room');
 assert.equal(blockedStorage.location.hash, '#room-2');
@@ -290,7 +300,7 @@ for (const [index, solution] of SOLUTIONS.entries()) {
     if (turn < solution.length - 1) campaign.click('seal');
   }
   const refresh = mount({ hash: `#room-${index + 1}`, getStorage: () => campaignStorage });
-  assert.equal(refresh.nodes.get('progress-count').textContent, `通关 ${index + 1} / 4`);
+  assert.equal(refresh.nodes.get('progress-count').textContent, `通关 ${index + 1} / 6`);
   assert.equal(refresh.nodes.get('clear-stamp').hidden, false);
   assert.equal(refresh.nodes.get('play-controls').hidden, true);
   assert.equal(refresh.nodes.get('result-actions').hidden, false);
@@ -301,6 +311,6 @@ campaign.navigate('#room-1');
 assert.equal(campaign.nodes.get('room-title').textContent, G.ROOMS[0].title);
 campaign.click('replay');
 assert.equal(campaign.nodes.get('play-controls').hidden, false);
-assert.equal(campaign.nodes.get('progress-count').textContent, '通关 4 / 4', 'Replay cannot erase completion');
+assert.equal(campaign.nodes.get('progress-count').textContent, '通关 6 / 6', 'Replay cannot erase completion');
 
-console.log('PASS borrowed seconds: four playable rooms, real/forecast timing, collisions, memory limits, keyboard/touch wiring, save and no-save reloads');
+console.log('PASS borrowed seconds: six playable rooms, original four routes and failures retained, real/forecast timing, collisions, memory limits, keyboard/touch wiring, save and no-save reloads');

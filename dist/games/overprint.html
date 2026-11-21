@@ -4,34 +4,48 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#070b18">
-  <meta name="description" content="叠印工单 A01：先看落印预览，再用有限印版把样张完整复原。">
+  <meta name="description" content="叠印工单 A01–A06：六张递进工单，先看落印预览，再用有限印版把样张完整复原。无需登录，无存档。">
   <title>叠印工单 · XXSX 游戏站</title>
   <link rel="icon" href="../assets/icons/overprint.93223009964b.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="../static/overprint.b6e6ef4bf0fa.css">
-  <script defer src="../static/overprint.b0ba45218c83.js"></script>
+  <link rel="stylesheet" href="../static/overprint.becec3a3e8f2.css">
+  <script defer src="../static/overprint.8c4621033e7f.js"></script>
 </head>
 <body>
   <header class="mast">
     <div class="wrap mast-inner">
       <a class="back" href="../">← 所有游戏</a>
-      <span class="signal">WORK ORDER A01 <i></i> OVERPRINT</span>
+      <span class="signal">WORK ORDERS A01–A06 <i></i> OVERPRINT</span>
     </div>
   </header>
   <main class="wrap" id="overprint-game">
     <div class="intro">
       <div>
-        <p class="eyebrow">V59 PLAYABLE PROTOTYPE</p>
+        <p class="eyebrow">SIX PRINT ORDERS / NO SAVE</p>
         <h1>叠印工单</h1>
         <p>用有限的印版复原样张。先预览落点，再确认压印。</p>
       </div>
-      <div class="level-readout"><span>A01 / 搭版</span><strong id="phase-label">进行中</strong></div>
+      <div class="level-readout"><span id="level-label">A01 / 搭版</span><strong id="phase-label">进行中</strong></div>
     </div>
+
+    <section class="panel orders-panel" aria-labelledby="orders-title">
+      <h2 id="orders-title">选择工单</h2>
+      <p class="caption">六单直接可选；换单会清空当前印面、选择和撤销记录。不保存进度。</p>
+      <div class="level-list" role="group" aria-label="工单选择">
+        <button type="button" id="level-A01" aria-pressed="true" disabled><b>A01</b><span>搭版</span></button>
+        <button type="button" id="level-A02" aria-pressed="false" disabled><b>A02</b><span>白边练习</span></button>
+        <button type="button" id="level-A03" aria-pressed="false" disabled><b>A03</b><span>回墨次序</span></button>
+        <button type="button" id="level-A04" aria-pressed="false" disabled><b>A04</b><span>版数分账</span></button>
+        <button type="button" id="level-A05" aria-pressed="false" disabled><b>A05</b><span>贴边定位</span></button>
+        <button type="button" id="level-A06" aria-pressed="false" disabled><b>A06</b><span>错层合版</span></button>
+      </div>
+      <p id="level-focus" class="level-focus">入门搭版：把中央横纹保留下来，再补齐实点。</p>
+    </section>
 
     <div class="workbench">
       <section class="panel sheet-panel" aria-labelledby="sheet-title">
         <div class="sheet-layout">
           <header class="section-head">
-            <p class="eyebrow">PRINT BED / 01</p>
+            <p class="eyebrow" id="print-bed-label">PRINT BED / 01</p>
             <h2 id="sheet-title">工作印面</h2>
             <p class="stats"><span>差异 <strong id="difference-count">8</strong> 格</span><span>已印 <strong id="history-count">0</strong> 笔</span></p>
             <p class="caption">中央是印迹，右下角是样张。</p>
@@ -68,13 +82,18 @@
           <ul>
             <li>实点版盖本格和下格；横纹版盖本格、右格和下格，右下角不印。</li>
             <li>预览出现在格子左上角；符号说明怎么印，字母说明将印成什么。</li>
-            <li>确认后消耗一张版，后印覆盖先印。留白误印会立即失败，可以撤销。</li>
+            <li>确认后消耗一张版，后印覆盖先印。留白误印会立即失败；库存用尽仍不符也会失败。胜败都可撤销或重开。</li>
             <li>方向键在工作印面移动，Enter / 空格只预览。用 Tab 找到「压印」，再确认。</li>
+            <li>选版、压印、撤销、重开、换单都可用 Tab 定位，再按 Enter / 空格激活。</li>
           </ul>
+        </details>
+        <details id="level-hints">
+          <summary>本单提示（不代印）</summary>
+          <p id="level-hint" class="hint-text">先比较两种印版的形状。横纹旁的实点可能要后补；暂时不同不等于失败，误印留白才会立即失败。</p>
         </details>
       </section>
     </div>
-    <p class="save-note">A01 无存档；刷新或离开后再进入都会从空印面开始。</p>
+    <p class="save-note">六张工单均无存档；网址只标记当前工单，不保存局内进度。刷新会回到该工单的空白印面；离开后再返回也会重新开始。旧网址 <code>#level/01</code> 仍直达 A01。</p>
     <noscript><p class="save-note">本工单需要启用 JavaScript 才能游玩。</p></noscript>
   </main>
 </body>

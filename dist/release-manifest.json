@@ -1,5 +1,5 @@
 {
-  "version": "V60",
+  "version": "V61",
   "files": {
     "assets/boss-atlas-v2.webp": {
       "path": "assets/boss-atlas-v2.c9c4c113fed8.webp",
@@ -121,11 +121,11 @@
       "gzipBytes": 209415
     },
     "content/games.json": {
-      "path": "content/games.5c6a19a2a503.json",
-      "sourceSha256": "ff97e6e1e286c8c386f19f9a60d088b90d5d35c03f258c33d47c27c1f284f8ec",
-      "sha256": "5c6a19a2a503d4800cddbdd1fe73687310d215a4f9cbdf037d445c32145e6910",
-      "bytes": 4263,
-      "gzipBytes": 1745
+      "path": "content/games.a9fd6cc32b76.json",
+      "sourceSha256": "e36b11b2dc84beeece087b3f0061694c37d5902e51c667c8572e35ec1c1734f6",
+      "sha256": "a9fd6cc32b7663c083ebd8b6c7ee34b1f14ef9056330aface70f89c4fe9c816f",
+      "bytes": 4276,
+      "gzipBytes": 1737
     },
     "src/arcade.js": {
       "path": "static/arcade.88e6b44653a8.js",
@@ -149,18 +149,18 @@
       "gzipBytes": 17798
     },
     "src/borrowed-seconds.css": {
-      "path": "static/borrowed-seconds.c5fe44fe85d3.css",
-      "sourceSha256": "c5fe44fe85d3769376eb4dac07c88bc8ef66e0a2350ef2b054c693c992d2956f",
-      "sha256": "c5fe44fe85d3769376eb4dac07c88bc8ef66e0a2350ef2b054c693c992d2956f",
-      "bytes": 11957,
-      "gzipBytes": 3550
+      "path": "static/borrowed-seconds.9a3ac9edda00.css",
+      "sourceSha256": "9a3ac9edda009a8c67c295cd854e98083fd40559ffa1620427d62eb23128fd10",
+      "sha256": "9a3ac9edda009a8c67c295cd854e98083fd40559ffa1620427d62eb23128fd10",
+      "bytes": 12371,
+      "gzipBytes": 3662
     },
     "src/borrowed-seconds.js": {
-      "path": "static/borrowed-seconds.64c63a6858ba.js",
-      "sourceSha256": "64c63a6858ba54fb2ea499dee02b1290fbbff344d3ef25a4f524daf9b436454e",
-      "sha256": "64c63a6858ba54fb2ea499dee02b1290fbbff344d3ef25a4f524daf9b436454e",
-      "bytes": 24634,
-      "gzipBytes": 8089
+      "path": "static/borrowed-seconds.db404ad3bcce.js",
+      "sourceSha256": "db404ad3bccebbce7e277033541ba0f0f3e0576b90e1e308dfd793a85ab88b3b",
+      "sha256": "db404ad3bccebbce7e277033541ba0f0f3e0576b90e1e308dfd793a85ab88b3b",
+      "bytes": 28465,
+      "gzipBytes": 9219
     },
     "src/campaign-core.js": {
       "path": "static/campaign-core.c29db2aab231.js",
@@ -247,30 +247,30 @@
       "gzipBytes": 2856
     },
     "src/hub.js": {
-      "path": "static/hub.bdbc90a5eeab.js",
+      "path": "static/hub.45d6647d86e4.js",
       "sourceSha256": "3588fe51d19687d8247458ca79ea5d253fdfada70c8faa41df865055dd3f6567",
-      "sha256": "bdbc90a5eeab3144034e49331578de3a3387b8d4d903d46af882dfb112a4c1f1",
+      "sha256": "45d6647d86e498198911fcf7c1edbca17d871b5a06ca3a1edb4bf27e3bd5c2b6",
       "bytes": 19599,
-      "gzipBytes": 6018
+      "gzipBytes": 6016
     },
     "src/overprint.css": {
-      "path": "static/overprint.b6e6ef4bf0fa.css",
-      "sourceSha256": "b6e6ef4bf0fad1f3a6269b6b6ba7498ec0b39d66619b72700343b5b5b50d0f30",
-      "sha256": "b6e6ef4bf0fad1f3a6269b6b6ba7498ec0b39d66619b72700343b5b5b50d0f30",
-      "bytes": 7323,
-      "gzipBytes": 2355
+      "path": "static/overprint.becec3a3e8f2.css",
+      "sourceSha256": "becec3a3e8f2c933356e291803c231eb60d102f0f0a7483d8707c2c603a17d1d",
+      "sha256": "becec3a3e8f2c933356e291803c231eb60d102f0f0a7483d8707c2c603a17d1d",
+      "bytes": 8127,
+      "gzipBytes": 2475
     },
     "src/overprint.js": {
-      "path": "static/overprint.b0ba45218c83.js",
-      "sourceSha256": "b0ba45218c83fea5f41e184be340bd41334df14c5cf0c769104d7c9d9dddc568",
-      "sha256": "b0ba45218c83fea5f41e184be340bd41334df14c5cf0c769104d7c9d9dddc568",
-      "bytes": 15037,
-      "gzipBytes": 4776
+      "path": "static/overprint.8c4621033e7f.js",
+      "sourceSha256": "8c4621033e7fef3043d07422317397a625c0fde09e601f54a4e2dd998c02dbb7",
+      "sha256": "8c4621033e7fef3043d07422317397a625c0fde09e601f54a4e2dd998c02dbb7",
+      "bytes": 20223,
+      "gzipBytes": 6522
     },
     "src/play-loader.js": {
-      "path": "static/play-loader.162bdd0b8801.js",
+      "path": "static/play-loader.62b751625cb7.js",
       "sourceSha256": "8c58260fcd3ac2b070dce4653b5453c1610c4f80b7056a76426ecd48ed9612da",
-      "sha256": "162bdd0b8801a8da3b77047d11552ec5508c13025d3c9a2954fb4608f82c2880",
+      "sha256": "62b751625cb757dfb45a488adaf89d536f0eb3a0906a0c4ce85ec945371c6bdf",
       "bytes": 2530,
       "gzipBytes": 1273
     },
@@ -319,16 +319,16 @@
     "index.html": {
       "path": "index.html",
       "sourceSha256": "12eb95f6b2899c2a2cdecdf9b72883a29045fa5c3ccd0f25a139fe88066d4bba",
-      "sha256": "d5b1cfe3bf3d36ec97885ef0b395b33bfabeb2c19696bf01e76bc8868991907d",
+      "sha256": "a54b46751032b271726c1bc871261fedf892ec6624da660ab1dd53c34fb3928e",
       "bytes": 4356,
-      "gzipBytes": 2064
+      "gzipBytes": 2066
     },
     "play.html": {
       "path": "play.html",
       "sourceSha256": "57a11f57449bbf9ceed871ece54ecff1cc76fb6fceaa44a707cff00e70f07f77",
-      "sha256": "aeefce4cd1816b716b776e33c6f92fd0e03c721acf3c5f8b9dc4ed0a62af8bb4",
+      "sha256": "336742140c329589d029ad91d8b29cac3c0253322ad9efbd14da8a631d012157",
       "bytes": 52695,
-      "gzipBytes": 16294
+      "gzipBytes": 16295
     },
     "games/shell-heist.html": {
       "path": "games/shell-heist.html",
@@ -339,17 +339,17 @@
     },
     "games/borrowed-seconds.html": {
       "path": "games/borrowed-seconds.html",
-      "sourceSha256": "5cc464e542783a93aea04c4ea4110563dd1987c335e3afe5c3747f39cf8e20e8",
-      "sha256": "ca0bea362c5e27c17882c0116163e08a4d64dbf96affd1258a8fb02cf890c198",
-      "bytes": 7227,
-      "gzipBytes": 2620
+      "sourceSha256": "44b68b58c8cdd0fbbf7cb89971129a8cd162fb6533ec72786832fe0b60be874d",
+      "sha256": "041f2855ad595d4a72663c1b354f269498229e24501216a8f6f2927e2ee40e2d",
+      "bytes": 8039,
+      "gzipBytes": 2890
     },
     "games/overprint.html": {
       "path": "games/overprint.html",
-      "sourceSha256": "bf38795fa818828f0d854277038733c6645a8169dbbc53675b53731153a54bb8",
-      "sha256": "b74847197e078f1875c02fc129c96e3d11d353a524756415bad92267d1143fa1",
-      "bytes": 4553,
-      "gzipBytes": 1952
+      "sourceSha256": "a35d061acfcf0b0def1c3c7aaa87dd201430b4607575e7c31ec9757e074cfe94",
+      "sha256": "0e255de52bb9ab74bca4090bccb17f68ae9536c052f9ad1a0a9fb979c2113e0d",
+      "bytes": 6427,
+      "gzipBytes": 2575
     },
     "games/ember-convoy.html": {
       "path": "games/ember-convoy.html",
@@ -461,6 +461,11 @@
       "sha256": "0756d5004458d0c2d7a3a6b9cc13b0019b2208e954c2ffd3a8caf0f2ae7c1747",
       "bytes": 3283
     },
+    "content/games.5c6a19a2a503.json": {
+      "path": "content/games.5c6a19a2a503.json",
+      "sha256": "5c6a19a2a503d4800cddbdd1fe73687310d215a4f9cbdf037d445c32145e6910",
+      "bytes": 4263
+    },
     "content/games.7b005c44460f.json": {
       "path": "content/games.7b005c44460f.json",
       "sha256": "7b005c44460f13a3e1e24d5f51440687ca686963c5dfed84ac97a6d16d23ac40",
@@ -515,6 +520,16 @@
       "path": "static/border.ad7348c5f907.js",
       "sha256": "ad7348c5f90799df3bf5134adadaea18a102d6706fa7931a83565f6da262f06b",
       "bytes": 41657
+    },
+    "static/borrowed-seconds.64c63a6858ba.js": {
+      "path": "static/borrowed-seconds.64c63a6858ba.js",
+      "sha256": "64c63a6858ba54fb2ea499dee02b1290fbbff344d3ef25a4f524daf9b436454e",
+      "bytes": 24634
+    },
+    "static/borrowed-seconds.c5fe44fe85d3.css": {
+      "path": "static/borrowed-seconds.c5fe44fe85d3.css",
+      "sha256": "c5fe44fe85d3769376eb4dac07c88bc8ef66e0a2350ef2b054c693c992d2956f",
+      "bytes": 11957
     },
     "static/campaign-core.ad2de08c576d.js": {
       "path": "static/campaign-core.ad2de08c576d.js",
@@ -621,6 +636,11 @@
       "sha256": "aec90d7aa51d778d4e229c4aec4c59d7a404ec38d4f69724bdd4c125e5c31296",
       "bytes": 4169
     },
+    "static/hub.bdbc90a5eeab.js": {
+      "path": "static/hub.bdbc90a5eeab.js",
+      "sha256": "bdbc90a5eeab3144034e49331578de3a3387b8d4d903d46af882dfb112a4c1f1",
+      "bytes": 19599
+    },
     "static/hub.c1ab18d37dc7.js": {
       "path": "static/hub.c1ab18d37dc7.js",
       "sha256": "c1ab18d37dc74cfbb4141845978abfa5a9bdc4790e6b331156a37f2bcb1d7210",
@@ -640,6 +660,21 @@
       "path": "static/hub.faec8a1267a1.css",
       "sha256": "faec8a1267a17cfc65268665c1b4cd4f26db2d76be34eacb4b58ba8e6e4db35a",
       "bytes": 5267
+    },
+    "static/overprint.b0ba45218c83.js": {
+      "path": "static/overprint.b0ba45218c83.js",
+      "sha256": "b0ba45218c83fea5f41e184be340bd41334df14c5cf0c769104d7c9d9dddc568",
+      "bytes": 15037
+    },
+    "static/overprint.b6e6ef4bf0fa.css": {
+      "path": "static/overprint.b6e6ef4bf0fa.css",
+      "sha256": "b6e6ef4bf0fad1f3a6269b6b6ba7498ec0b39d66619b72700343b5b5b50d0f30",
+      "bytes": 7323
+    },
+    "static/play-loader.162bdd0b8801.js": {
+      "path": "static/play-loader.162bdd0b8801.js",
+      "sha256": "162bdd0b8801a8da3b77047d11552ec5508c13025d3c9a2954fb4608f82c2880",
+      "bytes": 2530
     },
     "static/play-loader.3d6b52d0afe4.js": {
       "path": "static/play-loader.3d6b52d0afe4.js",
@@ -803,6 +838,11 @@
       "sha256": "cb2be0d374e3c30b10b9473e9155369f1503079b051bd78904018e34d19f984b",
       "bytes": 1576
     },
+    "assets/icons/ember-convoy.5556d7a6e86d.svg": {
+      "path": "assets/icons/ember-convoy.5556d7a6e86d.svg",
+      "sha256": "5556d7a6e86d0b333da523df78c42c7393f03fb1d37972323dc970baa9b8464b",
+      "bytes": 1310
+    },
     "assets/icons/expedition-v1.7b2e72347f0e.webp": {
       "path": "assets/icons/expedition-v1.7b2e72347f0e.webp",
       "sha256": "7b2e72347f0eb25bd0ec8a7db1c99526ba3091dbd16f722c6884b1f13cdac8d6",
@@ -853,6 +893,11 @@
       "sha256": "0756d5004458d0c2d7a3a6b9cc13b0019b2208e954c2ffd3a8caf0f2ae7c1747",
       "bytes": 3283
     },
+    "content/games.5c6a19a2a503.json": {
+      "path": "content/games.5c6a19a2a503.json",
+      "sha256": "5c6a19a2a503d4800cddbdd1fe73687310d215a4f9cbdf037d445c32145e6910",
+      "bytes": 4263
+    },
     "content/games.7b005c44460f.json": {
       "path": "content/games.7b005c44460f.json",
       "sha256": "7b005c44460f13a3e1e24d5f51440687ca686963c5dfed84ac97a6d16d23ac40",
@@ -893,6 +938,11 @@
       "sha256": "114bfe7e30fbcafbd4cc801eed4ba9017b7adf99134a9d808d33b124303d377c",
       "bytes": 5393
     },
+    "static/blackbox.fa9eab35babf.js": {
+      "path": "static/blackbox.fa9eab35babf.js",
+      "sha256": "fa9eab35babfd4160f8e98d89a9429720fb18ec15799e2b2fb5480fa7255d1da",
+      "bytes": 6802
+    },
     "static/border.16da8115a577.js": {
       "path": "static/border.16da8115a577.js",
       "sha256": "16da8115a577a83eda17e95a1e291e89caf21438ca190c7a9c5f8cc5015c4324",
@@ -907,6 +957,11 @@
       "path": "static/border.5f9a7d14501d.js",
       "sha256": "5f9a7d14501dfae110e7199dec26308de220aaad54c280dabbfb41988d10cbb3",
       "bytes": 47521
+    },
+    "static/border.93ff51e6bc8c.js": {
+      "path": "static/border.93ff51e6bc8c.js",
+      "sha256": "93ff51e6bc8c375c75d84e7b383fc53439b86804732f4493979d89f218d413ab",
+      "bytes": 56576
     },
     "static/border.ad7348c5f907.js": {
       "path": "static/border.ad7348c5f907.js",
@@ -953,6 +1008,11 @@
       "sha256": "1483d012d36fc30f31ae3b0e8a6c4dfe2b131a4deeac708bb2b7bc9068a862d1",
       "bytes": 17440
     },
+    "static/circuit-campaign.2f73099601fb.js": {
+      "path": "static/circuit-campaign.2f73099601fb.js",
+      "sha256": "2f73099601fb2e7bc632f4bc34716efd7ab6ba15caffec137e061a785a02e708",
+      "bytes": 20246
+    },
     "static/circuit-campaign.757bd53fd626.js": {
       "path": "static/circuit-campaign.757bd53fd626.js",
       "sha256": "757bd53fd6267f8035eb1fba99ace2c8d080fe0e510d511fb5a1dd16950fab1e",
@@ -973,6 +1033,11 @@
       "sha256": "03442cad859dad6a0dd3236f7a1aef6ab9ac1048cfa9c97f1b123bf7764fce2a",
       "bytes": 17976
     },
+    "static/echo-deck.7cdcab32cd1c.js": {
+      "path": "static/echo-deck.7cdcab32cd1c.js",
+      "sha256": "7cdcab32cd1ced000f4da4e7a25708e1793cf56a2c80962664f23d448c507951",
+      "bytes": 21554
+    },
     "static/echo-deck.a5d36d5bef00.js": {
       "path": "static/echo-deck.a5d36d5bef00.js",
       "sha256": "a5d36d5bef00112c074cb0dcfeb51478ed8d82876cc00d11098a6f02e22e721d",
@@ -983,10 +1048,25 @@
       "sha256": "dd30a0348f1f57d80a177ba5d491afccd7509c440edd696eea4f30ad2471e87e",
       "bytes": 20465
     },
+    "static/ember-convoy.23c5d541c134.js": {
+      "path": "static/ember-convoy.23c5d541c134.js",
+      "sha256": "23c5d541c13454b2b54446a98cdcb41dc9f00b165e8b512a62a09fd23a67e457",
+      "bytes": 50810
+    },
+    "static/ember-convoy.dd060d45f8e5.css": {
+      "path": "static/ember-convoy.dd060d45f8e5.css",
+      "sha256": "dd060d45f8e5b4cd029c7106df3f1171345660585cc51e668571c171e59658f8",
+      "bytes": 13854
+    },
     "static/freefield.0804837ed695.js": {
       "path": "static/freefield.0804837ed695.js",
       "sha256": "0804837ed6954f936bb534b60093dbe86185a591118307fae6f8a789fcd79aff",
       "bytes": 3378
+    },
+    "static/freefield.2747ee8b26cc.js": {
+      "path": "static/freefield.2747ee8b26cc.js",
+      "sha256": "2747ee8b26ccce22fac5ec5722e4e81fa8482e0e50fab5a7f979fb591a2836ce",
+      "bytes": 3803
     },
     "static/game.19bae975934c.js": {
       "path": "static/game.19bae975934c.js",
@@ -1012,6 +1092,11 @@
       "path": "static/game.8fdfd72fb0be.js",
       "sha256": "8fdfd72fb0be21b85f5414865d7c964ece0c74f22d57a586e36d8c86a703333a",
       "bytes": 286492
+    },
+    "static/game.9e071dab2f0c.js": {
+      "path": "static/game.9e071dab2f0c.js",
+      "sha256": "9e071dab2f0c1b2304154a99b7c8ce95b596b93ac431f507c91d23a6f541ecc2",
+      "bytes": 297517
     },
     "static/game.a9c1d979b064.js": {
       "path": "static/game.a9c1d979b064.js",
@@ -1058,6 +1143,11 @@
       "sha256": "aec90d7aa51d778d4e229c4aec4c59d7a404ec38d4f69724bdd4c125e5c31296",
       "bytes": 4169
     },
+    "static/hub.bdbc90a5eeab.js": {
+      "path": "static/hub.bdbc90a5eeab.js",
+      "sha256": "bdbc90a5eeab3144034e49331578de3a3387b8d4d903d46af882dfb112a4c1f1",
+      "bytes": 19599
+    },
     "static/hub.c1ab18d37dc7.js": {
       "path": "static/hub.c1ab18d37dc7.js",
       "sha256": "c1ab18d37dc74cfbb4141845978abfa5a9bdc4790e6b331156a37f2bcb1d7210",
@@ -1087,6 +1177,11 @@
       "path": "static/overprint.b6e6ef4bf0fa.css",
       "sha256": "b6e6ef4bf0fad1f3a6269b6b6ba7498ec0b39d66619b72700343b5b5b50d0f30",
       "bytes": 7323
+    },
+    "static/play-loader.162bdd0b8801.js": {
+      "path": "static/play-loader.162bdd0b8801.js",
+      "sha256": "162bdd0b8801a8da3b77047d11552ec5508c13025d3c9a2954fb4608f82c2880",
+      "bytes": 2530
     },
     "static/play-loader.3d6b52d0afe4.js": {
       "path": "static/play-loader.3d6b52d0afe4.js",
@@ -1143,6 +1238,11 @@
       "sha256": "9ddfa2e863254577a89abd846c7e72eef5e18f09266f415c66bf25196855d6ea",
       "bytes": 20034
     },
+    "static/relay-defense.dffef6ffe4b2.js": {
+      "path": "static/relay-defense.dffef6ffe4b2.js",
+      "sha256": "dffef6ffe4b2b6104a1d2570e813b18df3982bfc75d54a465d4c5d9eca28045c",
+      "bytes": 20994
+    },
     "static/runtime.a1e41e3ad758.js": {
       "path": "static/runtime.a1e41e3ad758.js",
       "sha256": "a1e41e3ad758ae335fcfadc4454071b94cf783753145b6b8d7e32eaee290fced",
@@ -1162,6 +1262,11 @@
       "path": "static/salvage-expedition.b8acf8060579.js",
       "sha256": "b8acf8060579ce8d46e8e28df6140bf2707815600f3ee5480bdcad58c769dca4",
       "bytes": 11744
+    },
+    "static/salvage-expedition.fe11428d849b.js": {
+      "path": "static/salvage-expedition.fe11428d849b.js",
+      "sha256": "fe11428d849b78f5ac9610b3b0e15f5e37be72162ac94248cf0aee21adf116be",
+      "bytes": 18482
     },
     "static/shell-heist.08d9137614de.js": {
       "path": "static/shell-heist.08d9137614de.js",
@@ -1204,5 +1309,5 @@
       "bytes": 190025
     }
   },
-  "hubGzipBytes": 12683
+  "hubGzipBytes": 12675
 }

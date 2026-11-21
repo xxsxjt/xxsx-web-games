@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#070b18">
-  <meta name="description" content="每轮十拍。把自己的行动录成回声，在下一轮与你协作，解开四间压板密室。">
+  <meta name="description" content="每轮十拍。把自己的行动录成回声，协作解开六间主线压板密室，或直接进入独立练习场。">
   <title>借来的十秒</title>
   <link rel="icon" href="../assets/icons/borrowed-seconds.svg" type="image/svg+xml">
   <link rel="stylesheet" href="../src/borrowed-seconds.css">
@@ -22,14 +22,17 @@
     <div class="game-head">
       <div>
         <h1>借来的十秒</h1>
-        <p>十拍一轮。移动或等待才推进时间。</p>
+        <p>十拍一轮。移动或等待才推进时间；主线六间房，另有独立练习场。</p>
       </div>
       <nav class="room-nav" aria-label="选择房间">
-        <span class="room-nav-label" id="progress-count">通关 0 / 4</span>
+        <span class="room-nav-label" id="progress-count">通关 0 / 6</span>
         <button type="button" id="pick-1" disabled>01</button>
         <button type="button" id="pick-2" disabled>02</button>
         <button type="button" id="pick-3" disabled>03</button>
         <button type="button" id="pick-4" disabled>04</button>
+        <button type="button" id="pick-5" disabled>05</button>
+        <button type="button" id="pick-6" disabled>06</button>
+        <button type="button" id="practice-room">练习场</button>
       </nav>
     </div>
     <noscript><p class="notice">请启用 JavaScript，以进入十拍实验。</p></noscript>
@@ -66,15 +69,20 @@
             <button id="move-wait" class="wait" type="button" aria-label="等待一拍" aria-keyshortcuts="Space .">等</button>
           </div>
           <div class="round-actions" role="group" aria-label="本轮操作">
-            <button class="primary" type="button" id="seal" aria-keyshortcuts="E">封存回声 <kbd>E</kbd></button>
+            <button class="primary" type="button" id="seal" aria-keyshortcuts="E" aria-describedby="seal-note">封存回声 <kbd>E</kbd></button>
             <button type="button" id="retry" aria-keyshortcuts="R">重试此轮 <kbd>R</kbd></button>
             <p class="keyboard-hint">方向键 / WASD · 空格或 . 等待</p>
           </div>
         </div>
+        <p class="quiet seal-note" id="seal-note"></p>
         <div class="result-actions" id="result-actions" hidden>
           <button class="primary" type="button" id="next-room">下一间 <span aria-hidden="true">→</span></button>
           <a class="action-link primary" id="finish" href="../" hidden>返回游戏厅 <span aria-hidden="true">→</span></a>
           <button type="button" id="replay">重玩本房</button>
+        </div>
+        <div class="result-actions" id="practice-actions" hidden>
+          <button type="button" id="practice-reset">清空练习</button>
+          <button type="button" id="return-mainline">返回主线</button>
         </div>
         <p class="feedback" id="feedback" role="status" aria-atomic="true"></p>
       </section>
@@ -112,7 +120,7 @@
         </div>
 
         <div class="echo-tools" id="echo-tools" hidden>
-          <p class="quiet">移除一段回声会重启本轮，其他回声保留。</p>
+          <p class="quiet">移除会停止该回声的动作，压板贡献也会消失；其他回声保留并重启本轮。新录制排在剩余回声之后。</p>
           <div class="erase-actions" role="group" aria-label="管理回声">
             <button type="button" id="erase-A" aria-label="移除回声 A">移除 A</button>
             <button type="button" id="erase-B" aria-label="移除回声 B">移除 B</button>
@@ -127,6 +135,7 @@
             <li>最多封存三段。封存的是你的指令，不是走过的位置；未录的拍补成等待。封存或重试后，全员回到起点。</li>
             <li>每拍旧回声先动，新回声接着动，你最后。只有起点能叠站；受阻不会补走，下一拍照常尝试下一条。</li>
             <li>同号压板全被踩住，门从下一拍才可进入。关闭的门不会困住站在门格的人。你站到出口时，所有压板还得有人踩住。</li>
+            <li>只记录主线通关数，不保存局内路线；刷新或换房会丢局。练习场随时可进入、清空与返回，不写主线通关。</li>
           </ul>
         </details>
       </aside>

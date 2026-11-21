@@ -59,7 +59,7 @@ try {
   const stable = snapshot();
   build();
   assert.deepEqual(snapshot(), stable, 'identical inputs must generate byte-identical releases');
-  assert(Object.keys(assets).length >= 75, 'V57 pinned inventory is required');
+  assert(Object.keys(assets).length >= 107, 'all 107 content-hash URLs from the V60 baseline must remain pinned');
   for (const [file, digest] of Object.entries(assets)) assert.equal(stable[file], digest, file);
 
   // Make checkout newline differences explicit, including a pinned historical asset.
@@ -75,12 +75,28 @@ try {
   fs.rmSync(fromDist('release-manifest.json'));
   build();
   assert.deepEqual(snapshot(), stable);
-  const original = read('dist/' + oldScript);
-  fs.rmSync(fromDist(oldScript));
-  failureLeavesDist(/Missing published asset:/);
-  write('dist/' + oldScript, 'corrupt resource\n');
-  failureLeavesDist(/Corrupt retained resource:/);
-  write('dist/' + oldScript, original);
+  for (const historical of [oldScript, 'content/games.5c6a19a2a503.json']) {
+    const original = read('dist/' + historical);
+    fs.rmSync(fromDist(historical));
+    failureLeavesDist(new RegExp(`Missing published asset: ${historical.replaceAll('.', '\\.')}`));
+    write('dist/' + historical, 'corrupt resource\n');
+    failureLeavesDist(new RegExp(`Corrupt retained resource: ${historical.replaceAll('.', '\\.')}`));
+    write('dist/' + historical, original);
+  }
+
+  // Nested inputs are release resources too; a shallow collector must fail this test.
+  for (const folder of ['src', 'content']) fs.mkdirSync(path.join(fixture, folder, 'build-fixture'));
+  write('src/build-fixture/module.js', 'void 0;\n');
+  write('src/build-fixture/panel.css', '.fixture{display:block}\n');
+  write('content/build-fixture/data.json', '{"fixture":true}\n');
+  build();
+  const nested = JSON.parse(read('dist/release-manifest.json')).files;
+  for (const [source, directory] of [['src/build-fixture/module.js', 'static'],
+    ['src/build-fixture/panel.css', 'static'], ['content/build-fixture/data.json', 'content']]) {
+    assert.ok(nested[source].path.startsWith(`${directory}/build-fixture/`), source);
+    assert.deepEqual(read('dist/' + nested[source].path), read(source), source);
+    fs.rmSync(path.join(fixture, source));
+  }
 
   // Rewriting must preserve the document-relative prefix for classic nested-page
   // scripts, and the stylesheet-relative prefix for CSS url() references.
@@ -116,7 +132,7 @@ try {
   build();
   assert.deepEqual(snapshot(), stable, 'a recovered build must return to the same release');
   noDebris();
-  console.log('PASS builder: deterministic LF/CRLF output, pinned URLs, base-relative references and failed-build protection');
+  console.log('PASS builder: deterministic LF/CRLF output, pinned URLs, recursive inputs, base-relative references and failed-build protection');
 } finally {
   fs.rmSync(fixture, {recursive: true, force: true});
 }
