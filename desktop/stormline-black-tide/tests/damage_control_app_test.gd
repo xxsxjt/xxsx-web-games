@@ -106,9 +106,19 @@ func _damage_journey(path: String) -> void:
 		return
 	var hit := view.duplicate(true)
 	# Back out along the incoming heading, then coast; no position/velocity writes.
+	var reverse_energy_expected := 0.0
+	var reverse_energy_legacy := 0.0
 	for tick in 180:
-		app.call("_advance_simulation", DT, {"power": 1, "throttle": -0.6 if tick < 90 else 0.0})
+		var throttle := -0.6 if tick < 90 else 0.0
+		var before_step: Dictionary = sim.snapshot()
+		reverse_energy_expected += DT * (0.13 + absf(throttle) * 0.30 * before_step.damage_control.propulsion_energy_multiplier)
+		reverse_energy_legacy += DT * (0.13 + absf(throttle) * 0.30)
+		app.call("_advance_simulation", DT, {"power": 1, "throttle": throttle})
 	view = sim.snapshot()
+	var reverse_energy_observed: float = hit.battery - view.battery
+	_check(is_equal_approx(reverse_energy_observed, reverse_energy_expected)
+		and reverse_energy_observed > reverse_energy_legacy,
+		"natural impact-driven water makes real reverse throttle draw exceed dry legacy draw by the exact published multiplier")
 	for tick in 180:
 		app.call("_advance_simulation", DT, {"power": 1})
 	view = sim.snapshot()
@@ -124,6 +134,12 @@ func _damage_journey(path: String) -> void:
 	var pumped: Dictionary = sim.snapshot()
 	_check(pumped.damage_control.pump_on and pumped.damage_control.water < wet.damage_control.water
 		and pumped.battery < wet.battery and pumped.damage_control.pump_draw == Damage.PUMP_DRAW, "real G toggles costly pump, original physics drains measured water")
+	app.call("_publish", 0.0)
+	_check(String(app.get("hud").get("_damage_status").text).begins_with("动力响应 %.1f%% · 油门耗电 ×%.2f" % [
+			float(pumped.damage_control.propulsion_response) * 100.0, float(pumped.damage_control.propulsion_energy_multiplier)])
+		and is_equal_approx(pumped.damage_control.propulsion_energy_multiplier,
+			1.0 + pumped.damage_control.water * Damage.PROPULSION_WATER_FACTOR),
+		"live cockpit publishes the validated flooded propulsion-energy multiplier")
 	# Work must be continuous: releasing H aborts the first attempt for free.
 	_hold(KEY_H, true)
 	for tick in 90:
@@ -205,8 +221,11 @@ func _damage_journey(path: String) -> void:
 	_service(app, path, "unload_kit")
 	_check(_state(app).parts == repaired.parts + 1 and _state(app).damage_control.kits == 0, "unused real kit can be unloaded, not duplicated")
 	_report.damage_journey = {"hit": hit, "uncontrolled": wet, "pumped": pumped, "patched": patched,
-		"terminal": terminal, "settled": settled, "relaunched": relaunched, "leaking_again": leaking_again, "repaired": repaired}
-	print("APP DAMAGE hit t=%.2f breach=%.3f; pump water %.3f→%.3f; patch kits 2→1; delivered=%.2fs; next water=%.3f; repair breach %.3f→%.3f" % [hit.time, hit.damage_control.breach,
+		"terminal": terminal, "settled": settled, "relaunched": relaunched, "leaking_again": leaking_again, "repaired": repaired,
+		"reverse_energy_expected": reverse_energy_expected, "reverse_energy_legacy": reverse_energy_legacy,
+		"reverse_energy_observed": reverse_energy_observed}
+	print("APP DAMAGE hit t=%.2f breach=%.3f; reverse energy observed=%.6f expected=%.6f dry=%.6f; pump water %.3f→%.3f; patch kits 2→1; delivered=%.2fs; next water=%.3f; repair breach %.3f→%.3f" % [hit.time, hit.damage_control.breach,
+		reverse_energy_observed, reverse_energy_expected, reverse_energy_legacy,
 		wet.damage_control.water, pumped.damage_control.water, terminal.time, leaking_again.damage_control.water, abandoned.damage_control.breach, repaired.damage_control.breach])
 	await _close(app)
 

@@ -15,6 +15,7 @@ func _init() -> void:
 	_controls()
 	_rules()
 	_model()
+	_energy_matrix()
 	if "--compare-stage27" in OS.get_cmdline_user_args():
 		_legacy_oracle()
 	print("Stormline damage-control RULE/MODEL FIXTURES: %d checks, %d failures; not natural driving." % [checks, failures])
@@ -80,11 +81,14 @@ func _controls() -> void:
 		d.step(DT, {"patch": true}, 0, 0, 0, 0.5)
 	_expect(d.kits == 0 and d.sealed == 2 and d.breach == 2 and d.inflow == 0, "second fresh hold seals leak, keeps persistent breach")
 	_expect(Damage.valid_live(d.snapshot(), initial), "completed control state validates")
+	_expect(is_equal_approx(d.snapshot().propulsion_response, 1.0 - d.water * Damage.PROPULSION_WATER_FACTOR)
+		and is_equal_approx(d.snapshot().propulsion_energy_multiplier, 1.0 + d.water * Damage.PROPULSION_WATER_FACTOR),
+		"water exposes coupled propulsion response and electrical multiplier")
 	for key: String in Damage.LIVE_KEYS:
 		var missing := d.snapshot()
 		missing.erase(key)
 		_expect(not Damage.valid_live(missing, initial), "missing live field: " + key)
-	for key: String in ["water", "breach", "sealed", "patch_progress", "inflow", "pump_draw", "kits", "patches_used"]:
+	for key: String in ["water", "breach", "sealed", "patch_progress", "inflow", "pump_draw", "kits", "patches_used", "propulsion_response", "propulsion_energy_multiplier"]:
 		for bad: Variant in [NAN, INF, -1, "0", true]:
 			var forged := d.snapshot()
 			forged[key] = bad
@@ -148,6 +152,9 @@ func _rules() -> void:
 	_expect(not State.act(launched, "settle", {"token": launched.active.token, "snapshot": missing}).ok, "damage result cannot be omitted")
 	var impossible := snap.duplicate(true)
 	impossible.damage_control.water = 100.0
+	impossible.damage_control.propulsion_response = 1.0 - 100.0 * Damage.PROPULSION_WATER_FACTOR
+	impossible.damage_control.propulsion_energy_multiplier = 1.0 + 100.0 * Damage.PROPULSION_WATER_FACTOR
+	_expect(Damage.valid_live(impossible.damage_control, launched.active.damage_control), "flooded terminal fixture fields agree")
 	_expect(not State.act(launched, "settle", {"token": launched.active.token, "snapshot": impossible}).ok, "cannot deliver flooded ship")
 	impossible.phase = "failed"
 	impossible.dock = 0.0
@@ -217,8 +224,89 @@ func _model() -> void:
 		pumped.step(DT, controls)
 	_expect(unpumped.velocity.length() < pumped.velocity.length() and absf(unpumped.heading) < absf(pumped.heading)
 		and unpumped.snapshot().damage_control.water > pumped.snapshot().damage_control.water, "accumulated flood impairs actual thrust and steering on matched controls")
+	_expect(unpumped.snapshot().damage_control.propulsion_energy_multiplier > pumped.snapshot().damage_control.propulsion_energy_multiplier,
+		"same throttled input reports a higher energy multiplier at the higher flood load")
+	_test_energy_accounting()
 	extended.reset("black-tide")
 	_expect(not extended.snapshot().has("damage_control"), "quick reset removes all damage-control state")
+
+
+func _test_energy_accounting() -> void:
+	var flooded_state := State.new_campaign(true)
+	flooded_state.damage_control.breach = 2.0
+	var launched := State.act(flooded_state, "launch", {"offer_id": "black-tide-survey-safe"})
+	_expect(launched.ok, "flooded energy fixture launches through campaign rules")
+	if not launched.ok:
+		return
+	var sim := Sim.new()
+	_expect(sim.reset_expedition(State.launch_spec(launched.state)), "flooded energy fixture accepted by simulator")
+	# Explicit model fixture only; natural/application voyage tests never write live fields.
+	sim._damage.water = 40.0
+	var prior := sim.snapshot()
+	var throttle := 0.75
+	var expected_draw := DT * (0.13 + throttle * 0.40 * float(prior.damage_control.propulsion_energy_multiplier))
+	sim.step(DT, {"power": 0, "throttle": throttle})
+	_expect(is_equal_approx(100.0 - sim.battery, expected_draw), "flooded throttle energy matches the published prior-tick multiplier")
+	var dry := Sim.new()
+	var dry_state := State.act(State.new_campaign(true), "launch", {"offer_id": "black-tide-survey-safe"})
+	_expect(dry.reset_expedition(State.launch_spec(dry_state.state)), "dry extension energy fixture accepted")
+	var dry_before := dry.battery
+	var dry_view := dry.step(DT, {"power": 0, "throttle": throttle})
+	_expect(dry_view.damage_control.propulsion_energy_multiplier == 1.0
+		and is_equal_approx(dry_before - dry.battery, DT * (0.13 + throttle * 0.40)),
+		"zero-water extension retains exact original throttle energy")
+	var forged: Dictionary = prior.damage_control.duplicate(true)
+	forged.propulsion_energy_multiplier = 1.0
+	_expect(not Damage.valid_live(forged, State.launch_spec(launched.state).damage_control), "live validation rejects an understated flooded multiplier")
+
+
+func _energy_matrix() -> void:
+	# Synthetic accounting fixtures: never presented as input-only navigation.
+	# Separate water's throttle surcharge from module, sonar, winch and pump costs.
+	var cases := 0
+	for modules: Array in [[], ["drive", "sonar"], ["tow", "sonar"]]:
+		var state := State.new_campaign(true)
+		for id: String in modules:
+			state = _act(state, "buy", {"module_id": id})
+			state = _act(state, "equip", {"module_id": id})
+		state.damage_control.breach = 2.0
+		state = _act(state, "launch", {"offer_id": "black-tide-survey-safe"})
+		var spec := State.launch_spec(state)
+		var effects := Sim.Catalog.loadout_effects(modules)
+		for water: float in [0.0, 40.0, 99.0]:
+			for power in 3:
+				for throttle_value: float in [0.0, 0.75, -0.75]:
+					for scan in [false, true]:
+						for tow in [false, true]:
+							for slow in [false, true]:
+								for pump in [false, true]:
+									var sim := Sim.new()
+									if not sim.reset_expedition(spec):
+										_expect(false, "accounting matrix accepts valid launch")
+										return
+									sim._damage.water = water
+									if tow:
+										sim.scanned = true
+										sim.tow_attached = true
+										sim.phase = "return"
+										sim.cargo_position = sim.position + Vector2(0, 6)
+									var prior := sim.snapshot()
+									var draw := 0.13 + absf(throttle_value) * (0.40 if power == 0 else 0.30) * (1.0 + water * 0.0035)
+									if scan and not tow:
+										draw += 0.20 + float(Sim.PROFILES[power].sensors) * float(effects.sensors) * 0.22
+									if tow:
+										draw += 0.08 + 0.5 * 0.19
+									draw *= float(effects.energy)
+									if pump:
+										draw += 0.45
+									var view := sim.step(DT, {"power": power, "throttle": throttle_value, "scan": scan,
+										"reel": 0.5, "slow": slow, "pump_pressed": pump})
+									_expect(absf(float(prior.battery) - float(view.battery) - draw * DT) < 1e-10
+										and Damage.valid_live(view.damage_control, spec.damage_control),
+										"isolated energy case %d modules=%s water=%s power=%s throttle=%s scan=%s tow=%s slow=%s pump=%s" % [
+											cases, modules, water, power, throttle_value, scan, tow, slow, pump])
+									cases += 1
+	print("Stormline propulsion energy matrix: %d synthetic accounting cases; no natural route claim." % cases)
 
 
 func _act(s: Dictionary, action: String, payload: Dictionary = {}) -> Dictionary:

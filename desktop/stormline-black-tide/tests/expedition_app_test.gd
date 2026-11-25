@@ -694,7 +694,7 @@ func _geometry(app: Node, note: String) -> void:
 					var rect := _rect(child)
 					_check(bounds.encloses(rect), label + " cockpit panel within viewport: " + str(rect))
 					for other: Rect2 in panels:
-						_check(not rect.intersects(other), label + " cockpit panels don't overlap")
+						_check(not rect.intersects(other), label + " cockpit panels don't overlap: %s / %s" % [rect, other])
 					panels.append(rect)
 			continue
 		var desk := _desk(app)

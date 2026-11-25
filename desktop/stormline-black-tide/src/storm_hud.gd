@@ -329,8 +329,9 @@ func _present_live(view: Dictionary, contract: Dictionary) -> void:
 	_damage_status.visible = view.has("damage_control")
 	if _damage_status.visible:
 		var d: Dictionary = view.damage_control
-		_damage_status.text = "进水 %.1f%% · 入流 %.2f/s · G 泵%s\n破口 %.2f / 临封 %.2f · 包 %d · H 封堵 %s" % [
-			float(d.water), float(d.inflow), "运行 -%.2f电/s" % float(d.pump_draw) if d.pump_active else ("待机" if d.pump_on else "关闭"),
+		_damage_status.text = "动力响应 %.1f%% · 油门耗电 ×%.2f\n进水 %.1f%% · 入流 %.2f/s · G 泵%s\n破口 %.2f / 临封 %.2f · 包 %d · H 封堵 %s" % [
+			float(d.propulsion_response) * 100.0, float(d.propulsion_energy_multiplier), float(d.water),
+			float(d.inflow), "运行 -%.2f电/s" % float(d.pump_draw) if d.pump_active else ("待机" if d.pump_on else "关闭"),
 			float(d.breach), float(d.sealed), int(d.kits), _progress_percent(float(d.patch_progress))]
 		_damage_status.text += "\n连续 %.0fs：速度 <%.1f、松油门、缆张 <68%%" % [Damage.PATCH_SECONDS, Damage.PATCH_SPEED]
 		_damage_status.add_theme_color_override("font_color", AMBER if float(d.water) >= 40.0 or float(d.breach) > float(d.sealed) else TEAL)

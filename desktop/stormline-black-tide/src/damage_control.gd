@@ -13,8 +13,10 @@ const PATCH_THROTTLE := 0.05
 const PATCH_TENSION := 0.68
 const PUMP_RATE := 2.4
 const PUMP_DRAW := 0.45
+const PROPULSION_WATER_FACTOR := 0.0035
+const MAX_PROPULSION_WATER_FACTOR := 100.0 * PROPULSION_WATER_FACTOR
 const PERSISTENT_KEYS := ["breach", "kits"]
-const LIVE_KEYS := ["breach", "kits", "water", "sealed", "patch_progress", "pump_on", "pump_active", "inflow", "pump_draw", "patches_used"]
+const LIVE_KEYS := ["breach", "kits", "water", "sealed", "patch_progress", "pump_on", "pump_active", "inflow", "pump_draw", "patches_used", "propulsion_response", "propulsion_energy_multiplier"]
 
 var breach := 0.0
 var kits := 0
@@ -72,7 +74,16 @@ func step(dt: float, controls: Dictionary, speed: float, throttle: float, tensio
 func snapshot() -> Dictionary:
 	return {"breach": breach, "kits": kits, "water": water, "sealed": sealed,
 		"patch_progress": patch_progress, "pump_on": pump_on, "pump_active": pump_active,
-		"inflow": inflow, "pump_draw": pump_draw, "patches_used": patches_used}
+		"inflow": inflow, "pump_draw": pump_draw, "patches_used": patches_used,
+		"propulsion_response": propulsion_response(), "propulsion_energy_multiplier": propulsion_energy_multiplier()}
+
+
+func propulsion_response() -> float:
+	return 1.0 - water * PROPULSION_WATER_FACTOR
+
+
+func propulsion_energy_multiplier() -> float:
+	return 1.0 + water * PROPULSION_WATER_FACTOR
 
 
 static func fresh() -> Dictionary:
@@ -101,8 +112,13 @@ static func valid_live(value: Variant, initial: Dictionary) -> bool:
 	if not value.pump_active and value.pump_on and (float(value.water) > 0 or float(value.inflow) > 0):
 		return false
 	var open := float(value.breach) - float(value.sealed)
+	var water_factor := float(value.water) * PROPULSION_WATER_FACTOR
 	return _number(value.inflow, open * (0.52 + 0.40 * 0.16) - 1e-9, open * (0.52 + 0.40 * 0.97) + 1e-9) \
-		and value.pump_draw == (PUMP_DRAW if value.pump_active else 0.0)
+		and value.pump_draw == (PUMP_DRAW if value.pump_active else 0.0) \
+		and _number(value.propulsion_response, 1.0 - MAX_PROPULSION_WATER_FACTOR, 1.0) \
+		and is_equal_approx(float(value.propulsion_response), 1.0 - water_factor) \
+		and _number(value.propulsion_energy_multiplier, 1.0, 1.0 + MAX_PROPULSION_WATER_FACTOR) \
+		and is_equal_approx(float(value.propulsion_energy_multiplier), 1.0 + water_factor)
 
 
 static func persistent(live: Dictionary) -> Dictionary:

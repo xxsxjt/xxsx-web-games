@@ -261,6 +261,8 @@ func step(delta: float, input: Dictionary = {}) -> Dictionary:
 	# Prevent a stalled frame from advancing physics past the fixed simulation cadence.
 	var dt := minf(delta, 1.0 / 30.0)
 	mission_time += dt
+	# Energy responds to the water level that attenuates this tick's propulsion.
+	var propulsion_energy_multiplier: float = float(_damage.propulsion_energy_multiplier()) if _damage != null else 1.0
 	if input.has("power"):
 		var requested_power: Variant = input.power
 		if (requested_power is int or requested_power is float) and is_finite(float(requested_power)):
@@ -290,7 +292,7 @@ func step(delta: float, input: Dictionary = {}) -> Dictionary:
 	elif is_zero_approx(throttle):
 		drive = -velocity.dot(forward) * (0.24 if tow_attached else 0.66)
 	if _damage != null and _damage.water > 0.0:
-		drive *= 1.0 - float(_damage.water) * 0.0035
+		drive *= 1.0 - float(_damage.water) * Damage.PROPULSION_WATER_FACTOR
 	var tug_flow := _flow(position)
 	var pod_flow := _flow(cargo_position)
 	var relative := velocity - tug_flow
@@ -350,7 +352,8 @@ func step(delta: float, input: Dictionary = {}) -> Dictionary:
 	if _damage != null:
 		if _damage.step(dt, input, initial_speed, throttle, cable_tension, storm_intensity):
 			_emit("patched", "临时封堵完成，耗用一包。已封最多 1.0 破口；结构损伤仍须返港维修。")
-	var energy_draw := 0.13 + absf(throttle) * (0.40 if power_profile == 0 else 0.30)
+	var propulsion_draw: float = absf(throttle) * (0.40 if power_profile == 0 else 0.30) * propulsion_energy_multiplier
+	var energy_draw: float = 0.13 + propulsion_draw
 	if scanning:
 		energy_draw += 0.20 + float(profile.sensors) * 0.22
 	if tow_attached:
