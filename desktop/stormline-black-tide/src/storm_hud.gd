@@ -9,6 +9,7 @@ signal briefing_requested
 signal mute_requested
 signal quit_requested
 signal expedition_requested
+signal navigation_requested(action: String, value: String)
 
 const Radar = preload("res://src/radar.gd")
 const Sim = preload("res://src/storm_sim.gd")
@@ -95,6 +96,11 @@ var _review_coverage: Label
 var _review_timeline: Label
 var _review_advice: Label
 var _review_view: Dictionary = {}
+var _navigation_panel: PanelContainer
+var _navigation_summary: Label
+var _navigation_detail: Label
+var _navigation_pick: OptionButton
+var _navigation_ids: Array[String] = []
 
 func _ready() -> void:
 	layer = 15
@@ -304,8 +310,31 @@ func _build_live() -> void:
 	_label(keys, KEYS_DRIVE, 18, TEXT, true).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_keys_tow = _label(keys, KEYS_TOW, 18, DIM, true)
 	_keys_tow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_navigation_panel = _panel(_live, true)
+	_navigation_panel.anchor_left = 0.5
+	_navigation_panel.anchor_right = 0.5
+	_navigation_panel.offset_left = -200.0
+	_navigation_panel.offset_right = 200.0
+	_navigation_panel.offset_top = HUD_EDGE
+	var nav := _column(_navigation_panel, 4)
+	_navigation_summary = _label(nav, "", 18, TEAL, true)
+	_navigation_detail = _label(nav, "", 17, DIM, true)
+	_navigation_pick = OptionButton.new()
+	_navigation_pick.fit_to_longest_item = false
+	_navigation_pick.custom_minimum_size = Vector2(0, 36)
+	_navigation_pick.focus_mode = Control.FOCUS_NONE
+	nav.add_child(_navigation_pick)
+	_navigation_pick.item_selected.connect(func(index: int) -> void:
+		if index >= 0 and index < _navigation_ids.size():
+			navigation_requested.emit("select", _navigation_ids[index]))
+	var commands := _row(nav, 6)
+	for pair in [["换线 N", "cycle"], ["下一点 B", "advance"], ["清空 C", "clear"]]:
+		var button := _button(commands, pair[0], navigation_requested.emit.bind(pair[1], ""), false, Vector2(0, 34))
+		button.focus_mode = Control.FOCUS_NONE
+	_label(nav, "参考环≠拖缆／安全走廊 · 手动驾驶", 16, DIM, true)
 
 func _present_live(view: Dictionary, contract: Dictionary) -> void:
+	_present_navigation(view.get("navigation", {}))
 	var expedition := _dictionary(view.get("expedition", {}))
 	var in_expedition := not expedition.is_empty()
 	var phase := String(view.get("phase", "approach"))
@@ -394,6 +423,7 @@ func _present_live(view: Dictionary, contract: Dictionary) -> void:
 	_radar.custom_minimum_size.y = 194.0 if cross_current else 238.0
 
 	var radar_view := {"position": position, "heading": heading, "wind": wind, "scanned": scanned, "tow_attached": towing}
+	radar_view["navigation"] = view.get("navigation", {})
 	if view.has("harbor") or contract.has("harbor"):
 		radar_view["harbor"] = harbor
 		radar_view["harbor_radius"] = view.get("harbor_radius", contract.get("harbor_radius", 0.0))
@@ -420,6 +450,22 @@ func _present_live(view: Dictionary, contract: Dictionary) -> void:
 		radar_view["target_visible"] = bool(view.get("target_visible", true))
 	_radar.set_snapshot(radar_view)
 	_present_dock(view, towing and scanned, harbor, float(view.get("harbor_radius", contract.get("harbor_radius", 0.0))), position, velocity)
+
+
+func _present_navigation(nav: Dictionary) -> void:
+	_navigation_summary.text = String(nav.get("summary", "导航未选 · N 换线"))
+	_navigation_detail.text = String(nav.get("detail", "仅公开参考；仍须手动驾驶。"))
+	var ids: Array[String] = []
+	for route: Dictionary in nav.get("routes", []):
+		ids.append(String(route.id))
+	if ids != _navigation_ids:
+		_navigation_ids = ids
+		_navigation_pick.clear()
+		for route: Dictionary in nav.get("routes", []):
+			_navigation_pick.add_item(String(route.label))
+	var selected := _navigation_ids.find(String(nav.get("route_id", "")))
+	_navigation_pick.select(selected)
+	_navigation_pick.tooltip_text = "选择公开路线（不自动驾驶）；N 换线、B 手动下一点、C 清空。"
 
 
 func _patch_guidance(view: Dictionary, damage: Dictionary) -> String:

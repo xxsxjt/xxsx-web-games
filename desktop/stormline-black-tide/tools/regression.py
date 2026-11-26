@@ -27,6 +27,7 @@ SCRIPT_SUITES = (
     "damage_control", "damage_control_app",
     "energy_budget", "energy_feedback_app",
     "work_order", "work_order_app",
+    "public_navigation", "public_navigation_app",
 )
 REQUIRED_CHECKS = ("import", *SCRIPT_SUITES, "smoke_tool")
 

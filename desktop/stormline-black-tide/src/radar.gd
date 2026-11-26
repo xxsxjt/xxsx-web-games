@@ -11,6 +11,7 @@ const REEF := Color("f58c91")
 const CURRENT := Color("a6a4f5")
 const SURVEY := Color("b3eaff")
 const CONTACT_INSET := 8.0
+const NAVIGATION := Color("e6e38d")
 
 var world_radius := 118.0
 var _snapshot: Dictionary = {}
@@ -80,7 +81,13 @@ static func project_snapshot(value: Dictionary, dimensions: Vector2, minimum_ext
 			rows.append(_edge_caption("舱" if cargo.filled else "舱迹", cargo, "船距" if not tug.is_empty() else "图心距"))
 	var solid_towline := bool(value.get("tow_attached", false)) and not tug.is_empty() and not cargo.is_empty() \
 		and not bool(tug.clipped) and not bool(cargo.clipped)
-	return {"chart": chart, "tug": tug, "cargo": cargo, "solid_towline": solid_towline, "edge_readouts": rows}
+	var navigation: Dictionary = {}
+	var nav: Dictionary = value.get("navigation", {})
+	if nav.get("active", false) and nav.get("point") is Vector2:
+		navigation = project_contact(chart, nav.point, value.get("position", chart.origin))
+		if navigation.clipped:
+			rows.append(_edge_caption("航点", navigation, "船距"))
+	return {"chart": chart, "tug": tug, "cargo": cargo, "navigation": navigation, "solid_towline": solid_towline, "edge_readouts": rows}
 
 
 static func _edge_caption(role: String, contact: Dictionary, reference: String) -> String:
@@ -151,6 +158,13 @@ func _draw() -> void:
 
 	if not survey.is_empty():
 		_draw_tide_stations(survey, center, origin, scale)
+	var nav: Dictionary = view.navigation
+	if not nav.is_empty():
+		if nav.clipped:
+			_draw_edge_contact(nav, NAVIGATION, 11.0)
+		else:
+			draw_arc(nav.plotted, 11.0, 0, TAU, 24, NAVIGATION, 2.0, true)
+			draw_arc(nav.plotted, 14.0, -PI * 0.8, -PI * 0.2, 10, NAVIGATION, 1.0, true)
 
 	if not tug.is_empty() and tug.clipped:
 		_draw_edge_contact(tug, TUG, 5.0)
@@ -239,7 +253,7 @@ func _draw_edge_readouts(rows: Array, center: Vector2) -> void:
 	for row: String in rows:
 		var width := font.get_string_size(row, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x
 		draw_rect(Rect2(at + Vector2(-3.0, -14.0), Vector2(width + 6.0, 18.0)), Color(0.035, 0.09, 0.14, 0.96))
-		draw_string(font, at, row, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, TUG if row.begins_with("船") else CARGO)
+		draw_string(font, at, row, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, NAVIGATION if row.begins_with("航点") else (TUG if row.begins_with("船") else CARGO))
 		at.y += 19.0
 
 func _draw_wind(wind: Vector2) -> void:

@@ -11,6 +11,7 @@ const ExpeditionHUD = preload("res://src/expedition_hud.gd")
 const ExpeditionState = preload("res://src/expedition_state.gd")
 const ExpeditionStore = preload("res://src/expedition_store.gd")
 const Catalog = preload("res://src/expedition_catalog.gd")
+const Navigation = preload("res://src/public_navigation.gd")
 
 var sim = Sim.new()
 var review = Review.new()
@@ -41,6 +42,9 @@ var _tow_queued := false
 var _pump_queued := false
 var _record_status := ""
 var _work_order: Array = []
+var _nav_route := ""
+var _nav_index := 0
+var _nav_down: Dictionary = {}
 
 
 func _ready() -> void:
@@ -68,6 +72,7 @@ func _ready() -> void:
 	hud.mute_requested.connect(_on_mute_requested)
 	hud.quit_requested.connect(_on_quit_requested)
 	hud.expedition_requested.connect(_on_expedition_requested)
+	hud.navigation_requested.connect(_on_navigation_action)
 	expedition_hud.requested.connect(_on_expedition_action)
 	# The window close button must have the same consequences as the pause menu.
 	if get_window() == get_tree().root:
@@ -114,6 +119,7 @@ func _advance_simulation(delta: float, controls: Dictionary) -> void:
 	var view: Dictionary = sim.step(delta, controls)
 	review.observe(view)
 	if sim.phase != prior_phase and sim.phase in ["success", "failed"]:
+		_clear_navigation()
 		screen = "debrief"
 		if mode == "expedition":
 			_terminal = view.duplicate(true)
@@ -138,13 +144,13 @@ func _publish(delta: float, snap_camera: bool = false) -> void:
 	if is_instance_valid(world):
 		world.present(view, delta, snap_camera)
 	if is_instance_valid(hud):
-		var hud_view := view
+		# Navigation is a read-only HUD projection, not part of the world/model.
+		var hud_view := view.duplicate()
+		hud_view["navigation"] = Navigation.project(view, _nav_route, _nav_index)
 		if mode == "expedition":
-			hud_view = view.duplicate()
 			hud_view["expedition_ui"] = true
 		elif screen == "debrief":
 			# Review is a HUD-only memory view; preserve the world's public projection.
-			hud_view = view.duplicate()
 			hud_view["review"] = review.view()
 		hud.present(hud_view)
 	if is_instance_valid(sound):
@@ -152,6 +158,7 @@ func _publish(delta: float, snap_camera: bool = false) -> void:
 
 
 func _reset_mission() -> void:
+	_clear_navigation()
 	sim.reset(selected_contract)
 	review.clear()
 	_tow_queued = false
@@ -238,6 +245,66 @@ func _on_focus_exited() -> void:
 		_on_pause_requested()
 
 
+func _input(event: InputEvent) -> void:
+	if not event is InputEventKey:
+		return
+	var key: Key = event.keycode if event.keycode != KEY_NONE else event.physical_keycode
+	if key not in [KEY_N, KEY_B, KEY_C]:
+		return
+	if not event.pressed:
+		_nav_down.erase(key)
+		return
+	if event.echo or _nav_down.has(key):
+		return
+	_nav_down[key] = true
+	if screen == "running":
+		_on_navigation_action("cycle" if key == KEY_N else ("advance" if key == KEY_B else "clear"), "")
+		get_viewport().set_input_as_handled()
+
+
+func _clear_navigation() -> void:
+	_nav_route = ""
+	_nav_index = 0
+
+
+func _navigation_public() -> Dictionary:
+	if mode == "expedition" and screen == "dock":
+		var offer := _find_offer(ExpeditionState.offers(expedition_state), _offer_id)
+		if offer.is_empty():
+			return {}
+		var base: Dictionary = Sim.CONTRACTS[offer.base_contract]
+		var public := {"harbor": base.harbor, "beacon": base.beacon, "hazards": base.hazards}
+		if offer.has("tide_stations"):
+			public["tide_survey"] = {"stations": offer.tide_stations, "completed": 0}
+		return public
+	return sim.snapshot()
+
+
+func _on_navigation_action(action: String, value: String) -> void:
+	if screen != "running" and not (mode == "expedition" and screen == "dock" and _confirmation.is_empty() and _pending.is_empty() and not _expedition_conflict):
+		return
+	var options := Navigation.routes(_navigation_public())
+	match action:
+		"clear": _clear_navigation()
+		"advance": _nav_index = mini(_nav_index + 1, 3)
+		"select":
+			for option: Dictionary in options:
+				if option.id == value:
+					_nav_route = value
+					_nav_index = 0
+		"cycle":
+			var next := 0
+			for i in range(options.size()):
+				if options[i].id == _nav_route:
+					next = (i + 1) % options.size()
+			if not options.is_empty():
+				_nav_route = String(options[next].id)
+				_nav_index = 0
+	if mode == "expedition" and screen == "dock":
+		_present_expedition()
+	_publish(0.0)
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo:
 		return
@@ -308,6 +375,7 @@ func _on_expedition_requested() -> void:
 
 
 func _read_expedition() -> void:
+	_clear_navigation()
 	_work_order = []
 	_archive = _expedition_store.load_state()
 	expedition_state = _archive.state
@@ -368,6 +436,9 @@ func _on_expedition_action(action: String, value: String) -> void:
 		return
 	if _expedition_conflict:
 		return
+	if action.begins_with("nav_"):
+		_on_navigation_action(action.trim_prefix("nav_"), value)
+		return
 	match screen:
 		"archive":
 			match action:
@@ -398,6 +469,8 @@ func _on_expedition_action(action: String, value: String) -> void:
 			match action:
 				"offer":
 					if not _find_offer(ExpeditionState.offers(expedition_state), value).is_empty():
+						if value != _offer_id:
+							_clear_navigation()
 						_offer_id = value
 				"launch":
 					if not _offer_id.is_empty() and _can_launch().ok:
@@ -579,6 +652,7 @@ func _save_expedition(next_state: Dictionary, expected: int, message: String) ->
 
 
 func _enter_dock() -> void:
+	_clear_navigation()
 	_work_order = []
 	screen = "dock"
 	_terminal = {}
@@ -625,6 +699,7 @@ func _present_expedition() -> void:
 	expedition_hud.present({"screen": screen, "state": expedition_state, "archive": _archive,
 		"file": expedition_file.get_file(), "offer": selected, "offers": offers, "launch": launch,
 		"services": services, "module_actions": module_actions, "work_order": work_order,
+		"navigation": Navigation.project(_navigation_public(), _nav_route, _nav_index),
 		"muted": muted, "notice": _expedition_notice, "error": _expedition_error, "conflict": _expedition_conflict,
 		"confirmation": _confirmation, "pending": not _pending.is_empty(), "retryable": _pending.has("change"),
 		"pending_state": _pending.get("change", {}).get("state", {}),

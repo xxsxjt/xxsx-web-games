@@ -216,8 +216,8 @@ func _build_archive(body: VBoxContainer, actions: HBoxContainer) -> void:
 
 func _build_tabs(ended: bool) -> void:
 	var bar := _row(_page, 8)
-	for pair: Array in [["chart", "六部署航图" if ended else "航图与合同"], ["outfit", "船厂整备"], ["work_order", "整备工单"], ["ledger", "远征账本"]]:
-		if ended and pair[0] in ["outfit", "work_order"]:
+	for pair: Array in [["chart", "六部署航图" if ended else "航图与合同"], ["outfit", "船厂整备"], ["work_order", "整备工单"], ["navigation", "公开航路"], ["ledger", "远征账本"]]:
+		if ended and pair[0] in ["outfit", "work_order", "navigation"]:
 			continue
 		_button(bar, String(pair[1]), "tab_" + String(pair[0]), _tab == pair[0], _switch_tab.bind(String(pair[0])))
 	_focus_first = "tab_" + _tab
@@ -236,6 +236,7 @@ func _build_dock(body: VBoxContainer, actions: HBoxContainer) -> void:
 		match _tab:
 			"outfit": _build_outfit(body, state)
 			"work_order": _build_work_order(body, state)
+			"navigation": _build_navigation(body)
 			"ledger": _build_ledger(body, state.history)
 			_: _build_chart(body, state, _view.offers)
 		if not _view.conflict:
@@ -299,6 +300,17 @@ func _build_work_order(body: VBoxContainer, saved: Dictionary) -> void:
 		var button := _action(card, "草案：" + caption, "queue_" + action, false, blocked or not change.ok, id)
 		button.tooltip_text = String(change.message)
 	_label(body, "按顺序使用实际资金／材料和负载规则；不能用后一步的退款支付前一步。最多12项。确认前可撤销；写盘失败或陈旧档整单不入账，不会半单扣费。维修／充电提高压力，所选合同也随之变化；并非自动推荐或续航保证。", 17, MUTED)
+
+
+func _build_navigation(body: VBoxContainer) -> void:
+	var nav: Dictionary = _view.navigation
+	var panel := _card(body, "公开航路 · 仅本次内存草案")
+	_label(panel, String(nav.summary), 19, TEAL)
+	_label(panel, "随所选合同出航；换报价、回坞或终局清空。绕礁点仅为具名礁圈东西侧外18米参考，连途未检查，不保证船舱净空。搜索中心不是舱位，到点不完成目标。导航不会提交工单、扣费或出航。", 17, MUTED)
+	_action(panel, "清空航路", "nav_clear", false, false)
+	for route: Dictionary in nav.routes:
+		_action(panel, String(route.label), "nav_select", route.id == nav.route_id, bool(_view.conflict), String(route.id))
+	_label(panel, "出航后 N 换线 · B 手动下一点 · C 清空；近点仅提示，仍须自行扫描／取样／靠港。", 17, MUTED)
 
 
 func _build_chart(body: VBoxContainer, state: Dictionary, offers: Array) -> void:
