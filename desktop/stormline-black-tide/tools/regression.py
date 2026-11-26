@@ -28,6 +28,7 @@ SCRIPT_SUITES = (
     "energy_budget", "energy_feedback_app",
     "work_order", "work_order_app",
     "public_navigation", "public_navigation_app",
+    "voyage_segments", "voyage_segments_app",
 )
 REQUIRED_CHECKS = ("import", *SCRIPT_SUITES, "smoke_tool")
 

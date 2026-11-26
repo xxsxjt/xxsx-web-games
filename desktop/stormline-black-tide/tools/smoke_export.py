@@ -18,7 +18,7 @@ ENGINE_VERSION = "4.3.stable.official.77dcf97d8"
 REQUIRED_RUNTIME_SCRIPTS = tuple("res://src/" + stem + ".gd" for stem in (
     "main", "radar", "storm_audio", "storm_hud", "storm_records", "storm_sim", "storm_world",
     "voyage_review", "expedition_catalog", "expedition_state", "expedition_store", "expedition_hud",
-    "damage_control", "public_navigation",
+    "damage_control", "public_navigation", "voyage_segments",
 ))
 
 

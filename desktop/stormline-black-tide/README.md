@@ -1,6 +1,6 @@
 # 风暴线：黑潮回收 / Stormline: Black Tide
 
-独立桌面 3D 拖带驾驶游戏，Godot 4.3 Compatibility。v0.2.7 加入内存公开航路：船坞选择港心、搜索中心、当前潮站或具名礁区参考路线，驾驶台原生控件及 N/B/C 换线／手动下一／清空，显示实际船距与北基准方位，雷达独立空心航点。搜索中心不是舱位，参考点不保证避礁，到点不完成目标；不自动驾驶或新增持久字段。保留可撤销整备工单的原动作顺序投影、一次明确保存，以及坏档恢复、严格封堵门槛、真实图外雷达、耗电分账与进水推进负载。三海区六部署的结构破口、耗电排水、低速临封与跨航次维修、实测制图和局部缓流、支线／风险与有限改装共同影响下一航次。原「黑潮回收」「针礁水道」「碎潮回廊」三合同快玩、成绩和航次复盘保留。本作不属于网页总站，不共享网页存档或版本；无登录、无联网依赖。
+独立桌面 3D 拖带驾驶游戏，Godot 4.3 Compatibility。v0.2.8 加入远征手动航段观察：原生按钮及 J 开始／K 完成／L 取消，暂停和结算比较最近6段实际模拟时间、逐步船位距离、船体／电池净变化、可用的实际支出与两端风／风暴。仅本航内存，不归因、不预测续航，无环境流读数；快玩不增加此功能。保留公开航路的船坞选线、驾驶台 N/B/C、实际船距／北基准方位与雷达空心航点；到点不完成目标或观察。整备工单仍按原动作顺序投影、一次明确保存。三海区六部署的结构破口、耗电排水、低速临封与跨航次维修、实测制图和局部缓流、支线／风险与有限改装共同影响下一航次。原「黑潮回收」「针礁水道」「碎潮回廊」三合同快玩、成绩和航次复盘保留。本作不属于网页总站，不共享网页存档或版本；无登录、无联网依赖。
 
 任务闭环：任务台选约 → 驶向搜索海区 → 低速扫描 → 挂索 → 管理功率、缆长与惯性带舱返航 → 船舱同时入港稳住 1 秒 → 结算并保存本机最佳。结算点击「航次复盘」或按 V 查看真实采集的用时、损失、公开峰张与关键事件；只保留本次航行的有限数据，不写档、不重放。程序化场景和音效，不需要外部素材服务。
 
@@ -45,17 +45,18 @@
 - 阶段 31（坏档恢复 / 封堵门槛与提示 / 雷达截边）：`docs/stage-31-recovery-and-feedback.md`；主档接收上限仍为 98,304 字节，超限坏档仅在 1 MiB 保留容量内明确归档后恢复；H 同步前后速度均须严格低于门槛；图外标记不代表实际位置，真实距离不从钳制像素反推。QA / PCK 探针同时拒绝隔离目录内意外玩家档案。
 - 阶段 32（可撤销的船厂整备工单）：`docs/stage-32-work-order.md`；原动作顺序投影与实际提交共用规则，最多12项、一次修订与存储，不替代原单项整备，不承诺返航可达性。
 - 阶段 33（公开航点与手动导航）：`docs/stage-33-public-navigation.md`；公开字段纯投影、最多三点内存路线、原生备航／驾驶控件、船距／方位与独立雷达参考环，不泄露隐藏舱、不替代目标操作。
+- 阶段 34（手动内存航段观察）：`docs/stage-34-voyage-segments.md`；实际逐步行程而非端点位移，电池净变与可选实耗分开；最多最近6段，不改模拟、目标或档案。
 - 碎潮回廊的流场编号、船舱边界读数与定向验证：`docs/cross-current-onboarding.md`
 - 持续开发和验证计划：`docs/task-plan.md`
 - 本机无窗口证据：`build/qa/<时间戳>/summary.json` 及相邻日志。
-- Windows 完整候选包在单独的打包流程中生成，路径为 `build/releases/<时间戳>/`；阶段 26–32 仅 PCK-only，不生成游戏 EXE/ZIP、不发布二进制。
+- Windows 完整候选包在单独的打包流程中生成，路径为 `build/releases/<时间戳>/`；阶段 26–34 仅 PCK-only，不生成游戏 EXE/ZIP、不发布二进制。
 
 ## 开发与构建
 
 依赖官方 Godot `4.3.stable.official.77dcf97d8` 和 Python 3.11+。模型以 60 Hz 固定步长驱动，场景/HUD/音效消费同一快照。正式回归每次创建独立用户目录和明确引擎日志路径，成绩测试使用本项目 `.testdata/` 隔离夹具。早期手工调用的引擎默认日志边界见阶段 25 记录。
 
 ```powershell
-python -X utf8 tools/regression.py --godot 'Godot_v4.3-stable_win64_console.exe'
+python -B -X utf8 tools/regression.py --godot 'Godot_v4.3-stable_win64_console.exe'
 ```
 
 仅在另行获准进行完整 Windows 打包时，将工具打印的 `summary.json` 路径传给构建脚本。`.buildtools/` 中需已有官方 4.3 模板包及其 Windows x64 release 模板；脚本重新校验官方 SHA-512、模板 SHA-256 和回归源码指纹，下载引擎许可文本，随后无窗口导出、检查 PE/PCK、制作 ZIP 并读回核验。构建器不运行游戏 EXE。以下打包命令不属于阶段 26/27 已执行项。
@@ -64,9 +65,9 @@ python -X utf8 tools/regression.py --godot 'Godot_v4.3-stable_win64_console.exe'
 python -X utf8 tools/build_windows.py --godot 'Godot_v4.3-stable_win64_console.exe' --qa 'build/qa/<本次时间戳>/summary.json'
 ```
 
-构建器要求四十一项 Godot 无窗口检查（导入与四十套脚本）及 `smoke_tool`（Python 探针自测），共四十二项。原 Godot 套件顺序不变，`work_order`、`work_order_app` 追加在末尾；检查列表以 `tools/regression.py` 的 `REQUIRED_CHECKS` 为准。显式旧版本 oracle 对照另行运行、不要求普通源码检出带有历史夹具。规则夹具、模型输入旅程和正式场景/存储旅程分别登记。
+当前必需四十五项 Godot 无窗口检查（导入与四十四套脚本）及 `smoke_tool`（Python 探针自测），共四十六项。原套件顺序不变，航段两套追加在导航之后；检查列表以 `tools/regression.py` 的 `REQUIRED_CHECKS` 为准。显式旧版本 oracle 对照另行运行、不要求普通源码检出带有历史夹具。规则夹具、模型输入旅程和正式场景/存储旅程分别登记。
 
-导出后可用官方 Godot 的隔离无窗口脚本仅加载 PCK 资源。阶段 28 探针只读十三个脚本（含复盘、远征与损管模型）、入口 PackedScene 和模拟脚本的三合同常量；不实例化主场景或运行模拟器、游戏 EXE。用户目录和日志隔离；不播放音频、不截屏、不验证真实渲染/操控。十三资源强制清单与实际加载集合均检查，陈旧 manifest/probe 不能一起遗漏新依赖后仍通过。
+导出后可用官方 Godot 的隔离无窗口脚本仅加载 PCK 资源。当前探针只读十五个脚本（含复盘、远征、损管、导航与航段）、入口 PackedScene 和模拟脚本的三合同常量；不实例化主场景或运行模拟器、游戏 EXE。用户目录和日志隔离；不播放音频、不截屏、不验证真实渲染/操控。强制资源清单与实际加载集合均检查，陈旧 manifest/probe 不能一起遗漏新依赖后仍通过。
 
 ```powershell
 python -X utf8 tools/smoke_export.py --godot 'Godot_v4.3-stable_win64_console.exe' --pck 'build/pack-probe/<本次目录>/Stormline-Black-Tide.pck' --sandbox-dir '<本机允许的临时目录>/stormline-pck-probe'

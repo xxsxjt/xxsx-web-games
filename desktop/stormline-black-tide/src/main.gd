@@ -12,6 +12,7 @@ const ExpeditionState = preload("res://src/expedition_state.gd")
 const ExpeditionStore = preload("res://src/expedition_store.gd")
 const Catalog = preload("res://src/expedition_catalog.gd")
 const Navigation = preload("res://src/public_navigation.gd")
+const Segments = preload("res://src/voyage_segments.gd")
 
 var sim = Sim.new()
 var review = Review.new()
@@ -45,6 +46,8 @@ var _work_order: Array = []
 var _nav_route := ""
 var _nav_index := 0
 var _nav_down: Dictionary = {}
+var segments = Segments.new()
+var _segment_down: Dictionary = {}
 
 
 func _ready() -> void:
@@ -73,6 +76,7 @@ func _ready() -> void:
 	hud.quit_requested.connect(_on_quit_requested)
 	hud.expedition_requested.connect(_on_expedition_requested)
 	hud.navigation_requested.connect(_on_navigation_action)
+	hud.segment_requested.connect(_on_segment_action)
 	expedition_hud.requested.connect(_on_expedition_action)
 	# The window close button must have the same consequences as the pause menu.
 	if get_window() == get_tree().root:
@@ -118,6 +122,8 @@ func _advance_simulation(delta: float, controls: Dictionary) -> void:
 	var prior_phase: String = String(sim.phase)
 	var view: Dictionary = sim.step(delta, controls)
 	review.observe(view)
+	if mode == "expedition":
+		segments.observe(view)
 	if sim.phase != prior_phase and sim.phase in ["success", "failed"]:
 		_clear_navigation()
 		screen = "debrief"
@@ -149,6 +155,7 @@ func _publish(delta: float, snap_camera: bool = false) -> void:
 		hud_view["navigation"] = Navigation.project(view, _nav_route, _nav_index)
 		if mode == "expedition":
 			hud_view["expedition_ui"] = true
+			hud_view["segments"] = segments.view()
 		elif screen == "debrief":
 			# Review is a HUD-only memory view; preserve the world's public projection.
 			hud_view["review"] = review.view()
@@ -159,6 +166,7 @@ func _publish(delta: float, snap_camera: bool = false) -> void:
 
 func _reset_mission() -> void:
 	_clear_navigation()
+	segments.clear()
 	sim.reset(selected_contract)
 	review.clear()
 	_tow_queued = false
@@ -249,6 +257,17 @@ func _input(event: InputEvent) -> void:
 	if not event is InputEventKey:
 		return
 	var key: Key = event.keycode if event.keycode != KEY_NONE else event.physical_keycode
+	if key in [KEY_J, KEY_K, KEY_L]:
+		if not event.pressed:
+			_segment_down.erase(key)
+			return
+		if event.echo or _segment_down.has(key):
+			return
+		_segment_down[key] = true
+		if mode == "expedition" and screen == "running":
+			_on_segment_action("start" if key == KEY_J else ("finish" if key == KEY_K else "cancel"))
+			get_viewport().set_input_as_handled()
+		return
 	if key not in [KEY_N, KEY_B, KEY_C]:
 		return
 	if not event.pressed:
@@ -265,6 +284,16 @@ func _input(event: InputEvent) -> void:
 func _clear_navigation() -> void:
 	_nav_route = ""
 	_nav_index = 0
+
+
+func _on_segment_action(action: String) -> void:
+	if mode != "expedition" or screen != "running":
+		return
+	match action:
+		"start": segments.start(sim.snapshot())
+		"finish": segments.finish(sim.snapshot())
+		"cancel": segments.cancel()
+	_publish(0.0)
 
 
 func _navigation_public() -> Dictionary:
@@ -376,6 +405,7 @@ func _on_expedition_requested() -> void:
 
 func _read_expedition() -> void:
 	_clear_navigation()
+	segments.clear()
 	_work_order = []
 	_archive = _expedition_store.load_state()
 	expedition_state = _archive.state
@@ -471,6 +501,7 @@ func _on_expedition_action(action: String, value: String) -> void:
 					if not _find_offer(ExpeditionState.offers(expedition_state), value).is_empty():
 						if value != _offer_id:
 							_clear_navigation()
+							segments.clear()
 						_offer_id = value
 				"launch":
 					if not _offer_id.is_empty() and _can_launch().ok:
@@ -560,6 +591,7 @@ func _launch_expedition() -> void:
 		screen = "archive"
 		_feedback("出航已入档，但驾驶初始化未通过。请继续并按中断规则返港，不能跳过费用重复出航。", true)
 		return
+	segments.clear()
 	screen = "running"
 	_terminal = {}
 	_tow_queued = false
@@ -653,6 +685,7 @@ func _save_expedition(next_state: Dictionary, expected: int, message: String) ->
 
 func _enter_dock() -> void:
 	_clear_navigation()
+	segments.clear()
 	_work_order = []
 	screen = "dock"
 	_terminal = {}
@@ -703,7 +736,8 @@ func _present_expedition() -> void:
 		"muted": muted, "notice": _expedition_notice, "error": _expedition_error, "conflict": _expedition_conflict,
 		"confirmation": _confirmation, "pending": not _pending.is_empty(), "retryable": _pending.has("change"),
 		"pending_state": _pending.get("change", {}).get("state", {}),
-		"terminal": _terminal, "review": review.view(), "voyage": sim.snapshot() if screen == "paused" else {}})
+		"terminal": _terminal, "review": review.view(), "segments": segments.view(),
+		"voyage": sim.snapshot() if screen == "paused" else {}})
 
 
 func _work_order_view(selected: Dictionary) -> Dictionary:

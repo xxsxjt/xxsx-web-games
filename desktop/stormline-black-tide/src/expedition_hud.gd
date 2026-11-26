@@ -8,6 +8,7 @@ const Catalog = preload("res://src/expedition_catalog.gd")
 const State = preload("res://src/expedition_state.gd")
 const Damage = preload("res://src/damage_control.gd")
 const Cockpit = preload("res://src/storm_hud.gd")
+const Segments = preload("res://src/voyage_segments.gd")
 const INK := Color("e9f5fa")
 const MUTED := Color("a9c4d3")
 const TEAL := Color("8bebe0")
@@ -423,6 +424,7 @@ func _build_paused(body: VBoxContainer, actions: HBoxContainer) -> void:
 	_label(panel, "远征禁用 R 重开。可继续驾驶；放弃或正常退出会按当前损耗办理救援，无交付报酬。", 18, AMBER)
 	_damage_summary(panel, voyage)
 	_energy_summary(panel, voyage, true)
+	_build_segments(body)
 	if not _view.pending:
 		_action(actions, "继续驾驶 [P / Esc]", "resume", true)
 		_action(actions, "放弃本次部署…", "abandon", false)
@@ -445,6 +447,7 @@ func _build_result(body: VBoxContainer, actions: HBoxContainer) -> void:
 			"缓流时窗已入档，可用于同区主回收。" if logged else "缓流时窗未入档。"], 18, TEAL if logged else AMBER)
 	_damage_summary(result, voyage)
 	_energy_summary(result, voyage, false)
+	_build_segments(body)
 	_label(result, "本部署不计入三合同快玩历史最佳。远征不能按 R 免费重开。", 17, MUTED)
 	if _view.pending:
 		_pending_summary(body)
@@ -477,6 +480,21 @@ func _pending_summary(body: VBoxContainer) -> void:
 		var guidance := "磁盘已有不同进度。重读前需明确舍弃本机未提交的结果；不会覆盖或合并档案。" if _view.conflict else \
 			"修复写入问题后可重试保存同一结果；不会重新计算报酬。"
 		_label(card, guidance, 17, MUTED)
+
+
+func _build_segments(body: VBoxContainer) -> void:
+	var observed: Dictionary = _view.get("segments", {})
+	if observed.is_empty():
+		return
+	var card := _card(body, "手动航段观察  /  保留 %d / 6" % observed.records.size())
+	_label(card, String(observed.policy), 17, MUTED).name = "SegmentPolicy"
+	_label(card, String(observed.method), 17, MUTED)
+	if not observed.active.is_empty():
+		_label(card, "活动航段（暂停冻结；恢复后K完成／L取消）\n" + Segments.describe(observed.active), 18, TEAL).name = "SegmentActive"
+	if observed.records.is_empty():
+		_label(card, "暂无完成航段。驾驶中 J 开始、K 完成、L 取消；取消不留记录。", 18, MUTED)
+	for record: Dictionary in observed.records:
+		_label(card, "航段 #%d\n%s" % [int(record.number), Segments.describe(record)], 18).name = "SegmentRecord%d" % int(record.number)
 
 
 func _add_pending_actions(actions: HBoxContainer) -> void:

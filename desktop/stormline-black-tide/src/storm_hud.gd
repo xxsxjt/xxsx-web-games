@@ -10,11 +10,13 @@ signal mute_requested
 signal quit_requested
 signal expedition_requested
 signal navigation_requested(action: String, value: String)
+signal segment_requested(action: String)
 
 const Radar = preload("res://src/radar.gd")
 const Sim = preload("res://src/storm_sim.gd")
 const Catalog = preload("res://src/expedition_catalog.gd")
 const Damage = preload("res://src/damage_control.gd")
+const Segments = preload("res://src/voyage_segments.gd")
 const ATTACH_RELATIVE_SPEED := Sim.ATTACH_RELATIVE_SPEED
 # Matches the raw-tension gate and snapshot cap in storm_sim.step().
 const TOW_RATED_LOAD := 1.0
@@ -101,6 +103,9 @@ var _navigation_summary: Label
 var _navigation_detail: Label
 var _navigation_pick: OptionButton
 var _navigation_ids: Array[String] = []
+var _segment_panel: PanelContainer
+var _segment_status: Label
+var _segment_buttons: Dictionary = {}
 
 func _ready() -> void:
 	layer = 15
@@ -332,11 +337,28 @@ func _build_live() -> void:
 		var button := _button(commands, pair[0], navigation_requested.emit.bind(pair[1], ""), false, Vector2(0, 34))
 		button.focus_mode = Control.FOCUS_NONE
 	_label(nav, "参考环≠拖缆／安全走廊 · 手动驾驶", 16, DIM, true)
+	_segment_panel = _panel(_live, true)
+	_segment_panel.anchor_left = 0.5
+	_segment_panel.anchor_right = 0.5
+	_segment_panel.offset_left = -200.0
+	_segment_panel.offset_right = 200.0
+	_segment_panel.offset_top = 226.0
+	var segment_box := _column(_segment_panel, 4)
+	_segment_status = _label(segment_box, "", 17, TEAL, true)
+	var segment_commands := _row(segment_box, 6)
+	for pair in [["开始 J", "start"], ["完成 K", "finish"], ["取消 L", "cancel"]]:
+		var button := _button(segment_commands, pair[0], segment_requested.emit.bind(pair[1]), false, Vector2(0, 34))
+		button.name = "Segment" + String(pair[1]).capitalize()
+		button.focus_mode = Control.FOCUS_NONE
+		_segment_buttons[pair[1]] = button
+	_label(segment_box, "仅本航 · 最近6段替旧 · P查看／比较", 16, DIM, true)
+	_segment_panel.hide()
 
 func _present_live(view: Dictionary, contract: Dictionary) -> void:
 	_present_navigation(view.get("navigation", {}))
 	var expedition := _dictionary(view.get("expedition", {}))
 	var in_expedition := not expedition.is_empty()
+	_present_segments(view, in_expedition)
 	var phase := String(view.get("phase", "approach"))
 	var scanned := bool(view.get("scanned", false))
 	var towing := bool(view.get("tow_attached", false))
@@ -466,6 +488,19 @@ func _present_navigation(nav: Dictionary) -> void:
 	var selected := _navigation_ids.find(String(nav.get("route_id", "")))
 	_navigation_pick.select(selected)
 	_navigation_pick.tooltip_text = "选择公开路线（不自动驾驶）；N 换线、B 手动下一点、C 清空。"
+
+
+func _present_segments(view: Dictionary, in_expedition: bool) -> void:
+	_segment_panel.visible = in_expedition and view.has("segments")
+	if not _segment_panel.visible:
+		return
+	var observed: Dictionary = view.segments
+	var active: Dictionary = observed.active
+	_segment_status.text = "航段未开始 · 已留 %d/6" % observed.records.size() if active.is_empty() else "航段观察中 · %s\n逐步行程 %s" % [Segments.reading(float(active.elapsed_s), "秒"), Segments.reading(float(active.distance_m), "米")]
+	var running := String(view.get("screen", "")) == "running"
+	_segment_buttons.start.disabled = not running or not active.is_empty()
+	_segment_buttons.finish.disabled = not running or active.is_empty()
+	_segment_buttons.cancel.disabled = not running or active.is_empty()
 
 
 func _patch_guidance(view: Dictionary, damage: Dictionary) -> String:
