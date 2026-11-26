@@ -241,7 +241,7 @@ func _old_shape(path: String) -> void:
 	var record: Dictionary = _segments(app).records[0]
 	_check(not first.has("energy_budget") and record.energy_spent_points == null and record.elapsed_s == DT and record.battery_delta_pp < 0.0 and not _state(app).has("damage_control"), "old expedition observed without adding damage/energy/persistence extension; unavailable is not zero")
 	_native(app, "start")
-	var metrics := await _sail(app)
+	var metrics := await _sail(app, true, true)
 	_check(metrics.view.phase == "success" and _segments(app).records.size() == 2 and _segments(app).records.back().reason == "terminal" and _segments(app).records.back().end.time == metrics.view.time, "real successful old-shape delivery also closes at final public snapshot")
 	app.call("_publish", 0.0)
 	_check(_segments(app).records.size() == 2, "successful debrief cannot duplicate terminal observation")
@@ -290,4 +290,24 @@ func _segment_rectangles(app: Node) -> void:
 		var panel: Control = hud.get("_segment_panel")
 		for button: Button in hud.get("_segment_buttons").values():
 			_check(_rect(panel).encloses(_rect(button)) and button.get_theme_font_size("font_size") == 18 and button.focus_mode == Control.FOCUS_NONE, "four viewport native segment rectangles and no stale cockpit Enter focus: " + str(dimensions))
+	viewport.size = Vector2i(1280, 720)
+
+
+func _geometry(app: Node, note: String) -> void:
+	await super._geometry(app, note)
+	if app.get("screen") != "running":
+		return
+	var viewport := app.get_viewport() as SubViewport
+	var hud: CanvasLayer = app.get("hud")
+	for dimensions: Vector2i in VIEWPORTS:
+		viewport.size = dimensions
+		for frame in range(4):
+			await process_frame
+		for property: String in ["_dock", "_navigation_panel", "_segment_panel"]:
+			var panel: Control = hud.get(property)
+			if not panel.is_visible_in_tree():
+				continue
+			for child: Control in panel.find_children("*", "Control", true, false):
+				if child.is_visible_in_tree():
+					_check(_rect(panel).grow(1).encloses(_rect(child)), "four viewport nested controls " + property + "/" + str(child.get_class()) + str(dimensions))
 	viewport.size = Vector2i(1280, 720)

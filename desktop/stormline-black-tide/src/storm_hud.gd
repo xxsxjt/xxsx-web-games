@@ -342,8 +342,8 @@ func _build_live() -> void:
 	_segment_panel.anchor_right = 0.5
 	_segment_panel.offset_left = -200.0
 	_segment_panel.offset_right = 200.0
-	_segment_panel.offset_top = 226.0
-	var segment_box := _column(_segment_panel, 4)
+	_segment_panel.offset_top = 216.0
+	var segment_box := _column(_segment_panel, 2)
 	_segment_status = _label(segment_box, "", 17, TEAL, true)
 	var segment_commands := _row(segment_box, 6)
 	for pair in [["开始 J", "start"], ["完成 K", "finish"], ["取消 L", "cancel"]]:
