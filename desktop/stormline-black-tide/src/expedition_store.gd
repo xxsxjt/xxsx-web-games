@@ -3,6 +3,7 @@ extends RefCounted
 
 const State = preload("res://src/expedition_state.gd")
 const MAX_BYTES := 98304
+const RECOVERY_MAX_BYTES := 1048576
 const FORMAT := "stormline-expedition"
 const VERSION := 1
 
@@ -10,6 +11,7 @@ var _path: String
 var _observed := false
 var _exists := false
 var _digest := ""
+var _size := -1
 
 
 func _init(path: String) -> void:
@@ -95,25 +97,39 @@ func restore_backup() -> Dictionary:
 		return _result(false, {}, "没有可验证的远征备份。", bool(current.exists))
 	if current.exists:
 		if not current.get("raw_read", false):
-			return _result(false, {}, "坏主档不能完整读取以便保留，已停止恢复。", true, false, true)
+			return _result(false, {}, "坏主档超过有界恢复容量或不能完整读取，已停止恢复。", true, false, true)
 		var archive := _path + ".corrupt-" + String(current.digest).substr(0, 12)
-		var archive_error := _replace_bytes(archive, current.bytes)
+		var archive_error := _archive_bytes(archive, current.bytes)
 		if not archive_error.is_empty():
 			return _result(false, {}, "不能保留坏主档：" + archive_error, true, false, true)
-	if not _same_observation(_read(_path)) or _read(_path + ".bak").digest != backup.digest:
+		var archived := _read(archive)
+		if not archived.get("raw_read", false) or archived.digest != current.digest or archived.bytes != current.bytes:
+			return _result(false, {}, "坏主档归档读回指纹不一致，已停止恢复。", true, true, true)
+	# Re-read both source files after archive I/O. The valid backup and corrupt
+	# primary must still match the exact snapshots that were inspected above.
+	var primary_check := _read(_path)
+	var backup_check := _read(_path + ".bak")
+	var archive_check := _read(_path + ".corrupt-" + String(current.digest).substr(0, 12)) if current.exists else {}
+	var archive_verified: bool = not current.exists
+	if current.exists:
+		archive_verified = bool(archive_check.get("raw_read", false)) \
+			and String(archive_check.get("digest", "")) == String(current.digest) \
+			and archive_check.get("bytes", PackedByteArray()) == current.bytes
+	if (not _same_observation(primary_check) or not backup_check.ok or backup_check.digest != backup.digest
+		or backup_check.bytes != backup.bytes or not archive_verified):
 		return _result(false, {}, "恢复期间主档或备份改变，未替换。", bool(current.exists), true, true)
 	var error := _replace_bytes(_path, backup.bytes)
 	if not error.is_empty():
 		return _result(false, {}, "恢复失败：" + error, bool(current.exists), false, true)
 	var restored := _read(_path)
-	if not restored.ok or restored.digest != backup.digest:
+	if not restored.ok or restored.digest != backup.digest or restored.bytes != backup.bytes:
 		return _result(false, {}, "恢复后读回失败，请重新读取。", bool(restored.exists), true, true)
 	_observe(restored)
 	return _result(true, restored.state, "已明确恢复上一份有效备份；坏主档已另存 .corrupt-摘要。若备份含航行记录，仍须承担中断返港后果。", true, false, true)
 
 
 func _read(path: String) -> Dictionary:
-	var absent := {"ok": false, "state": {}, "exists": false, "digest": "", "bytes": PackedByteArray(), "message": "档案不存在。"}
+	var absent := {"ok": false, "state": {}, "exists": false, "digest": "", "size": -1, "bytes": PackedByteArray(), "message": "档案不存在。"}
 	if path.is_empty():
 		absent.message = "档案路径为空。"
 		return absent
@@ -123,14 +139,15 @@ func _read(path: String) -> Dictionary:
 			absent.exists = true
 			absent.message = "档案路径指向目录，不能读取或覆盖。"
 		return absent
-	var result := {"ok": false, "state": {}, "exists": true, "digest": "", "bytes": PackedByteArray(), "raw_read": false, "message": "档案读取失败。"}
+	var result := {"ok": false, "state": {}, "exists": true, "digest": "", "size": -1, "bytes": PackedByteArray(), "raw_read": false, "message": "档案读取失败。"}
 	var file := FileAccess.open(path, FileAccess.READ)
 	if file == null:
 		return result
 	var size := file.get_length()
-	if size > MAX_BYTES:
+	result.size = size
+	if size > RECOVERY_MAX_BYTES:
 		file.close()
-		result.message = "档案为空或超过 %d 字节限制。" % MAX_BYTES
+		result.message = "档案超过有界恢复容量 %d 字节；拒绝完整保留或恢复。" % RECOVERY_MAX_BYTES
 		return result
 	var bytes := file.get_buffer(size)
 	var read_error := file.get_error()
@@ -140,6 +157,9 @@ func _read(path: String) -> Dictionary:
 	result.bytes = bytes
 	result.raw_read = true
 	result.digest = _hash(bytes)
+	if size > MAX_BYTES:
+		result.message = "档案超过可接受大小 %d 字节；仅允许在有界容量内明确保留后恢复。" % MAX_BYTES
+		return result
 	if size == 0:
 		result.message = "档案为空。"
 		return result
@@ -219,14 +239,41 @@ func _replace_bytes(path: String, bytes: PackedByteArray) -> String:
 	return ""
 
 
+func _archive_bytes(path: String, bytes: PackedByteArray) -> String:
+	# Never overwrite a pre-existing quarantine target. Identical bytes mean the
+	# exact archive already exists; any other object/content is a hard failure.
+	if FileAccess.file_exists(path) or DirAccess.dir_exists_absolute(_absolute(path)):
+		var existing := _read(path)
+		if existing.get("raw_read", false) and existing.digest == _hash(bytes) and existing.bytes == bytes:
+			return ""
+		return "归档目标已存在且不能确认内容相同。"
+	var temp := path + ".tmp-" + Crypto.new().generate_random_bytes(6).hex_encode()
+	var error := _write_checked(temp, bytes)
+	if not error.is_empty():
+		_remove(temp)
+		return error
+	if FileAccess.file_exists(path) or DirAccess.dir_exists_absolute(_absolute(path)):
+		_remove(temp)
+		return "归档目标在写入期间出现，已停止覆盖。"
+	var renamed := DirAccess.rename_absolute(_absolute(temp), _absolute(path))
+	if renamed != OK:
+		_remove(temp)
+		return "归档替换失败（错误 %d）。" % renamed
+	var archived := _read(path)
+	if not archived.get("raw_read", false) or archived.digest != _hash(bytes) or archived.bytes != bytes:
+		return "归档写后读回指纹核验失败。"
+	return ""
+
+
 func _observe(read: Dictionary) -> void:
 	_observed = true
 	_exists = bool(read.exists)
 	_digest = String(read.digest)
+	_size = int(read.get("size", -1))
 
 
 func _same_observation(read: Dictionary) -> bool:
-	return bool(read.exists) == _exists and String(read.digest) == _digest
+	return bool(read.exists) == _exists and String(read.digest) == _digest and int(read.get("size", -1)) == _size
 
 
 func _result(ok: bool, state: Dictionary, message: String, exists: bool = false, conflict: bool = false, backup_available: bool = false) -> Dictionary:

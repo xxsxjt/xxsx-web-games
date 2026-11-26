@@ -353,9 +353,7 @@ func step(delta: float, input: Dictionary = {}) -> Dictionary:
 	_apply_reefs(dt)
 	# A contact on the would-be completion tick interrupts the work before any
 	# kit can be consumed. Flooding affects drive from the next fixed tick.
-	if _damage != null:
-		if _damage.step(dt, input, initial_speed, throttle, cable_tension, storm_intensity):
-			_emit("patched", "临时封堵完成，耗用一包。已封最多 1.0 破口；结构损伤仍须返港维修。")
+	_update_damage_control(dt, input, initial_speed)
 	var propulsion_draw: float = absf(throttle) * (0.40 if power_profile == 0 else 0.30) * propulsion_energy_multiplier
 	var energy_draw: float = 0.13 + propulsion_draw
 	if scanning:
@@ -383,6 +381,16 @@ func step(delta: float, input: Dictionary = {}) -> Dictionary:
 	if phase == "return":
 		_update_docking(dt)
 	return snapshot()
+
+
+func _update_damage_control(dt: float, input: Dictionary, pre_physics_speed: float) -> void:
+	if _damage == null:
+		return
+	# Work is accepted only when both ends of this physics tick are below the
+	# strict limit; using the greater speed rejects either threshold crossing.
+	var completion_speed := maxf(pre_physics_speed, velocity.length())
+	if _damage.step(dt, input, completion_speed, throttle, cable_tension, storm_intensity):
+		_emit("patched", "临时封堵完成，耗用一包。已封最多 1.0 破口；结构损伤仍须返港维修。")
 
 
 func _empty_energy() -> Dictionary:

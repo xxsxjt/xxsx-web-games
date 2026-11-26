@@ -22,6 +22,7 @@ func _run() -> void:
 		for score: int in [9800, 10000]:
 			_check(records.record(id, {"score": score, "time": 2.0, "grade": "S", "hull": 100.0, "peak_tension": 0.0}) == Records.NEW_BEST, "seed isolated score")
 	_original_records = _record_bytes()
+	_test_patch_state_machine()
 	await _legacy_enable(_folder.path_join("legacy.json"))
 	await _damage_journey(_folder.path_join("damage.json"))
 	await _digital_campaign(_folder.path_join("drive.json"), ["drive", "sonar"])
@@ -94,6 +95,7 @@ func _damage_journey(path: String) -> void:
 	var active := _state(app).duplicate(true)
 	var sim = app.get("sim")
 	var view: Dictionary = sim.snapshot()
+	_test_patch_projection(app, path)
 	var reef: Dictionary = sim.contract.hazards.back()
 	# Continuous Pilot input for the intentional collision, not field injection.
 	for tick in 1800:
@@ -228,6 +230,113 @@ func _damage_journey(path: String) -> void:
 		reverse_energy_observed, reverse_energy_expected, reverse_energy_legacy,
 		wet.damage_control.water, pumped.damage_control.water, terminal.time, leaking_again.damage_control.water, abandoned.damage_control.breach, repaired.damage_control.breach])
 	await _close(app)
+
+
+func _test_patch_projection(app: Node, path: String) -> void:
+	var hud: Node = app.get("hud")
+	var sim = app.get("sim")
+	var source: Dictionary = sim.snapshot()
+	var source_copy := source.duplicate(true)
+	var view := {"screen": "running", "velocity": Vector2.ZERO, "throttle": 0.0, "tension": 0.0}
+	var damage := {"breach": 2.5, "sealed": 0.0, "kits": 2, "patch_progress": 0.0, "patches_used": 0}
+	var text := String(hud.call("_patch_guidance", view, damage))
+	_check(text.contains("H 条件满足") and not text.contains("暂不可封堵"), "UI projection readies a valid H seal")
+	var cases := [
+		{"name": "speed exact boundary", "key": "velocity", "value": Vector2(Damage.PATCH_SPEED, 0.0), "reason": "速度超限"},
+		{"name": "throttle above boundary", "key": "throttle", "value": Damage.PATCH_THROTTLE + 0.001, "reason": "油门超限"},
+		{"name": "tension exact boundary", "key": "tension", "value": Damage.PATCH_TENSION, "reason": "缆张超限"},
+	]
+	for check: Dictionary in cases:
+		var blocked_view: Dictionary = view.duplicate(true)
+		blocked_view[String(check.key)] = check.value
+		var blocked := String(hud.call("_patch_guidance", blocked_view, damage))
+		_check(blocked.contains(String(check.reason)), "projection reports " + String(check.name))
+	var throttle_edge: Dictionary = view.duplicate(true)
+	throttle_edge.throttle = Damage.PATCH_THROTTLE
+	var tension_below: Dictionary = view.duplicate(true)
+	tension_below.tension = Damage.PATCH_TENSION - 0.001
+	var speed_below: Dictionary = view.duplicate(true)
+	speed_below.velocity = Vector2(Damage.PATCH_SPEED - 0.001, 0.0)
+	_check(not String(hud.call("_patch_guidance", throttle_edge, damage)).contains("油门超限")
+		and not String(hud.call("_patch_guidance", tension_below, damage)).contains("缆张超限")
+		and not String(hud.call("_patch_guidance", speed_below, damage)).contains("速度超限"),
+		"projection preserves inclusive throttle and strict speed/tension gate boundaries")
+	var unavailable: Dictionary = damage.duplicate(true)
+	unavailable.kits = 0
+	unavailable.sealed = unavailable.breach
+	var unavailable_text := String(hud.call("_patch_guidance", view, unavailable))
+	_check(unavailable_text.contains("无封堵包") and unavailable_text.contains("无开放破口"),
+		"projection reports missing kit and no open breach independently")
+	var all_blockers := view.duplicate(true)
+	all_blockers.velocity = Vector2(Damage.PATCH_SPEED, 0.0)
+	all_blockers.throttle = Damage.PATCH_THROTTLE + 0.1
+	all_blockers.tension = Damage.PATCH_TENSION
+	var all_text := String(hud.call("_patch_guidance", all_blockers, unavailable))
+	_check(all_text.contains("速度超限") and all_text.contains("油门超限") and all_text.contains("缆张超限")
+		and all_text.contains("无封堵包") and all_text.contains("无开放破口"), "projection lists every simultaneous H blocker")
+	var next_kit: Dictionary = damage.duplicate(true)
+	next_kit.sealed = 1.0
+	next_kit.kits = 1
+	next_kit.patches_used = 1
+	var next_text := String(hud.call("_patch_guidance", view, next_kit))
+	_check(next_text.contains("松开 H 再按住") and not String(hud.call("_patch_guidance", view, damage)).contains("松开 H 再按住"),
+		"projection instructs release and re-press only after a completed kit with breach remaining")
+	var paused_view: Dictionary = view.duplicate(true)
+	paused_view.screen = "paused"
+	_check(String(hud.call("_patch_guidance", paused_view, damage)).contains("部署已暂停"),
+		"projection distinguishes paused deployment from live H readiness")
+	_check(source == source_copy and _saved(path) == _state(app),
+		"live H presentation is a read-only snapshot projection and leaves archive bytes/state unchanged")
+	app.call("_publish", 0.0)
+	var live_view: Dictionary = source.duplicate(true)
+	live_view.screen = String(app.get("screen"))
+	_check(String(hud.get("_damage_status").text).contains(String(hud.call("_patch_guidance", live_view, source.damage_control)))
+		and String(hud.get("_damage_status").text).contains("速度 <2.2、油门 ≤0.05、缆张 <68%"),
+		"formal HUD renders live derived H blockers and exact rule thresholds")
+	_check(sim.snapshot() == source_copy and _saved(path) == _state(app),
+		"publishing H guidance does not mutate simulator snapshot or saved state")
+
+
+func _test_patch_state_machine() -> void:
+	var damage := Damage.new({"breach": 2.5, "kits": 2})
+	var valid := {"patch": true}
+	var completes_first: bool = damage.step(Damage.PATCH_SECONDS, valid,
+		Damage.PATCH_SPEED - 0.001, Damage.PATCH_THROTTLE, Damage.PATCH_TENSION - 0.001, 0.5)
+	_check(completes_first and damage.kits == 1 and damage.patches_used == 1
+		and is_equal_approx(damage.sealed, 1.0), "DamageControl.step accepts exact throttle boundary and completes one kit")
+	var held_again: bool = damage.step(Damage.PATCH_SECONDS, valid,
+		Damage.PATCH_SPEED - 0.001, 0.0, 0.0, 0.5)
+	_check(not held_again and damage.kits == 1 and damage.patch_progress == 0.0,
+		"continuous H remains latched after completion and cannot consume the next kit")
+	damage.step(1.0, {"patch": true}, Damage.PATCH_SPEED - 0.001, 0.0, 0.0, 0.5)
+	var interrupted: bool = damage.step(1.0, {"patch": true}, Damage.PATCH_SPEED, 0.0, 0.0, 0.5)
+	_check(not interrupted and damage.kits == 1 and damage.patch_progress == 0.0,
+		"speed boundary interrupts progress and resets it without consuming a kit")
+	var throttle_reject := Damage.new({"breach": 1.0, "kits": 1})
+	var above_throttle: bool = throttle_reject.step(1.0, valid, 0.0, Damage.PATCH_THROTTLE + 0.001, 0.0, 0.5)
+	var tension_reject := Damage.new({"breach": 1.0, "kits": 1})
+	var exact_tension: bool = tension_reject.step(1.0, valid, 0.0, 0.0, Damage.PATCH_TENSION, 0.5)
+	_check(not above_throttle and throttle_reject.patch_progress == 0.0
+		and not exact_tension and tension_reject.patch_progress == 0.0,
+		"DamageControl.step rejects throttle above and tension at their exact boundaries")
+	damage.step(0.0 + 0.001, {"patch": false}, 0.0, 0.0, 0.0, 0.5)
+	var second_partial: bool = damage.step(1.0, valid, Damage.PATCH_SPEED - 0.001, 0.0, 0.0, 0.5)
+	_check(not second_partial and is_equal_approx(damage.patch_progress, 0.2),
+		"releasing H re-arms a fresh hold after completion and resets")
+	damage.step(1.0, {"patch": false}, 0.0, 0.0, 0.0, 0.5)
+	var completes_second: bool = damage.step(Damage.PATCH_SECONDS, valid,
+		Damage.PATCH_SPEED - 0.001, 0.0, 0.0, 0.5)
+	_check(completes_second and damage.kits == 0 and damage.patches_used == 2
+		and is_equal_approx(damage.sealed, 2.0) and damage.breach > damage.sealed,
+		"a released and re-pressed H completes another kit while breach remains")
+	var no_kit: bool = damage.step(Damage.PATCH_SECONDS, valid, 0.0, 0.0, 0.0, 0.5)
+	_check(not no_kit and damage.patch_progress == 0.0 and damage.kits == 0,
+		"no kit blocks subsequent sealing without phantom progress or consumption")
+	var sealed := Damage.new({"breach": 1.0, "kits": 1})
+	sealed.sealed = sealed.breach
+	var no_open_breach: bool = sealed.step(Damage.PATCH_SECONDS, valid, 0.0, 0.0, 0.0, 0.5)
+	_check(not no_open_breach and sealed.kits == 1 and sealed.patch_progress == 0.0,
+		"no open breach blocks H without spending an unused kit")
 
 
 func _digital_campaign(path: String, modules: Array) -> void:

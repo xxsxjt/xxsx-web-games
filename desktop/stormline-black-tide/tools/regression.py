@@ -50,6 +50,40 @@ def isolated_environment(profile):
     return env
 
 
+def scan_unexpected_player_files(profile):
+    """List known player-save artifacts under one isolated profile, without following links."""
+    root = Path(profile)
+    info = root.lstat()
+    reparse = getattr(info, "st_file_attributes", 0) & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)
+    if not stat.S_ISDIR(info.st_mode) or stat.S_ISLNK(info.st_mode) or reparse:
+        raise ValueError("Isolated user profile must be a real directory")
+
+    def is_player_file(name):
+        lowered = name.lower()
+        if "best-contracts" in lowered:
+            return True
+        expedition = "stormline-expedition-v1.json"
+        return (lowered == expedition or lowered == expedition + ".bak"
+                or lowered.startswith(expedition + ".tmp-")
+                or lowered.startswith(expedition + ".corrupt-"))
+
+    found = []
+    pending = [root]
+    while pending:
+        folder = pending.pop()
+        with os.scandir(folder) as entries:
+            for entry in entries:
+                entry_info = entry.stat(follow_symlinks=False)
+                is_link = entry.is_symlink() or bool(
+                    getattr(entry_info, "st_file_attributes", 0)
+                    & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0))
+                if is_player_file(entry.name) and (stat.S_ISREG(entry_info.st_mode) or is_link):
+                    found.append(Path(entry.path).relative_to(root).as_posix())
+                elif stat.S_ISDIR(entry_info.st_mode) and not is_link:
+                    pending.append(Path(entry.path))
+    return sorted(found)
+
+
 def isolate_generated_resources(root):
     """Keep retained .gd evidence under build out of Godot's resource scanner."""
     folder = root / "build"
@@ -128,14 +162,15 @@ def main():
                 print(line, flush=True)
         if name == "import" and not passed:
             break
-    score_files = sorted(path.relative_to(profile).as_posix() for path in profile.rglob("*best-contracts*")
-                         if path.is_file())
+    unexpected_player_files = scan_unexpected_player_files(profile)
+    score_files = [path for path in unexpected_player_files if "best-contracts" in Path(path).name.lower()]
     summary = {"engine": version.stdout.strip(), "headless_only": True,
                "isolated_user_profile": str(profile.relative_to(root)), "isolated_profile_score_files": score_files,
+               "unexpected_player_files": unexpected_player_files,
                "desktop_playtested": False, "checks": results,
                "source_hashes": sources, "sources_unchanged": sources == source_hashes(root),
-               "passed": not score_files and len(results) == len(jobs) and all(item["passed"] for item in results)
-                          and sources == source_hashes(root)}
+               "passed": not unexpected_player_files and len(results) == len(jobs) and all(item["passed"] for item in results)
+                           and sources == source_hashes(root)}
     (evidence / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"Evidence: {evidence}", flush=True)
     return 0 if summary["passed"] else 1

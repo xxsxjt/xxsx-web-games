@@ -11,7 +11,7 @@ import subprocess
 import tempfile
 
 from build_windows import check_pck
-from regression import isolated_environment
+from regression import isolated_environment, scan_unexpected_player_files
 
 
 ENGINE_VERSION = "4.3.stable.official.77dcf97d8"
@@ -90,9 +90,10 @@ def main():
                           if re.search(r"SCRIPT ERROR|ERROR:|WARNING:|\bFAIL\b", line, re.I)})
     probe = json.loads(probe_result.read_text(encoding="utf-8")) if probe_result.is_file() else {}
     expected_scripts = sorted(name for name in static["resolved_runtime_resources"] if name.endswith(".gd"))
-    score_writes = sorted(path.relative_to(run).as_posix()
-                          for path in run.rglob("*best-contracts*") if path.is_file())
-    passed = (exit_code == 0 and not diagnostics and not timed_out and not score_writes and engine_log.is_file()
+    unexpected_player_files = scan_unexpected_player_files(run / "user-profile")
+    score_writes = [Path("user-profile", path).as_posix() for path in unexpected_player_files
+                    if "best-contracts" in Path(path).name.lower()]
+    passed = (exit_code == 0 and not diagnostics and not timed_out and not unexpected_player_files and engine_log.is_file()
               and set(REQUIRED_RUNTIME_SCRIPTS).issubset(expected_scripts)
               and sorted(probe.get("loaded_scripts", [])) == expected_scripts
               and probe.get("pack_mounted") is True and probe.get("main_scene_loaded") is True
@@ -105,6 +106,7 @@ def main():
         "exit_code": exit_code, "timed_out": timed_out, "passed": passed,
         "diagnostic_count": len(diagnostics), "diagnostics": diagnostics, "probe": probe,
         "isolated_user_profile": True, "best_score_files_created": score_writes,
+        "unexpected_player_files": unexpected_player_files,
         "exported_game_executed": False, "main_scene_instantiated": False,
         "rendering_tested": False, "audio_played": False, "interactive_or_manual_playtest": False,
         "command": command, "evidence_log": str(log), "engine_log": str(engine_log),

@@ -15,6 +15,7 @@ func _init() -> void:
 	_controls()
 	_rules()
 	_model()
+	_patch_speed_crossings()
 	_energy_matrix()
 	if "--compare-stage27" in OS.get_cmdline_user_args():
 		_legacy_oracle()
@@ -230,6 +231,70 @@ func _model() -> void:
 	_test_energy_accounting()
 	extended.reset("black-tide")
 	_expect(not extended.snapshot().has("damage_control"), "quick reset removes all damage-control state")
+
+
+func _patch_speed_crossings() -> void:
+	var campaign := State.new_campaign(true)
+	var prepared: Dictionary = State.act(campaign, "prepare_kit")
+	_expect(prepared.ok, "speed-crossing fixture prepares one real kit")
+	if not prepared.ok:
+		return
+	campaign = prepared.state
+	campaign.damage_control.breach = 1.0
+	var launched: Dictionary = State.act(campaign, "launch", {"offer_id": "black-tide-survey-safe"})
+	_expect(launched.ok, "speed-crossing fixture launches damage-control expedition")
+	if not launched.ok:
+		return
+	var sim := Sim.new()
+	var spec: Dictionary = State.launch_spec(launched.state)
+	var reset_ok := sim.reset_expedition(spec)
+	_expect(reset_ok, "speed-crossing fixture accepted by simulator")
+	if not reset_ok:
+		return
+
+	var upward_crossing := false
+	for degree in 360:
+		if not sim.reset_expedition(spec):
+			break
+		# Increase only this synthetic fixture's thrust to force a one-tick
+		# upward crossing without depending on changing weather or navigation.
+		sim._profiles = Sim.PROFILES.duplicate(true)
+		sim._profiles[0].thrust = 40.0
+		var direction := Vector2(cos(deg_to_rad(float(degree))), sin(deg_to_rad(float(degree))))
+		sim.position = Vector2(-100.0, 100.0)
+		sim.velocity = direction * 2.1999
+		sim.heading = atan2(direction.x, -direction.y)
+		sim._damage.patch_progress = 1.0 - DT / Damage.PATCH_SECONDS
+		var pre_speed := sim.velocity.length()
+		sim.step(DT, {"patch": true, "throttle": 0.05})
+		var post_speed := sim.velocity.length()
+		if pre_speed < Damage.PATCH_SPEED and post_speed >= Damage.PATCH_SPEED:
+			var damage: Dictionary = sim.snapshot().damage_control
+			upward_crossing = true
+			_expect(damage.kits == 1 and damage.patches_used == 0 and damage.sealed == 0.0
+				and damage.patch_progress == 0.0, "upward threshold crossing interrupts final seal tick before kit use")
+			break
+	_expect(upward_crossing, "deterministic upward speed threshold crossing fixture found")
+
+	var downward_crossing := false
+	for degree in 360:
+		if not sim.reset_expedition(spec):
+			break
+		var direction := Vector2(cos(deg_to_rad(float(degree))), sin(deg_to_rad(float(degree))))
+		sim.position = Vector2(-100.0, 100.0)
+		sim.velocity = direction * 2.2001
+		sim.heading = atan2(direction.x, -direction.y)
+		sim._damage.patch_progress = 1.0 - DT / Damage.PATCH_SECONDS
+		var pre_speed := sim.velocity.length()
+		sim.step(DT, {"patch": true, "throttle": 0.0})
+		var post_speed := sim.velocity.length()
+		if pre_speed >= Damage.PATCH_SPEED and post_speed < Damage.PATCH_SPEED:
+			var damage: Dictionary = sim.snapshot().damage_control
+			downward_crossing = true
+			_expect(damage.kits == 1 and damage.patches_used == 0 and damage.sealed == 0.0
+				and damage.patch_progress == 0.0, "downward threshold crossing cannot complete using post-physics speed alone")
+			break
+	_expect(downward_crossing, "deterministic downward speed threshold crossing fixture found")
 
 
 func _test_energy_accounting() -> void:

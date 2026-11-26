@@ -59,6 +59,7 @@ class SmokeExportTests(unittest.TestCase):
             scratch = root / "scratch"
             required = list(SMOKE.REQUIRED_RUNTIME_SCRIPTS)
             loaded = required.copy()
+            unexpected_artifact = None
 
             def run(command, **options):
                 self.assertEqual(command[0], "Godot.exe")
@@ -73,6 +74,14 @@ class SmokeExportTests(unittest.TestCase):
                     return subprocess.CompletedProcess(command, 0, SMOKE.ENGINE_VERSION, "")
                 self.assertEqual(command[8:11], ["--script", "res://package_probe.gd", "--"])
                 self.assertEqual(Path(command[11]), pack.resolve())
+                if unexpected_artifact == "ENGINE_CACHE_CONTROL":
+                    artifact = Path(options["env"]["LOCALAPPDATA"]) / "Godot" / "cache" / "shader_cache.bin"
+                    artifact.parent.mkdir(parents=True, exist_ok=True)
+                    artifact.write_bytes(b"engine cache")
+                elif unexpected_artifact is not None:
+                    artifact = Path(options["env"]["APPDATA"]) / unexpected_artifact
+                    artifact.parent.mkdir(parents=True, exist_ok=True)
+                    artifact.write_text("unexpected player artifact", encoding="utf-8")
                 Path(command[7]).touch()
                 Path(command[12]).write_text(json.dumps({
                     "passed": True, "pack_mounted": True, "main_scene_loaded": True,
@@ -101,6 +110,21 @@ class SmokeExportTests(unittest.TestCase):
                                                                          "resolved_runtime_resources": stale}):
                             self.assertEqual(SMOKE.main(), 1, "missing dependency in both pack and probe must fail")
                         loaded.append(missing)
+                for artifact in ("nested/best-contracts.json", "stormline-expedition-v1.json",
+                                 "stormline-expedition-v1.json.bak",
+                                 "stormline-expedition-v1.json.tmp-abc123",
+                                 "stormline-expedition-v1.json.corrupt-deadbeef"):
+                    with self.subTest(unexpected_player_artifact=artifact):
+                        unexpected_artifact = artifact
+                        self.assertEqual(SMOKE.main(), 1, "player artifact must fail the probe")
+                        summaries = sorted(scratch.glob("stormline-pck-probe-*/smoke.json"),
+                                           key=lambda item: item.stat().st_mtime_ns)
+                        result = json.loads(summaries[-1].read_text(encoding="utf-8"))
+                        self.assertEqual(len(result["unexpected_player_files"]), 1)
+                        self.assertTrue(result["unexpected_player_files"][0].endswith(Path(artifact).as_posix()))
+                        self.assertIn("best_score_files_created", result)
+                unexpected_artifact = "ENGINE_CACHE_CONTROL"
+                self.assertEqual(SMOKE.main(), 0, "engine cache control must remain clean")
 
 
 if __name__ == "__main__":

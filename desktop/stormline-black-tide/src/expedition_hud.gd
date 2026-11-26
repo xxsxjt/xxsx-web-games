@@ -345,7 +345,7 @@ func _build_damage_outfit(body: VBoxContainer, state: Dictionary) -> void:
 		_action(panel, "明确启用损管…", "enable_damage", false, bool(_view.conflict))
 		return
 	_label(panel, "结构破口 %.2f / %.0f  ·  预装封堵包 %d / %d" % [float(state.damage_control.breach), Damage.MAX_BREACH, int(state.damage_control.kits), Damage.MAX_KITS], 19, TEAL)
-	_label(panel, "仓库材料与预装包一比一转移；最多携两包。G 切换排水泵，实际排水每秒耗电 %.2f。H 连续封堵 %.0f 秒：船速 <%.1f、油门 ≤%.2f、缆张 <68%%；松键或超限中断，完成才耗一包。每包暂封最多 %.1f，结构仍须返港付费维修。" % [Damage.PUMP_DRAW, Damage.PATCH_SECONDS, Damage.PATCH_SPEED, Damage.PATCH_THROTTLE, Damage.PATCH_AMOUNT], 17, MUTED)
+	_label(panel, "仓库材料与预装包一比一转移；最多携两包。G 切换排水泵，实际排水每秒耗电 %.2f。H 连续封堵 %.0f 秒：船速 <%.1f、油门 ≤%.2f、缆张 <68%%；松键或超限中断，完成才耗一包。若仍有破口，完成后先松开 H 再按住，才开始下一包。每包暂封最多 %.1f，结构仍须返港付费维修。" % [Damage.PUMP_DRAW, Damage.PATCH_SECONDS, Damage.PATCH_SPEED, Damage.PATCH_THROTTLE, Damage.PATCH_AMOUNT], 17, MUTED)
 	var row := _row(panel, 8)
 	for pair: Array in [["prepare_kit", "预装一包 · 1 材料"], ["unload_kit", "卸回一包 · +1 材料"]]:
 		var action := String(pair[0])

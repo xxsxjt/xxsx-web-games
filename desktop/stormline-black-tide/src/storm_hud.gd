@@ -348,7 +348,9 @@ func _present_live(view: Dictionary, contract: Dictionary) -> void:
 			float(d.propulsion_response) * 100.0, float(d.propulsion_energy_multiplier), float(d.water),
 			float(d.inflow), "运行 -%.2f电/s" % float(d.pump_draw) if d.pump_active else ("待机" if d.pump_on else "关闭"),
 			float(d.breach), float(d.sealed), int(d.kits), _progress_percent(float(d.patch_progress))]
-		_damage_status.text += "\n连续 %.0fs：速度 <%.1f、松油门、缆张 <68%%" % [Damage.PATCH_SECONDS, Damage.PATCH_SPEED]
+		_damage_status.text += "\n连续 %.0fs：速度 <%.1f、油门 ≤%.2f、缆张 <%.0f%%" % [
+			Damage.PATCH_SECONDS, Damage.PATCH_SPEED, Damage.PATCH_THROTTLE, Damage.PATCH_TENSION * 100.0]
+		_damage_status.text += "\n" + _patch_guidance(view, d)
 		_damage_status.add_theme_color_override("font_color", AMBER if float(d.water) >= 40.0 or float(d.breach) > float(d.sealed) else TEAL)
 
 	_set_gauge("hull", hull, AMBER if hull <= 30.0 else GREEN)
@@ -418,6 +420,29 @@ func _present_live(view: Dictionary, contract: Dictionary) -> void:
 		radar_view["target_visible"] = bool(view.get("target_visible", true))
 	_radar.set_snapshot(radar_view)
 	_present_dock(view, towing and scanned, harbor, float(view.get("harbor_radius", contract.get("harbor_radius", 0.0))), position, velocity)
+
+
+func _patch_guidance(view: Dictionary, damage: Dictionary) -> String:
+	var blocked := PackedStringArray()
+	var velocity: Vector2 = view.get("velocity", Vector2.ZERO)
+	if String(view.get("screen", "running")) == "paused":
+		blocked.append("部署已暂停")
+	if velocity.length() >= Damage.PATCH_SPEED:
+		blocked.append("速度超限")
+	if absf(float(view.get("throttle", 0.0))) > Damage.PATCH_THROTTLE:
+		blocked.append("油门超限")
+	if float(view.get("tension", 0.0)) >= Damage.PATCH_TENSION:
+		blocked.append("缆张超限")
+	if int(damage.get("kits", 0)) <= 0:
+		blocked.append("无封堵包")
+	if float(damage.get("breach", 0.0)) <= float(damage.get("sealed", 0.0)):
+		blocked.append("无开放破口")
+	var status := "H 暂不可封堵：" + "、".join(blocked) if not blocked.is_empty() else \
+		"H 条件满足：按住以继续封堵" + "（" + _progress_percent(float(damage.get("patch_progress", 0.0))) + "）"
+	if int(damage.get("patches_used", 0)) > 0 and int(damage.get("kits", 0)) > 0 \
+			and float(damage.get("breach", 0.0)) > float(damage.get("sealed", 0.0)):
+		status += "；已完成一包，松开 H 再按住开始下一包"
+	return status
 
 
 func _cross_current_readout(tug: Vector2, cargo: Vector2, cargo_known: bool, landmarks: Array[Dictionary]) -> String:
