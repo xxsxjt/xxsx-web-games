@@ -122,6 +122,8 @@ var _tide_stations: Array = []
 var _tide_completed := 0
 var _tide_hold := 0.0
 var _damage: RefCounted
+var _energy_rate: Dictionary = {}
+var _energy_spent: Dictionary = {}
 
 
 func _init() -> void:
@@ -214,6 +216,8 @@ func _effective_profiles(effects: Dictionary) -> Array:
 
 
 func _reset_voyage(initial_hull: float, initial_battery: float) -> void:
+	_energy_rate = _empty_energy()
+	_energy_spent = _empty_energy()
 	phase = "approach"
 	position = contract.start
 	velocity = Vector2.ZERO
@@ -362,7 +366,10 @@ func step(delta: float, input: Dictionary = {}) -> Dictionary:
 		energy_draw *= _energy_multiplier
 	if _damage != null:
 		energy_draw += float(_damage.pump_draw)
-	battery = maxf(0.0, battery - energy_draw * dt)
+	var remaining_battery := maxf(0.0, battery - energy_draw * dt)
+	if _damage != null:
+		_record_energy(dt, energy_draw, battery - remaining_battery, propulsion_energy_multiplier, scanning, profile, reel)
+	battery = remaining_battery
 	if hull <= 0.0:
 		_fail("船体耐久归零，拖船失去动力。", "collision")
 	elif cargo_integrity <= 0.0:
@@ -376,6 +383,24 @@ func step(delta: float, input: Dictionary = {}) -> Dictionary:
 	if phase == "return":
 		_update_docking(dt)
 	return snapshot()
+
+
+func _empty_energy() -> Dictionary:
+	return {"idle": 0.0, "propulsion": 0.0, "flood": 0.0, "sonar": 0.0, "tow": 0.0, "pump": 0.0, "total": 0.0}
+
+
+func _record_energy(dt: float, total: float, actual: float, flood_multiplier: float, scanning: bool, profile: Dictionary, reel: float) -> void:
+	# Observe the same inputs and active devices after the real budget is settled.
+	# No telemetry value feeds back into physics or the persistent expedition.
+	var base := absf(throttle) * (0.40 if power_profile == 0 else 0.30)
+	_energy_rate = {"idle": 0.13 * _energy_multiplier, "propulsion": base * _energy_multiplier,
+		"flood": base * (flood_multiplier - 1.0) * _energy_multiplier,
+		"sonar": (0.20 + float(profile.sensors) * 0.22) * _energy_multiplier if scanning else 0.0,
+		"tow": (0.08 + absf(reel) * 0.19) * _energy_multiplier if tow_attached else 0.0,
+		"pump": float(_damage.pump_draw), "total": total}
+	var fraction := clampf(actual / (total * dt), 0.0, 1.0) if total > 0.0 else 0.0
+	for key: String in _energy_spent:
+		_energy_spent[key] += actual if key == "total" else float(_energy_rate[key]) * dt * fraction
 
 
 func _stern_position(forward: Vector2) -> Vector2:
@@ -582,6 +607,7 @@ func snapshot() -> Dictionary:
 		view["offer_id"] = expedition.offer_id
 		if _damage != null:
 			view["damage_control"] = _damage.snapshot()
+			view["energy_budget"] = {"rate": _energy_rate.duplicate(), "spent": _energy_spent.duplicate()}
 		if not _tide_stations.is_empty():
 			view["tide_survey"] = {"stations": _tide_stations.duplicate(), "completed": _tide_completed,
 				"progress": _tide_hold, "radius": Catalog.TIDE_RADIUS, "speed_limit": Catalog.TIDE_SPEED}

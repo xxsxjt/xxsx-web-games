@@ -188,6 +188,7 @@ func _model() -> void:
 		var a := plain.step(DT, controls)
 		var b := extended.step(DT, controls)
 		b.erase("damage_control")
+		b.erase("energy_budget")
 		same = same and a == b
 		if a.phase in ["success", "failed"]:
 			break
@@ -301,7 +302,15 @@ func _energy_matrix() -> void:
 										draw += 0.45
 									var view := sim.step(DT, {"power": power, "throttle": throttle_value, "scan": scan,
 										"reel": 0.5, "slow": slow, "pump_pressed": pump})
+									var measured := 0.0
+									var accumulated := 0.0
+									for key: String in ["idle", "propulsion", "flood", "sonar", "tow", "pump"]:
+										measured += float(view.energy_budget.rate[key])
+										accumulated += float(view.energy_budget.spent[key])
 									_expect(absf(float(prior.battery) - float(view.battery) - draw * DT) < 1e-10
+										and absf(measured - draw) < 1e-10 and absf(accumulated - view.energy_budget.spent.total) < 1e-10
+										and absf(view.energy_budget.rate.total - draw) < 1e-10
+										and absf(view.energy_budget.spent.total - (prior.battery - view.battery)) < 1e-10
 										and Damage.valid_live(view.damage_control, spec.damage_control),
 										"isolated energy case %d modules=%s water=%s power=%s throttle=%s scan=%s tow=%s slow=%s pump=%s" % [
 											cases, modules, water, power, throttle_value, scan, tow, slow, pump])

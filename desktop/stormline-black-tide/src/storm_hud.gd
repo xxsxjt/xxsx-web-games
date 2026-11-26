@@ -63,6 +63,7 @@ var _gauges: Dictionary = {}
 var _speed: Label
 var _wind: Label
 var _power: Label
+var _energy_status: Label
 var _rig: Label
 var _rope: Label
 var _tow_action: Label
@@ -221,7 +222,19 @@ func _build_live() -> void:
 	_damage_status = _label(mission_box, "", 17, TEAL, true)
 	_damage_status.hide()
 
-	_dock = _panel(port, true)
+	# Center the harbor card in the free column between chart and helm/system
+	# cards. Nesting it in the mission stack makes that stack hit the systems at
+	# small viewports as soon as the two-body docking card becomes visible.
+	_dock = _panel(_live, true)
+	_dock.anchor_left = 0.5
+	_dock.anchor_right = 0.5
+	_dock.anchor_top = 0.5
+	_dock.anchor_bottom = 0.5
+	_dock.offset_left = -200.0
+	_dock.offset_right = 200.0
+	_dock.offset_top = -90.0
+	_dock.offset_bottom = 90.0
+	_dock.custom_minimum_size = Vector2(400.0, 0.0)
 	_dock.hide()
 	var dock_box := _column(_dock, 5)
 	_dock_progress = _label(dock_box, "", 18, TEAL)
@@ -271,6 +284,8 @@ func _build_live() -> void:
 	_wind = _label(helm_box, "", 18, DIM)
 	_rule(helm_box)
 	_power = _label(helm_box, "", 19, TEAL)
+	_energy_status = _label(helm_box, "", 17, DIM, true)
+	_energy_status.hide()
 	_rig = _label(helm_box, "", 17, DIM, true)
 	_rig.hide()
 	_rope = _label(helm_box, "", 18, DIM)
@@ -347,6 +362,10 @@ func _present_live(view: Dictionary, contract: Dictionary) -> void:
 	var profile := clampi(int(view.get("power", 0)), 0, POWER_NAMES.size() - 1)
 	var rope_length := float(view.get("rope_length", 0.0))
 	_power.text = "[%d] %s   /   %s" % [profile + 1, POWER_NAMES[profile], "慢车" if bool(view.get("speed_mode", false)) else "常速"]
+	_energy_status.visible = view.has("energy_budget")
+	if _energy_status.visible:
+		var rate: Dictionary = view.energy_budget.rate
+		_energy_status.text = "上步耗电 %.2f/s\n含进水 +%.2f · 水泵 %.2f" % [float(rate.total), float(rate.flood), float(rate.pump)]
 	_rig.visible = in_expedition
 	if in_expedition:
 		var effective: Dictionary = expedition.profile

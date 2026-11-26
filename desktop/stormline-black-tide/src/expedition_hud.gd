@@ -363,6 +363,7 @@ func _build_paused(body: VBoxContainer, actions: HBoxContainer) -> void:
 	_label(panel, "当前构筑：%s  /  %s" % [module_names(meta.get("loadout", [])), effect_text(meta.get("effects", {}))], 18)
 	_label(panel, "远征禁用 R 重开。可继续驾驶；放弃或正常退出会按当前损耗办理救援，无交付报酬。", 18, AMBER)
 	_damage_summary(panel, voyage)
+	_energy_summary(panel, voyage, true)
 	if not _view.pending:
 		_action(actions, "继续驾驶 [P / Esc]", "resume", true)
 		_action(actions, "放弃本次部署…", "abandon", false)
@@ -384,6 +385,7 @@ func _build_result(body: VBoxContainer, actions: HBoxContainer) -> void:
 		_label(result, "潮流取样 %d / %d · %s" % [int(survey.completed), survey.stations.size(),
 			"缓流时窗已入档，可用于同区主回收。" if logged else "缓流时窗未入档。"], 18, TEAL if logged else AMBER)
 	_damage_summary(result, voyage)
+	_energy_summary(result, voyage, false)
 	_label(result, "本部署不计入三合同快玩历史最佳。远征不能按 R 免费重开。", 17, MUTED)
 	if _view.pending:
 		_pending_summary(body)
@@ -452,6 +454,22 @@ func _damage_summary(parent: Control, voyage: Dictionary) -> void:
 	var d: Dictionary = voyage.damage_control
 	_label(parent, "舱底进水 %.1f%% · 结构破口 %.2f · 临时封堵 %.2f · 耗包 %d / 剩余 %d" % [float(d.water), float(d.breach), float(d.sealed), int(d.patches_used), int(d.kits)], 18, AMBER if d.water >= 40 else TEAL)
 	_label(parent, "入港只排干积水，临时封堵不跨航次；结构破口与未用封堵包按实际结果入账。", 17, MUTED)
+
+
+func _energy_summary(parent: Control, voyage: Dictionary, show_rate: bool) -> void:
+	if not voyage.has("energy_budget"):
+		return
+	var budget: Dictionary = voyage.energy_budget
+	if show_rate:
+		var rate: Dictionary = budget.rate
+		_label(parent, "上一步耗电 %.3f 点/秒（非续航预测）\n待机 %.3f · 油门 %.3f · 进水附加 %.3f\n声纳 %.3f · 拖带/绞盘 %.3f · 水泵 %.3f" % [
+			float(rate.total), float(rate.idle), float(rate.propulsion), float(rate.flood),
+			float(rate.sonar), float(rate.tow), float(rate.pump)], 18, TEAL)
+	var spent: Dictionary = budget.spent
+	_label(parent, "本航实耗 %.3f 电量点\n待机 %.3f · 油门 %.3f · 进水附加 %.3f\n声纳 %.3f · 拖带/绞盘 %.3f · 水泵 %.3f" % [
+		float(spent.total), float(spent.idle), float(spent.propulsion), float(spent.flood),
+		float(spent.sonar), float(spent.tow), float(spent.pump)], 18)
+	_label(parent, "已含改装耗电；进水项只加在油门，泵费独立。暂停不耗电；读数不是回港电量保证。", 17, MUTED)
 
 
 func _ledger_contract(id: String) -> String:

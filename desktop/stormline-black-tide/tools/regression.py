@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import re
+import stat
 import subprocess
 import sys
 
@@ -24,6 +25,7 @@ SCRIPT_SUITES = (
     "expedition_state", "expedition_store", "expedition_sim", "expedition_app",
     "tide_survey", "tide_survey_app",
     "damage_control", "damage_control_app",
+    "energy_budget", "energy_feedback_app",
 )
 REQUIRED_CHECKS = ("import", *SCRIPT_SUITES, "smoke_tool")
 
@@ -48,11 +50,35 @@ def isolated_environment(profile):
     return env
 
 
+def isolate_generated_resources(root):
+    """Keep retained .gd evidence under build out of Godot's resource scanner."""
+    folder = root / "build"
+    folder.mkdir(parents=True, exist_ok=True)
+    info = folder.lstat()
+    if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0):
+        raise ValueError("Generated build directory must not be a link or reparse point")
+    marker = folder / ".gdignore"
+    if marker.exists():
+        info = marker.lstat()
+        if not stat.S_ISREG(info.st_mode) or stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0):
+            raise ValueError("Generated resource marker must be a regular file")
+        return marker
+    try:
+        with marker.open("xb"):
+            pass
+    except FileExistsError:
+        info = marker.lstat()
+        if not stat.S_ISREG(info.st_mode) or stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0):
+            raise ValueError("Generated resource marker must be a regular file")
+    return marker
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--godot", required=True, type=Path)
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
+    isolate_generated_resources(root)
     sources = source_hashes(root)
     evidence = root / "build" / "qa" / dt.datetime.now().strftime("%Y%m%d-%H%M%S-%f")
     evidence.mkdir(parents=True, exist_ok=False)
