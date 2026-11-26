@@ -26,6 +26,7 @@ SCRIPT_SUITES = (
     "tide_survey", "tide_survey_app",
     "damage_control", "damage_control_app",
     "energy_budget", "energy_feedback_app",
+    "work_order", "work_order_app",
 )
 REQUIRED_CHECKS = ("import", *SCRIPT_SUITES, "smoke_tool")
 
@@ -132,7 +133,7 @@ def main():
     jobs = [("import", engine_command("import", "--editor", "--quit"), True)]
     jobs += [(name, engine_command(name, "--script", f"res://tests/{name}_test.gd"), True)
              for name in SCRIPT_SUITES]
-    jobs.append(("smoke_tool", [sys.executable, "-X", "utf8", "-m", "unittest",
+    jobs.append(("smoke_tool", [sys.executable, "-B", "-X", "utf8", "-m", "unittest",
                                "discover", "-s", "tools", "-p", "test_*.py", "-v"], False))
     results = []
     for name, command, godot_job in jobs:

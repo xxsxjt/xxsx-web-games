@@ -40,6 +40,7 @@ var _pending: Dictionary = {}
 var _tow_queued := false
 var _pump_queued := false
 var _record_status := ""
+var _work_order: Array = []
 
 
 func _ready() -> void:
@@ -220,6 +221,9 @@ func _on_mute_requested() -> void:
 
 func _on_quit_requested() -> void:
 	if mode == "expedition":
+		if not _work_order.is_empty():
+			_ask_confirmation("discard_work_order_quit")
+			return
 		if not _pending.is_empty():
 			_ask_confirmation("quit_unsaved")
 			return
@@ -304,6 +308,7 @@ func _on_expedition_requested() -> void:
 
 
 func _read_expedition() -> void:
+	_work_order = []
 	_archive = _expedition_store.load_state()
 	expedition_state = _archive.state
 	_offer_id = ""
@@ -334,6 +339,10 @@ func _on_expedition_action(action: String, value: String) -> void:
 		_on_quit_requested()
 		return
 	if action == "reload":
+		if not _work_order.is_empty() and not _expedition_conflict:
+			_feedback("请先提交或清空整备草案，再重读档案。", true)
+			_present_expedition()
+			return
 		if _pending.is_empty() and screen in ["archive", "dock"]:
 			_read_expedition()
 			_publish(0.0)
@@ -347,6 +356,9 @@ func _on_expedition_action(action: String, value: String) -> void:
 			_publish(0.0)
 		return
 	if action == "desk" and screen in ["archive", "dock"]:
+		if not _work_order.is_empty():
+			_ask_confirmation("discard_work_order")
+			return
 		mode = "quick"
 		screen = "briefing"
 		_reset_mission()
@@ -373,6 +385,16 @@ func _on_expedition_action(action: String, value: String) -> void:
 					if not _archive.ok and _archive.backup_available:
 						_confirmation = "restore"
 		"dock":
+			if action.begins_with("queue_"):
+				_queue_work_order(action.trim_prefix("queue_"), value)
+			elif action == "undo_work_order":
+				if not _work_order.is_empty():
+					_work_order.pop_back()
+			elif action == "clear_work_order":
+				_work_order = []
+			elif action == "commit_work_order":
+				if not _work_order.is_empty() and ExpeditionState.preview_work_order(expedition_state, _work_order).ok:
+					_confirmation = "work_order"
 			match action:
 				"offer":
 					if not _find_offer(ExpeditionState.offers(expedition_state), value).is_empty():
@@ -423,6 +445,14 @@ func _accept_confirmation() -> void:
 	match action:
 		"launch":
 			_launch_expedition()
+		"work_order":
+			if _apply_work_order():
+				_work_order = []
+		"discard_work_order":
+			_work_order = []
+			_on_expedition_action("desk", "")
+		"discard_work_order_quit":
+			get_tree().quit()
 		"abandon", "abandon_quit":
 			if not _close_deployment("abandon", sim.snapshot(), action == "abandon_quit"):
 				screen = "paused"
@@ -467,6 +497,8 @@ func _launch_expedition() -> void:
 
 
 func _can_launch() -> Dictionary:
+	if not _work_order.is_empty():
+		return {"ok": false, "state": expedition_state.duplicate(true), "message": "整备草案尚未入账；请先提交或清空工单，再出航。"}
 	return ExpeditionState.act(expedition_state, "launch", {"offer_id": _offer_id})
 
 
@@ -503,7 +535,31 @@ func _retry_pending() -> bool:
 
 
 func _apply_dock_change(action: String, payload: Dictionary = {}) -> bool:
+	if not _work_order.is_empty():
+		_feedback("请先提交或清空整备工单，再执行即时整备。", true)
+		return false
 	var change := ExpeditionState.act(expedition_state, action, payload)
+	if not change.ok:
+		_feedback(String(change.message), true)
+		return false
+	return _save_expedition(change.state, int(expedition_state.revision), String(change.message))
+
+
+func _queue_work_order(action: String, value: String) -> void:
+	if not action in ExpeditionState.WORK_ORDER_ACTIONS:
+		return
+	var next := _work_order.duplicate(true)
+	next.append({"action": action, "payload": {"module_id": value} if action in ["buy", "equip", "unequip"] else {}})
+	var preview := ExpeditionState.preview_work_order(expedition_state, next)
+	if preview.ok:
+		_work_order = next
+		_feedback("草案 %d 项，尚未扣费／保存；可撤销或清空。" % _work_order.size())
+	else:
+		_feedback(String(preview.message), true)
+
+
+func _apply_work_order() -> bool:
+	var change := ExpeditionState.act(expedition_state, "work_order", {"steps": _work_order})
 	if not change.ok:
 		_feedback(String(change.message), true)
 		return false
@@ -523,6 +579,7 @@ func _save_expedition(next_state: Dictionary, expected: int, message: String) ->
 
 
 func _enter_dock() -> void:
+	_work_order = []
 	screen = "dock"
 	_terminal = {}
 	_offer_id = ""
@@ -550,6 +607,7 @@ func _present_expedition() -> void:
 	var launch: Dictionary = {}
 	var services: Dictionary = {}
 	var module_actions: Dictionary = {}
+	var work_order: Dictionary = {}
 	if screen == "dock" and expedition_state.status == "dock":
 		offers = ExpeditionState.offers(expedition_state)
 		selected = _find_offer(offers, _offer_id)
@@ -563,10 +621,28 @@ func _present_expedition() -> void:
 			var action := "unequip" if id in expedition_state.equipped else ("equip" if id in expedition_state.owned else "buy")
 			module_actions[id] = ExpeditionState.act(expedition_state, action, {"module_id": id})
 			module_actions[id]["action"] = action
+		work_order = _work_order_view(selected)
 	expedition_hud.present({"screen": screen, "state": expedition_state, "archive": _archive,
 		"file": expedition_file.get_file(), "offer": selected, "offers": offers, "launch": launch,
-		"services": services, "module_actions": module_actions,
+		"services": services, "module_actions": module_actions, "work_order": work_order,
 		"muted": muted, "notice": _expedition_notice, "error": _expedition_error, "conflict": _expedition_conflict,
 		"confirmation": _confirmation, "pending": not _pending.is_empty(), "retryable": _pending.has("change"),
 		"pending_state": _pending.get("change", {}).get("state", {}),
 		"terminal": _terminal, "review": review.view(), "voyage": sim.snapshot() if screen == "paused" else {}})
+
+
+func _work_order_view(selected: Dictionary) -> Dictionary:
+	var preview := ExpeditionState.preview_work_order(expedition_state, _work_order)
+	var projected: Dictionary = preview.state
+	var services := {}
+	var modules := {}
+	for action: String in ["repair", "recharge", "prepare_kit", "unload_kit"]:
+		services[action] = ExpeditionState.act(projected, action)
+	for id: String in Catalog.modules():
+		var action := "unequip" if id in projected.equipped else ("equip" if id in projected.owned else "buy")
+		modules[id] = ExpeditionState.act(projected, action, {"module_id": id})
+		modules[id]["action"] = action
+	var next_offer := _find_offer(ExpeditionState.offers(projected), String(selected.get("id", "")))
+	return {"steps": _work_order.duplicate(true), "state": projected, "ok": preview.ok,
+		"services": services, "module_actions": modules, "offer": next_offer,
+		"launch": ExpeditionState.act(projected, "launch", {"offer_id": next_offer.get("id", "")})}

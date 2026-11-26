@@ -22,6 +22,8 @@ const FAILED_PRESSURE := 2
 const SUCCESS_PRESSURE := 1
 const MIN_LAUNCH_HULL := 20.0
 const MIN_LAUNCH_BATTERY := 25.0
+const WORK_ORDER_LIMIT := 12
+const WORK_ORDER_ACTIONS := ["buy", "equip", "unequip", "repair", "recharge", "prepare_kit", "unload_kit"]
 const STATE_KEYS := ["version", "revision", "campaign_id", "deployment", "sector", "leg", "credits", "parts", "hull", "battery", "pressure", "owned", "equipped", "path", "active", "history", "status"]
 const ACTIVE_KEYS := ["token", "offer_id", "sector", "leg", "pressure", "path", "hull", "battery", "loadout"]
 const HISTORY_KEYS := ["event", "offer_id", "token", "outcome", "credits_delta", "parts_delta", "hull", "battery", "pressure"]
@@ -130,6 +132,10 @@ static func launch_spec(state: Dictionary) -> Dictionary:
 static func act(state: Dictionary, action: String, payload: Dictionary = {}) -> Dictionary:
 	if not validate(state):
 		return _result(false, state, "远征档案无效，未作修改。")
+	if action == "work_order":
+		if not _keys(payload, ["steps"]) or not payload.steps is Array or payload.steps.is_empty():
+			return _result(false, state, "整备工单需要至少一项操作。")
+		return preview_work_order(state, payload.steps)
 	var s: Dictionary = state.duplicate(true)
 	if s.revision >= 1000000:
 		return _result(false, state, "档案修订号已达上限。")
@@ -311,6 +317,29 @@ static func act(state: Dictionary, action: String, payload: Dictionary = {}) -> 
 	if not validate(s):
 		return _result(false, state, "操作结果未通过规则验证，未作修改。")
 	return _result(true, s, message)
+
+
+## A bounded, memory-only projection of the SAME dock actions. Each individual
+## history event is retained, but the whole order is one Store/CAS revision.
+## Any invalid step returns the untouched input; no partial purchase or service.
+static func preview_work_order(state: Dictionary, steps: Array) -> Dictionary:
+	if not validate(state) or state.status != "dock" or steps.size() > WORK_ORDER_LIMIT:
+		return _result(false, state, "工单仅限船坞，最多 %d 项；未作修改。" % WORK_ORDER_LIMIT)
+	var projected: Dictionary = state.duplicate(true)
+	for index in range(steps.size()):
+		var step: Variant = steps[index]
+		if not step is Dictionary or not _keys(step, ["action", "payload"]) \
+				or not step.action is String or not step.action in WORK_ORDER_ACTIONS or not step.payload is Dictionary:
+			return _result(false, state, "工单第 %d 项不是允许的整备操作；整单未提交。" % (index + 1))
+		# Reset only the preview revision, never resources/history. Every step uses
+		# the real sequential funds, parts, ownership and pressure from act().
+		projected.revision = int(state.revision)
+		var change := act(projected, step.action, step.payload)
+		if not change.ok:
+			return _result(false, state, "工单第 %d 项不可执行：%s 整单未提交。" % [index + 1, change.message])
+		projected = change.state
+	return _result(true, projected, "整备工单已保存：%d 项，资金 %+d、材料 %+d、压力 %+d。" % [steps.size(),
+		int(projected.credits) - int(state.credits), int(projected.parts) - int(state.parts), int(projected.pressure) - int(state.pressure)])
 
 
 static func _snapshot_valid(s: Dictionary, data: Variant, terminal: bool = true) -> bool:

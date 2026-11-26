@@ -216,8 +216,8 @@ func _build_archive(body: VBoxContainer, actions: HBoxContainer) -> void:
 
 func _build_tabs(ended: bool) -> void:
 	var bar := _row(_page, 8)
-	for pair: Array in [["chart", "六部署航图" if ended else "航图与合同"], ["outfit", "船厂整备"], ["ledger", "远征账本"]]:
-		if ended and pair[0] == "outfit":
+	for pair: Array in [["chart", "六部署航图" if ended else "航图与合同"], ["outfit", "船厂整备"], ["work_order", "整备工单"], ["ledger", "远征账本"]]:
+		if ended and pair[0] in ["outfit", "work_order"]:
 			continue
 		_button(bar, String(pair[1]), "tab_" + String(pair[0]), _tab == pair[0], _switch_tab.bind(String(pair[0])))
 	_focus_first = "tab_" + _tab
@@ -235,6 +235,7 @@ func _build_dock(body: VBoxContainer, actions: HBoxContainer) -> void:
 	if state.status == "dock":
 		match _tab:
 			"outfit": _build_outfit(body, state)
+			"work_order": _build_work_order(body, state)
 			"ledger": _build_ledger(body, state.history)
 			_: _build_chart(body, state, _view.offers)
 		if not _view.conflict:
@@ -252,6 +253,52 @@ func _build_dock(body: VBoxContainer, actions: HBoxContainer) -> void:
 		if not _view.conflict:
 			_action(actions, "另起远征…", "restart", true)
 	_action(actions, "返回任务台 [Esc]", "desk", false)
+
+
+func _build_work_order(body: VBoxContainer, saved: Dictionary) -> void:
+	var order: Dictionary = _view.work_order
+	var projected: Dictionary = order.state
+	var steps: Array = order.steps
+	var blocked: bool = bool(_view.conflict) or steps.size() >= State.WORK_ORDER_LIMIT
+	var summary := _card(body, "整备草案  /  %d / %d 项 · 尚未入账" % [steps.size(), State.WORK_ORDER_LIMIT])
+	_label(summary, "先组合、再比较、最后一次保存。下方增加草案，不会即时扣费；原船厂页仍可单项整备，但有草案时须先提交或清空。草案不跨退出／重载保存。", 17, MUTED)
+	_label(summary, "资金 %d → %d（%+d） · 材料 %d → %d（%+d） · 压力 %d → %d\n船体 %.1f → %.1f%% · 电量 %.1f → %.1f%%\n装备：%s → %s" % [
+		int(saved.credits), int(projected.credits), int(projected.credits) - int(saved.credits), int(saved.parts), int(projected.parts), int(projected.parts) - int(saved.parts),
+		int(saved.pressure), int(projected.pressure), float(saved.hull), float(projected.hull), float(saved.battery), float(projected.battery), module_names(saved.equipped), module_names(projected.equipped)], 18, TEAL)
+	if saved.has("damage_control"):
+		_label(summary, "结构破口 %.2f → %.2f · 封堵包 %d → %d" % [float(saved.damage_control.breach), float(projected.damage_control.breach), int(saved.damage_control.kits), int(projected.damage_control.kits)], 18, TEAL)
+	var offer: Dictionary = order.offer
+	if not offer.is_empty():
+		_label(summary, "所选合同整备后实参：%s\n%s" % [offer.name, _quote(offer)], 17)
+		var before: Dictionary = _view.offer
+		_label(summary, "整备代价对照：海况 %.3f → %.3f · 舱重 %.2f → %.2f\n窗口 %.0f → %.0f 秒（压力实参至 %d 饱和）" % [float(before.severity), float(offer.severity), float(before.mass), float(offer.mass), float(before.deadline), float(offer.deadline), Catalog.EFFECTIVE_PRESSURE_CAP], 17, MUTED)
+		_label(summary, "整备后可支付出航费，余额 %d；不代表能完成航程。" % int(order.launch.state.credits) if order.launch.ok else "整备后仍不能出航：" + String(order.launch.message), 17, TEAL if order.launch.ok else AMBER)
+	for index in range(steps.size()):
+		var step: Dictionary = steps[index]
+		var mod := String(step.payload.get("module_id", ""))
+		_label(summary, "%02d  %s%s" % [index + 1, LEDGER_NAMES.get(step.action, step.action), " · " + module_names([mod]) if not mod.is_empty() else ""], 17)
+	var commands := _row(summary, 8)
+	_action(commands, "撤销末项", "undo_work_order", false, steps.is_empty() or bool(_view.conflict))
+	_action(commands, "清空草案", "clear_work_order", false, steps.is_empty() or bool(_view.conflict))
+	_action(commands, "确认整单…", "commit_work_order", true, steps.is_empty() or not order.ok or bool(_view.conflict))
+	var services := _card(body, "加入服务／材料操作  /  按草案当前资源判断")
+	var row := _row(services, 8)
+	for pair: Array in [["repair", "维修 · 14资金/1材料"], ["recharge", "充电 · 10资金"], ["prepare_kit", "预装包 · 1材料"], ["unload_kit", "卸包 · 退1材料"]]:
+		var action := String(pair[0])
+		var change: Dictionary = order.services[action]
+		var button := _action(row, String(pair[1]), "queue_" + action, false, blocked or not change.ok)
+		button.tooltip_text = String(change.message)
+	var mods := _row(body, 8)
+	for id: String in Catalog.modules():
+		var mod: Dictionary = Catalog.modules()[id]
+		var card := _card(mods, String(mod.name))
+		var change: Dictionary = order.module_actions[id]
+		var action := String(change.action)
+		_label(card, effect_text(mod.effects), 17, MUTED)
+		var caption := "卸下" if action == "unequip" else ("安装" if action == "equip" else "购买 · %d 资金" % int(mod.price))
+		var button := _action(card, "草案：" + caption, "queue_" + action, false, blocked or not change.ok, id)
+		button.tooltip_text = String(change.message)
+	_label(body, "按顺序使用实际资金／材料和负载规则；不能用后一步的退款支付前一步。最多12项。确认前可撤销；写盘失败或陈旧档整单不入账，不会半单扣费。维修／充电提高压力，所选合同也随之变化；并非自动推荐或续航保证。", 17, MUTED)
 
 
 func _build_chart(body: VBoxContainer, state: Dictionary, offers: Array) -> void:
@@ -491,6 +538,16 @@ func _build_confirmation(body: VBoxContainer, actions: HBoxContainer, kind: Stri
 	var text := ""
 	var accept := "确认"
 	match kind:
+		"work_order":
+			title = "确认整备工单"
+			var order: Dictionary = _view.work_order
+			var next: Dictionary = order.state
+			text = "%d 项整备一次保存，档案修订只增加一次；每项仍按原规则记入账本。\n资金 %d → %d · 材料 %d → %d · 压力 %d → %d\n船体 %.1f → %.1f%% · 电量 %.1f → %.1f%%\n装备：%s\n取消不会收费。保存失败保留草案但不部分扣费；冲突需重读，不能覆盖磁盘进度。" % [order.steps.size(), int(state.credits), int(next.credits), int(state.parts), int(next.parts), int(state.pressure), int(next.pressure), float(state.hull), float(next.hull), float(state.battery), float(next.battery), module_names(next.equipped)]
+			accept = "保存整单"
+		"discard_work_order", "discard_work_order_quit":
+			title = "舍弃未提交整备草案"
+			text = "工单尚未扣费或入账。返回任务台／退出会丢弃这份内存草案；已保存档案不变。"
+			accept = "舍弃并退出" if kind == "discard_work_order_quit" else "舍弃并返回"
 		"launch":
 			title = "出航确认  /  " + String(offer.get("name", ""))
 			text = "%s\n\n船体 %.1f%% · 电量 %.1f%% · 构筑：%s\n将支付 %d 资金，剩余 %d。只有保存成功才进入真实驾驶。" % [
