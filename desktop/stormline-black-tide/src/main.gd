@@ -13,6 +13,7 @@ const ExpeditionStore = preload("res://src/expedition_store.gd")
 const Catalog = preload("res://src/expedition_catalog.gd")
 const Navigation = preload("res://src/public_navigation.gd")
 const Segments = preload("res://src/voyage_segments.gd")
+const Reference = preload("res://src/voyage_reference.gd")
 
 var sim = Sim.new()
 var review = Review.new()
@@ -48,6 +49,7 @@ var _nav_index := 0
 var _nav_down: Dictionary = {}
 var segments = Segments.new()
 var _segment_down: Dictionary = {}
+var voyage_reference = Reference.new()
 
 
 func _ready() -> void:
@@ -124,6 +126,7 @@ func _advance_simulation(delta: float, controls: Dictionary) -> void:
 	review.observe(view)
 	if mode == "expedition":
 		segments.observe(view)
+		voyage_reference.observe(view)
 	if sim.phase != prior_phase and sim.phase in ["success", "failed"]:
 		_clear_navigation()
 		screen = "debrief"
@@ -167,6 +170,7 @@ func _publish(delta: float, snap_camera: bool = false) -> void:
 func _reset_mission() -> void:
 	_clear_navigation()
 	segments.clear()
+	voyage_reference.clear()
 	sim.reset(selected_contract)
 	review.clear()
 	_tow_queued = false
@@ -406,6 +410,7 @@ func _on_expedition_requested() -> void:
 func _read_expedition() -> void:
 	_clear_navigation()
 	segments.clear()
+	voyage_reference.clear()
 	_work_order = []
 	_archive = _expedition_store.load_state()
 	expedition_state = _archive.state
@@ -466,6 +471,11 @@ func _on_expedition_action(action: String, value: String) -> void:
 		return
 	if _expedition_conflict:
 		return
+	if action.begins_with("reference_"):
+		if screen == "dock" and expedition_state.get("status") == "dock":
+			voyage_reference.act(action.trim_prefix("reference_"), value)
+			_present_expedition()
+		return
 	if action.begins_with("nav_"):
 		_on_navigation_action(action.trim_prefix("nav_"), value)
 		return
@@ -475,6 +485,7 @@ func _on_expedition_action(action: String, value: String) -> void:
 				"new":
 					if not _archive.exists and not _archive.backup_available:
 						if _save_expedition(ExpeditionState.new_campaign(true), -1, "已创建进水损管远征。触礁可留破口；出航前可预装封堵包。"):
+							voyage_reference.clear()
 							screen = "dock"
 				"continue":
 					if not expedition_state.is_empty():
@@ -569,6 +580,8 @@ func _accept_confirmation() -> void:
 			_feedback(String(restored.message), not bool(restored.ok))
 		"recover_interrupted", "retreat", "restart", "enable_damage":
 			if _apply_dock_change(action):
+				if action == "restart":
+					voyage_reference.clear()
 				_enter_dock()
 		"discard_pending":
 			_read_expedition()
@@ -588,10 +601,12 @@ func _launch_expedition() -> void:
 	# After persistence, reconstruct only from the saved active record.
 	var spec := ExpeditionState.launch_spec(expedition_state)
 	if spec.is_empty() or not sim.reset_expedition(spec) or not _deployment_matches(sim.snapshot()):
+		voyage_reference.stop()
 		screen = "archive"
 		_feedback("出航已入档，但驾驶初始化未通过。请继续并按中断规则返港，不能跳过费用重复出航。", true)
 		return
 	segments.clear()
+	voyage_reference.begin(sim.snapshot(), String(spec.contract.name))
 	screen = "running"
 	_terminal = {}
 	_tow_queued = false
@@ -609,7 +624,8 @@ func _can_launch() -> Dictionary:
 
 func _deployment_matches(view: Dictionary) -> bool:
 	var active: Dictionary = expedition_state.get("active", {})
-	return not active.is_empty() and view.get("expedition_token") == active.token and view.get("offer_id") == active.offer_id
+	var contract := Catalog.build_contract(String(active.get("offer_id", "")), int(active.get("pressure", 0)), active.get("path", []))
+	return not active.is_empty() and not contract.is_empty() and view.get("expedition_token") == active.token and view.get("offer_id") == active.offer_id and view.get("contract_id") == contract.base_contract
 
 
 func _close_deployment(action: String, snapshot: Dictionary, quit_after: bool = false) -> bool:
@@ -621,6 +637,8 @@ func _close_deployment(action: String, snapshot: Dictionary, quit_after: bool = 
 		_feedback("尚未入账；航次身份或状态未通过校验。" + String(change.message), true)
 		return false
 	_pending = {"action": action, "change": change, "expected": int(expedition_state.revision), "quit_after": quit_after}
+	if action == "settle":
+		voyage_reference.capture(snapshot, segments.view().records, int(expedition_state.revision))
 	return _retry_pending()
 
 
@@ -631,6 +649,8 @@ func _retry_pending() -> bool:
 		return false
 	var action := String(_pending.action)
 	var quit_after := bool(_pending.quit_after)
+	if action == "settle":
+		voyage_reference.promote(expedition_state, int(_pending.expected))
 	_pending = {}
 	if action == "abandon":
 		_enter_dock()
@@ -686,6 +706,7 @@ func _save_expedition(next_state: Dictionary, expected: int, message: String) ->
 func _enter_dock() -> void:
 	_clear_navigation()
 	segments.clear()
+	voyage_reference.stop()
 	_work_order = []
 	screen = "dock"
 	_terminal = {}
@@ -737,6 +758,7 @@ func _present_expedition() -> void:
 		"confirmation": _confirmation, "pending": not _pending.is_empty(), "retryable": _pending.has("change"),
 		"pending_state": _pending.get("change", {}).get("state", {}),
 		"terminal": _terminal, "review": review.view(), "segments": segments.view(),
+		"reference": voyage_reference.view(),
 		"voyage": sim.snapshot() if screen == "paused" else {}})
 
 

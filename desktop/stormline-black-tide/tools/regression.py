@@ -29,6 +29,7 @@ SCRIPT_SUITES = (
     "work_order", "work_order_app",
     "public_navigation", "public_navigation_app",
     "voyage_segments", "voyage_segments_app",
+    "voyage_reference", "voyage_reference_app",
 )
 REQUIRED_CHECKS = ("import", *SCRIPT_SUITES, "smoke_tool")
 

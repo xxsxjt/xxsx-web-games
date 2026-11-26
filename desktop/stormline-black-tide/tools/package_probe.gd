@@ -1,7 +1,7 @@
 extends SceneTree
 ## Tool-only probe: mounts an exported pack, loads resources, never starts the game scene.
 
-const SCRIPT_PATHS := ["main", "radar", "storm_audio", "storm_hud", "storm_records", "storm_sim", "storm_world", "voyage_review", "expedition_catalog", "expedition_state", "expedition_store", "expedition_hud", "damage_control", "public_navigation", "voyage_segments"]
+const SCRIPT_PATHS := ["main", "radar", "storm_audio", "storm_hud", "storm_records", "storm_sim", "storm_world", "voyage_review", "expedition_catalog", "expedition_state", "expedition_store", "expedition_hud", "damage_control", "public_navigation", "voyage_segments", "voyage_reference"]
 const CONTRACT_IDS := ["black-tide", "needle-bank", "cross-current"]
 
 

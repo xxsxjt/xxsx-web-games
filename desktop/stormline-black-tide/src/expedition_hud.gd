@@ -262,7 +262,11 @@ func _build_work_order(body: VBoxContainer, saved: Dictionary) -> void:
 	var projected: Dictionary = order.state
 	var steps: Array = order.steps
 	var blocked: bool = bool(_view.conflict) or steps.size() >= State.WORK_ORDER_LIMIT
-	var summary := _card(body, "整备草案  /  %d / %d 项 · 尚未入账" % [steps.size(), State.WORK_ORDER_LIMIT])
+	var comparison := _row(body, 8)
+	comparison.name = "PreparationComparison"
+	var summary := _card(comparison, "当前 → 整备草案  /  %d / %d 项 · 尚未入账" % [steps.size(), State.WORK_ORDER_LIMIT])
+	summary.name = "CurrentPreparation"
+	_build_reference(comparison)
 	_label(summary, "先组合、再比较、最后一次保存。下方增加草案，不会即时扣费；原船厂页仍可单项整备，但有草案时须先提交或清空。草案不跨退出／重载保存。", 17, MUTED)
 	_label(summary, "资金 %d → %d（%+d） · 材料 %d → %d（%+d） · 压力 %d → %d\n船体 %.1f → %.1f%% · 电量 %.1f → %.1f%%\n装备：%s → %s" % [
 		int(saved.credits), int(projected.credits), int(projected.credits) - int(saved.credits), int(saved.parts), int(projected.parts), int(projected.parts) - int(saved.parts),
@@ -301,6 +305,37 @@ func _build_work_order(body: VBoxContainer, saved: Dictionary) -> void:
 		var button := _action(card, "草案：" + caption, "queue_" + action, false, blocked or not change.ok, id)
 		button.tooltip_text = String(change.message)
 	_label(body, "按顺序使用实际资金／材料和负载规则；不能用后一步的退款支付前一步。最多12项。确认前可撤销；写盘失败或陈旧档整单不入账，不会半单扣费。维修／充电提高压力，所选合同也随之变化；并非自动推荐或续航保证。", 17, MUTED)
+
+
+func _build_reference(parent: Control) -> void:
+	var view: Dictionary = _view.get("reference", {})
+	var reference: Dictionary = view.get("reference", {})
+	var panel := _card(parent, "上航参考 / Last voyage")
+	panel.name = "LastVoyageReference"
+	_label(panel, String(view.get("policy", "仅本次运行内存")), 16, MUTED)
+	if reference.is_empty():
+		_label(panel, "暂无已入账的实测上航参考。放弃／中断不生成；不会从档案补造。", 17, MUTED)
+		return
+	var blocked: bool = bool(_view.pending) or bool(_view.conflict)
+	var commands := _row(panel, 6)
+	_action(commands, "收起参考" if view.visible else "显示参考", "reference_hide" if view.visible else "reference_show", false, blocked)
+	_action(commands, "清除参考", "reference_clear", false, blocked)
+	if not view.visible:
+		_label(panel, "已收起；保留同一份已入账上航与选择，不影响整备草案。", 17, MUTED)
+		return
+	_label(panel, "旧航：%s\n%s · %s\n%s" % [reference.name, reference.offer_id, reference.base_contract, "成功交付 · 已入账" if reference.outcome == "success" else "失败 · 已入账"], 18, TEAL)
+	var next: Dictionary = _view.work_order.offer
+	_label(panel, "所选实际报价与旧航不同；仅并列，不推断路线优劣。" if next.get("id") != reference.offer_id else "所选报价ID相同；当前／草案实参仍以左侧为准。", 16, AMBER)
+	_action(panel, "整航实测" + (" · 已选" if view.choice == "whole" else ""), "reference_select", view.choice == "whole", blocked, "whole")
+	for record: Dictionary in reference.segments:
+		var id := "segment:%d" % int(record.number)
+		_action(panel, "上航段 #%d%s" % [int(record.number), " · 已选" if view.choice == id else ""], "reference_select", view.choice == id, blocked, id)
+	if reference.segments.is_empty():
+		_label(panel, "上航无手动完成段；整航实测仍有效。", 17, MUTED)
+	var measured: Dictionary = view.selected
+	_label(panel, "整航实测" if view.choice == "whole" else "所选上航完成段（非整航）", 18, TEAL)
+	_label(panel, "模拟时刻 %.3f → %.3f\n%s" % [measured.start.time, measured.end.time, Segments.describe(measured)], 17)
+	_label(panel, "逐物理步行程，非端点位移；实耗不是下一航成本／最低储备或续航预测。只含端点公开风／风暴，无环境流读数，不归因。", 16, MUTED)
 
 
 func _build_navigation(body: VBoxContainer) -> void:
