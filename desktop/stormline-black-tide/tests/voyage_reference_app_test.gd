@@ -69,6 +69,7 @@ func _loop(path: String) -> void:
 		_press(app, "queue_unload_kit")
 	_press(app, "queue_prepare_kit")
 	_check(app.get("_work_order").size() == 12 and _bytes(path) == bytes, "real twelve-item maximum draft alongside six retained records remains unpaid")
+	await _selector_context(app)
 	await _preparation_geometry(app, "real six-record different-offer reference beside active recharge draft")
 	# Synthetic presentation fixture only: no live/saved ship or reference modified.
 	var fixture: Dictionary = _desk(app).get("_view").duplicate(true)
@@ -178,6 +179,37 @@ func _reference_actions(app: Node, path: String, baseline: Dictionary) -> void:
 	_check(_state(app) == state and app.get("sim").snapshot() == sim and _bytes(path) == bytes and _record_bytes() == _original_records and app.get("_work_order") == draft, "native show/select/hide are entirely read-only to full Sim/gameplay/draft/campaign primary+backup and scores")
 	# Clear is verified here then restore ONLY by the next genuine result in separate cases.
 	_check(reference.view().reference == baseline.reference, "native actions leave immutable saved payload unchanged")
+
+
+func _selector_context(app: Node) -> void:
+	var viewport := app.get_viewport() as SubViewport
+	for dimensions: Vector2i in VIEWPORTS:
+		viewport.size = dimensions
+		app.call("_present_expedition")
+		for frame in range(7):
+			await process_frame
+		for id: String in ["reference_select_segment:8", "reference_select_whole"]:
+			var button := _button(app, id)
+			button.grab_focus()
+			for frame in range(7):
+				await process_frame
+			var before: int = _desk(app).get("_scroll").scroll_vertical
+			button.pressed.emit()
+			for frame in range(7):
+				await process_frame
+			for redraw in range(2):
+				if redraw == 1:
+					app.call("_present_expedition")
+					for frame in range(7):
+						await process_frame
+				var scroll: ScrollContainer = _desk(app).get("_scroll")
+				var expected := mini(before, maxi(0, int(scroll.get_v_scroll_bar().max_value - scroll.get_v_scroll_bar().page)))
+				var focus := viewport.gui_get_focus_owner()
+				var note := "settled selector context %s %s redraw=%d" % [dimensions, id, redraw]
+				_check(absi(scroll.scroll_vertical - expected) <= 1, note + " preserves saved scroll after deferred native follow_focus")
+				_check(focus == _button(app, id), note + " restores same original serial/whole control")
+				_check(is_instance_valid(focus) and _rect(scroll).grow(2).encloses(_rect(focus)), note + " focused selector stays visible")
+	viewport.size = Vector2i(1280, 720)
 
 
 func _conflict(path: String) -> void:

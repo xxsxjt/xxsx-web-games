@@ -175,6 +175,10 @@ func _restore_focus(serial: int, id: String, scroll_y: int) -> void:
 			if not other.disabled and other.is_visible_in_tree():
 				other.grab_focus()
 				break
+	# Native follow_focus also defers a scroll; restore the saved context last.
+	await get_tree().process_frame
+	if serial == _draw_serial and visible:
+		_scroll.scroll_vertical = scroll_y
 
 
 func _build_archive(body: VBoxContainer, actions: HBoxContainer) -> void:
